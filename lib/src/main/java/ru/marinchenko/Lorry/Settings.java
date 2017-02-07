@@ -1,7 +1,7 @@
-package ru.marinchenko;
+package ru.marinchenko.lorry;
 
-import ru.marinchenko.util.SearchStatus;
-import static ru.marinchenko.util.SearchStatus.*;
+import ru.marinchenko.lorry.util.SearchStatus;
+import static ru.marinchenko.lorry.util.SearchStatus.*;
 
 
 public class Settings {

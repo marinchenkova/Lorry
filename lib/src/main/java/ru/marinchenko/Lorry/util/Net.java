@@ -1,4 +1,4 @@
-package ru.marinchenko.util;
+package ru.marinchenko.lorry.util;
 
 import java.util.regex.*;
 
@@ -6,13 +6,13 @@ public class Net {
 
     private boolean reg;
     private String id;
-    private String password;
+    private String password = "0";
 
     public static void main(String[] args) {
-        Net net = new Net("LdV-363673");
+        Net net = new Net("LV-363673");
         System.out.println("Wi-Fi Net ID: " + net.getId());
-        System.out.println("PasswordGen:     " + net.getPassword());
-        System.out.println("Registrator:  " + net.isRegistator());
+        System.out.println("KeyGen:  " + net.getPassword());
+        System.out.println("Registrator:  " + net.isReg());
     }
 
     public Net(String name){
@@ -22,12 +22,12 @@ public class Net {
         Matcher matcher = pattern.matcher(name);
         reg = matcher.matches();
 
-        password = PasswordGen.generate(name);
+        if(reg) password = KeyGen.generatePass(name);
     }
 
     public String getId(){ return id; }
 
     public String getPassword(){ return  password; }
 
-    public boolean isRegistator(){ return reg; }
+    public boolean isReg(){ return reg; }
 }

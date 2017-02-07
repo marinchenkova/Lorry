@@ -1,4 +1,4 @@
-package ru.marinchenko.util;
+package ru.marinchenko.lorry.util;
 
 public enum SearchStatus {
     PERMANENT,
