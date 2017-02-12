@@ -4,30 +4,30 @@ import java.util.regex.*;
 
 public class Net {
 
-    private boolean reg;
+    private boolean rec;
     private String id;
     private String password = "0";
 
     public static void main(String[] args) {
-        Net net = new Net("LV-363673");
+        Net net = new Net(KeyGen.generateID());
         System.out.println("Wi-Fi Net ID: " + net.getId());
-        System.out.println("KeyGen:  " + net.getPassword());
-        System.out.println("Registrator:  " + net.isReg());
+        System.out.println("KeyGen:       " + net.getPassword());
+        System.out.println("Registrator:  " + net.isRec());
     }
 
     public Net(String name){
         id = name;
 
-        Pattern pattern = Pattern.compile("LV-[0-9]{6}");
+        Pattern pattern = Pattern.compile("LV-[0-9]{8}");
         Matcher matcher = pattern.matcher(name);
-        reg = matcher.matches();
+        rec = matcher.matches();
 
-        if(reg) password = KeyGen.generatePass(name);
+        if(rec) password = KeyGen.generatePass(name);
     }
 
     public String getId(){ return id; }
 
     public String getPassword(){ return  password; }
 
-    public boolean isReg(){ return reg; }
+    public boolean isRec(){ return rec; }
 }

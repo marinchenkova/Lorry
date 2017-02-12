@@ -31,7 +31,7 @@ public class NetAgent {
         }
 
         for(Net n: newNets){
-            if(n.isReg()) regs.add(n);
+            if(n.isRec()) regs.add(n);
         }
     }
 
@@ -51,7 +51,7 @@ public class NetAgent {
         }
 
         for(Net n: nets){
-            if(n.isReg()) regs.add(n);
+            if(n.isRec()) regs.add(n);
         }
     }
 
