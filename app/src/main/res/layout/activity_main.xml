@@ -7,25 +7,18 @@
     android:orientation="vertical">
 
     <GridLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:orientation="horizontal">
+        android:layout_height="60dp">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="start"
+            android:layout_gravity="fill"
+            android:gravity="center_vertical"
             android:text="@string/textview_lorry"
             android:textSize="30sp" />
 
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="end"
             android:src="@drawable/button_settings_icon"
-
+            android:contentDescription="@string/button_settings"
             android:onClick="toSettings" />
 
     </GridLayout>
