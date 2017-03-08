@@ -5,4 +5,5 @@
     <string name="checkbox_autoconnect">Подключаться автоматически</string>
     <string name="textview_updateinfo">updateInfo()</string>
     <string name="button_find">НАЙТИ СЕТЬ</string>
+    <string name="list_noNets">Нет сетей</string>
 </resources>

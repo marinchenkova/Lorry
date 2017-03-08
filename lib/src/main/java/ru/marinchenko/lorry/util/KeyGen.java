@@ -7,9 +7,9 @@ package ru.marinchenko.lorry.util;
 public class KeyGen {
 
     public static void main(String[] args) {
-        String id = generateID();
+        /*String id = generateID();
         System.out.println("Wi-Fi name:  " + id);
-        System.out.println("KeyGen:      " + generatePass(id));
+        System.out.println("KeyGen:      " + generatePass(id));*/
     }
 
     public static String generateID(){

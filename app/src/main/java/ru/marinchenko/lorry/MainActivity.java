@@ -1,19 +1,27 @@
 package ru.marinchenko.lorry;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.EditText;
+import android.widget.ListView;
+
+import java.util.ArrayList;
+
+import ru.marinchenko.lorry.util.Net;
 
 public class MainActivity extends Activity {
 
-    public final static String EXTRA_MESSAGE = "ru.marinchenko.lorry.MESSAGE";
+    private NetListAdapter netListAdapter;
+    private Settings settings = new Settings();
+
+    private ArrayList<Net> testNets = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        init();
     }
 
     /** Called when the user clicks the Send button */
@@ -25,6 +33,18 @@ public class MainActivity extends Activity {
         startActivity(intent);
     }
 */
+
+    private void init(){
+        testNets.add(new Net("Wi-Fi Net 1"));
+        testNets.add(new Net("LV-12345678"));
+        testNets.add(new Net("LV-12345679"));
+        testNets.add(new Net("Wi-Fi Net 2"));
+        netListAdapter = new NetListAdapter(this, testNets);
+
+        ListView netListView = (ListView) findViewById(R.id.netList);
+        netListView.setAdapter(netListAdapter);
+    }
+
     /**
      * Вызывается при нажатии кнопки "Настройки"
      * @param view кнопка
@@ -38,8 +58,9 @@ public class MainActivity extends Activity {
      * Вызывается при нажатии кнопки "НАЙТИ СЕТЬ"
      * @param view кнопка
      */
-    public void findNets(View view){
+    public ArrayList<Net> findNets(View view){
         //TODO findNets()
+        return null;
     }
 
     /**

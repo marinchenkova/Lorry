@@ -1,5 +1,6 @@
 package ru.marinchenko.lorry.util;
 
+import java.awt.Image;
 import java.util.regex.*;
 
 public class Net {
@@ -7,6 +8,7 @@ public class Net {
     private boolean rec;
     private String id;
     private String password = "0";
+    private int image = 0;
 
     public static void main(String[] args) {
         Net net = new Net(KeyGen.generateID());
@@ -24,6 +26,8 @@ public class Net {
 
         if(rec) password = KeyGen.generatePass(name);
     }
+
+    public int getImage(){ return image; }
 
     public String getId(){ return id; }
 
