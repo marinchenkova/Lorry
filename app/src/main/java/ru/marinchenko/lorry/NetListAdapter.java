@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import ru.marinchenko.lorry.util.Net;
 
 
-
 public class NetListAdapter extends BaseAdapter{
 
     private Context context;
@@ -66,27 +65,6 @@ public class NetListAdapter extends BaseAdapter{
                 net.isRec() ? recIcon : wifiIcon);
 
         return view;
-    }
-
-    /**
-     * Обновление списков сетей {@link NetListAdapter#nets} и {@link NetListAdapter#recs}.
-     * @param ids массив имен сетей
-     */
-    public void updateNets(String[] ids){
-        ArrayList<Net> newNets = new ArrayList<>();
-        nets.clear();
-        recs.clear();
-
-        for (String id : ids) {
-            newNets.add(new Net(id));
-        }
-
-        for(Net n: newNets){
-            if(n.isRec()) recs.add(n);
-            else nets.add(n);
-        }
-
-        nets.addAll(0, recs);
     }
 
     /**

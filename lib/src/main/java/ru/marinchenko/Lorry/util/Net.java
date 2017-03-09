@@ -8,7 +8,6 @@ public class Net {
     private boolean rec;
     private String id;
     private String password = "0";
-    private int image = 0;
 
     public static void main(String[] args) {
         Net net = new Net(KeyGen.generateID());
@@ -19,15 +18,14 @@ public class Net {
 
     public Net(String name){
         id = name;
-
-        Pattern pattern = Pattern.compile("LV-[0-9]{8}");
-        Matcher matcher = pattern.matcher(name);
-        rec = matcher.matches();
-
-        if(rec) password = KeyGen.generatePass(name);
+        rec = ifRec(id);
     }
 
-    public int getImage(){ return image; }
+    public static boolean ifRec(String name){
+        Pattern pattern = Pattern.compile("LV-[0-9]{8}");
+        Matcher matcher = pattern.matcher(name);
+        return matcher.matches();
+    }
 
     public String getId(){ return id; }
 

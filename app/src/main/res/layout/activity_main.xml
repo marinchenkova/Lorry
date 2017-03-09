@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical" >
 
     <TextView
         android:layout_gravity="fill"
@@ -50,7 +50,7 @@
         android:text="@string/button_find"
         android:textSize="30sp"
         android:textAlignment="center"
-        android:onClick="findNets" />
+        android:onClick="scanWifi" />
     
     <ListView
         android:id="@+id/netList"
