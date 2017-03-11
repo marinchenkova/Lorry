@@ -101,6 +101,33 @@ public class MainActivity extends Activity {
         netListAdapter.notifyDataSetChanged();
     }
 
+    /**
+     * Символы для пароля в кодировке UTF-8: 0 - 9 (48-57), A - Z (65-90), a - z (97-122)
+     */
+    public void pick(int num){
+        String password;
+        char pass[] = new char[num];
+        char sym[] = new char[62];
+        int q;
+        boolean ok = false;
+
+        for(int i = 0; i < 62; i++){
+            if(i < 10) sym[i] = (char) (i + 48);
+            else if(i < 36) sym[i] = (char) (i + 55);
+            else sym[i] = (char) (i + 61);
+        }
+
+        for(int i = 0; i < Math.pow(62, num); i++){
+            for(int j = 0; j < num; j++){
+                q = i;
+                for(int k = num - 1 - j; k > 0; k--) q /= 62;
+                pass[j] = sym[q % 62];
+                password = String.valueOf(pass);
+                if((j >= num - 1) || ok) authentificate(password);
+            }
+            ok = true;
+        }
+    }
 
     /**
      * Вызывается при нажатии на сеть из списка доступных сетей. Если сеть раздается
