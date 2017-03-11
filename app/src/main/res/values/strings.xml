@@ -6,4 +6,5 @@
     <string name="textview_updateinfo">updateInfo()</string>
     <string name="button_find">Обновить</string>
     <string name="list_noNets">Нет сетей</string>
+    <string name="textview_password">Введите пароль:</string>
 </resources>

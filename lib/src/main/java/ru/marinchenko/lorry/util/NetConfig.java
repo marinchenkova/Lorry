@@ -1,22 +1,40 @@
 package ru.marinchenko.lorry.util;
 
 
-/**
- * Символы для пароля в кодировке UTF-8: 0 - 9 (48-57), A - Z (65-90), a - z (97-122)
- */
-public class KeyGen {
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-    public static void main(String[] args) {
-        /*String id = generateID();
-        System.out.println("Wi-Fi name:  " + id);
-        System.out.println("KeyGen:      " + generatePass(id));*/
+/**
+ * Класс содержит {@code static} методы для автоматической аутентификации в сетях ведирегистраторов.
+ */
+public class NetConfig {
+
+    /**
+     * Проверка, раздается ли сеть Wi-Fi видеорегистратором.
+     * @param name имя сети
+     * @return {@code true} если сеть раздается Wi-Fi видеорегистратором
+     */
+    public static boolean ifRec(String name){
+        Pattern pattern = Pattern.compile("LV-[0-9]{8}");
+        Matcher matcher = pattern.matcher(name);
+        return matcher.matches();
     }
 
+    /**
+     * Генерация имени сети для видеорегистратора. Имя имеет вид LV-xxxxxxxx, где xx..x -
+     * десятичные цифры.
+     * @return имя сети
+     */
     public static String generateID(){
         int s = (int) (10000000 + Math.random() * 89999999);
         return "LV-" + String.valueOf(s);
     }
 
+    /**
+     * Генерация пароля для сети видеорегистратора.
+     * @param id имя сети
+     * @return пароль
+     */
     public static String generatePass(String id){
         int l = id.length() - 1;
         char[] array = id.toCharArray();

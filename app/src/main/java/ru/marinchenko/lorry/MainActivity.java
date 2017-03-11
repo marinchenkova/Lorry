@@ -1,55 +1,60 @@
 package ru.marinchenko.lorry;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import ru.marinchenko.lorry.util.Net;
 
 public class MainActivity extends Activity {
 
     private NetListAdapter netListAdapter;
     private Settings settings = new Settings();
-    private WifiManager wifiManager;
 
-    private ArrayList<Net> nets = new ArrayList<>();
+    private WifiManager wifiManager;
+    private WifiReceiver wifiReceiver;
+    private WifiConfiguration wifiConfig;
+    private List<ScanResult> scanResults = new ArrayList<>();
+    private ScanResult currNet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        wifiReceiver = new WifiReceiver();
         wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        wifiConfig = new WifiConfiguration();
 
-        netListAdapter = new NetListAdapter(this, nets);
+        netListAdapter = new NetListAdapter(this, scanResults);
 
-        ListView netListView = (ListView) findViewById(R.id.netList);
+        if(wifiManager.isWifiEnabled()) scanWifi();
+
+        initNetList();
+    }
+
+
+    private void initNetList(){
+        final ListView netListView = (ListView) findViewById(R.id.netList);
         netListView.setAdapter(netListAdapter);
-    }
 
-    /** Called when the user clicks the Send button */
-/*    public void sendMessage(View view) {
-        Intent intent = new Intent(this, DisplayMessageActivity.class);
-        EditText editText = (EditText) findViewById(R.id.edit_message);
-        String message = editText.getText().toString();
-        intent.putExtra(EXTRA_MESSAGE, message);
-        startActivity(intent);
-    }
-*/
-
-    private void testNets(){
-        nets.add(new Net("Wi-Fi Net 1"));
-        nets.add(new Net("LV-12345678"));
-        nets.add(new Net("LV-12345679"));
-        nets.add(new Net("Wi-Fi Net 2"));
+        netListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                currNet = (ScanResult) netListAdapter.getItem(position);
+                toNet();
+            }
+        });
     }
 
     /**
@@ -77,31 +82,70 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Вызывается при нажатии кнопки "НАЙТИ СЕТЬ"
+     * Вызывается при нажатии кнопки "ОБНОВИТЬ"
      * @param view кнопка
      */
-    public void scanWifi(View view){
-        wifiManager.startScan();
-        List<ScanResult> scanResults = wifiManager.getScanResults();
-        nets.clear();
+    public void updateNets(View view){
+        scanWifi();
+    }
 
-        for(ScanResult s : scanResults){
-            nets.add(new Net(s.SSID));
+    public void scanWifi(){
+        if(!wifiManager.isWifiEnabled()){
+            wifiManager.setWifiEnabled(true);
         }
 
-        netListAdapter.updateNets(nets);
+        wifiManager.startScan();
+        scanResults = wifiManager.getScanResults();
+
+        netListAdapter.updateNets(scanResults);
         netListAdapter.notifyDataSetChanged();
     }
+
 
     /**
      * Вызывается при нажатии на сеть из списка доступных сетей. Если сеть раздается
      * видеорегистратором, приложение перейдет к просмотру его камеры.
      */
-    public void toNet(View view){
-        TextView tv = (TextView) view.findViewById(R.id.netList_item_name);
-        if(Net.ifRec(tv.getText().toString())){
-            //TODO toNet()
-            ((TextView) view.findViewById(R.id.netList_item_name)).setText("YES!");
+    public void toNet(){
+        LoginDialog dialog = new LoginDialog();
+        dialog.show(getFragmentManager(), "login");
+    }
+
+    public void authentificate(String password){
+        /*
+        Context context = getApplicationContext();
+        CharSequence text = password;
+        int duration = Toast.LENGTH_SHORT;
+
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();*/
+
+        wifiConfig.preSharedKey = String.format("\"%s\"", password);
+        WifiAuth.configure(wifiConfig, currNet);
+
+        int netId = wifiManager.addNetwork(wifiConfig);
+        wifiManager.saveConfiguration();
+
+        wifiManager.disconnect();
+        wifiManager.enableNetwork(netId, true);
+        wifiManager.reconnect();
+
+        //TODO Переход на другую активити
+    }
+
+    protected void onPause() {
+        unregisterReceiver(wifiReceiver);
+        super.onPause();
+    }
+
+    protected void onResume() {
+        registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+        super.onResume();
+    }
+
+    private class WifiReceiver extends BroadcastReceiver {
+        public void onReceive(Context c, Intent intent) {
+            scanWifi();
         }
     }
 }

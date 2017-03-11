@@ -50,14 +50,12 @@
         android:text="@string/button_find"
         android:textSize="30sp"
         android:textAlignment="center"
-        android:onClick="scanWifi" />
+        android:onClick="updateNets" />
     
     <ListView
         android:id="@+id/netList"
-        android:layout_gravity="fill_horizontal"
-        android:layout_height="wrap_content"
+        android:layout_gravity="fill"
         android:layout_columnSpan="2">
-
     </ListView>
 
 </GridLayout>
