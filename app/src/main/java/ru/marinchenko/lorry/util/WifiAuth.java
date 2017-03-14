@@ -1,4 +1,4 @@
-package ru.marinchenko.lorry;
+package ru.marinchenko.lorry.util;
 
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;

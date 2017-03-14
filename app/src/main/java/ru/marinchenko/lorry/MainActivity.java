@@ -16,6 +16,10 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
 
+import ru.marinchenko.lorry.dialogs.LoginDialog;
+import ru.marinchenko.lorry.util.NetListAdapter;
+import ru.marinchenko.lorry.util.WifiAuth;
+
 public class MainActivity extends Activity {
 
     private NetListAdapter netListAdapter;
@@ -32,9 +36,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        wifiReceiver = new WifiReceiver();
-        wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
-        wifiConfig = new WifiConfiguration();
+        initWifi();
 
         netListAdapter = new NetListAdapter(this, scanResults);
 
@@ -43,8 +45,15 @@ public class MainActivity extends Activity {
         initNetList();
     }
 
+    private void initWifi(){
+        wifiReceiver = new WifiReceiver();
+        wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        wifiConfig = new WifiConfiguration();
+    }
 
     private void initNetList(){
+        netListAdapter = new NetListAdapter(this, scanResults);
+
         final ListView netListView = (ListView) findViewById(R.id.netList);
         netListView.setAdapter(netListAdapter);
 
@@ -85,9 +94,7 @@ public class MainActivity extends Activity {
      * Вызывается при нажатии кнопки "ОБНОВИТЬ"
      * @param view кнопка
      */
-    public void updateNets(View view){
-        scanWifi();
-    }
+    public void updateNets(View view){ scanWifi(); }
 
     public void scanWifi(){
         if(!wifiManager.isWifiEnabled()){
@@ -102,34 +109,6 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Символы для пароля в кодировке UTF-8: 0 - 9 (48-57), A - Z (65-90), a - z (97-122)
-     */
-    public void pick(int num){
-        String password;
-        char pass[] = new char[num];
-        char sym[] = new char[62];
-        int q;
-        boolean ok = false;
-
-        for(int i = 0; i < 62; i++){
-            if(i < 10) sym[i] = (char) (i + 48);
-            else if(i < 36) sym[i] = (char) (i + 55);
-            else sym[i] = (char) (i + 61);
-        }
-
-        for(int i = 0; i < Math.pow(62, num); i++){
-            for(int j = 0; j < num; j++){
-                q = i;
-                for(int k = num - 1 - j; k > 0; k--) q /= 62;
-                pass[j] = sym[q % 62];
-                password = String.valueOf(pass);
-                if((j >= num - 1) || ok) authentificate(password);
-            }
-            ok = true;
-        }
-    }
-
-    /**
      * Вызывается при нажатии на сеть из списка доступных сетей. Если сеть раздается
      * видеорегистратором, приложение перейдет к просмотру его камеры.
      */
@@ -138,15 +117,7 @@ public class MainActivity extends Activity {
         dialog.show(getFragmentManager(), "login");
     }
 
-    public void authentificate(String password){
-        /*
-        Context context = getApplicationContext();
-        CharSequence text = password;
-        int duration = Toast.LENGTH_SHORT;
-
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();*/
-
+    public void authenticate(String password){
         wifiConfig.preSharedKey = String.format("\"%s\"", password);
         WifiAuth.configure(wifiConfig, currNet);
 
@@ -171,8 +142,6 @@ public class MainActivity extends Activity {
     }
 
     private class WifiReceiver extends BroadcastReceiver {
-        public void onReceive(Context c, Intent intent) {
-            scanWifi();
-        }
+        public void onReceive(Context c, Intent intent) { scanWifi(); }
     }
 }

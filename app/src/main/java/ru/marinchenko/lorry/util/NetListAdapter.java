@@ -1,12 +1,10 @@
-package ru.marinchenko.lorry;
+package ru.marinchenko.lorry.util;
 
 import android.content.Context;
 import android.net.wifi.ScanResult;
-import android.net.wifi.WifiConfiguration;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,19 +12,17 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import ru.marinchenko.lorry.util.NetConfig;
+import ru.marinchenko.lorry.R;
 
 
 public class NetListAdapter extends BaseAdapter{
 
-    private Context context;
     private LayoutInflater layoutInf;
     private List<ScanResult> recs = new ArrayList<>();
     private List<ScanResult> nets = new ArrayList<>();
 
 
-    NetListAdapter(Context ctx, List<ScanResult> netList) {
-        context = ctx;
+    public NetListAdapter(Context ctx, List<ScanResult> netList) {
         updateNets(netList);
         layoutInf = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
