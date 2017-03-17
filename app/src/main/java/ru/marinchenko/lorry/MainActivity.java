@@ -12,13 +12,15 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import ru.marinchenko.lorry.dialogs.LoginDialog;
 import ru.marinchenko.lorry.util.NetListAdapter;
-import ru.marinchenko.lorry.util.WifiAuth;
+import ru.marinchenko.lorry.util.WifiSpecification;
 
 public class MainActivity extends Activity {
 
@@ -27,7 +29,6 @@ public class MainActivity extends Activity {
 
     private WifiManager wifiManager;
     private WifiReceiver wifiReceiver;
-    private WifiConfiguration wifiConfig;
     private List<ScanResult> scanResults = new ArrayList<>();
     private ScanResult currNet;
 
@@ -48,7 +49,6 @@ public class MainActivity extends Activity {
     private void initWifi(){
         wifiReceiver = new WifiReceiver();
         wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
-        wifiConfig = new WifiConfiguration();
     }
 
     private void initNetList(){
@@ -113,15 +113,15 @@ public class MainActivity extends Activity {
      * видеорегистратором, приложение перейдет к просмотру его камеры.
      */
     public void toNet(){
+        toast(currNet.capabilities);
         LoginDialog dialog = new LoginDialog();
         dialog.show(getFragmentManager(), "login");
     }
 
     public void authenticate(String password){
-        wifiConfig.preSharedKey = String.format("\"%s\"", password);
-        WifiAuth.configure(wifiConfig, currNet);
+        WifiConfiguration config = WifiSpecification.configure(currNet, password);
 
-        int netId = wifiManager.addNetwork(wifiConfig);
+        int netId = wifiManager.addNetwork(config);
         wifiManager.saveConfiguration();
 
         wifiManager.disconnect();
@@ -129,6 +129,11 @@ public class MainActivity extends Activity {
         wifiManager.reconnect();
 
         //TODO Переход на другую активити
+    }
+
+    private void toast(String s){
+        Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
+        ((TextView) findViewById(R.id.updateInfo_text)).setText(s);
     }
 
     protected void onPause() {

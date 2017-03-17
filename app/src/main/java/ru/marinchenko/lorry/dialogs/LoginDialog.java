@@ -37,7 +37,7 @@ public class LoginDialog extends DialogFragment implements
     @Override
     public void onClick(DialogInterface dialog, int which) {
         MainActivity mainActivity = (MainActivity) getActivity();
-        EditText passwordBox = (EditText) form.findViewById(R.id.password);
+        EditText passwordBox = (EditText) form.findViewById(R.id.edittext_password);
 
         mainActivity.authenticate(passwordBox.getText().toString());
     }
