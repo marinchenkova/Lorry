@@ -8,23 +8,22 @@ import android.net.wifi.WifiConfiguration;
  * объекта {@link ScanResult}.
  */
 
-public class WifiSpecification {
+public class WifiConfigurator {
+
+    private WifiConfiguration config = new WifiConfiguration();
+    private int type = 0;
 
     /**
      * Задание основных полей конфигурации сети.
      * @param s сеть Wi-Fi
      * @return результат конфигурирования сети
      */
-    public static WifiConfiguration configure(ScanResult s, String password){
-        WifiConfiguration config = new WifiConfiguration();
-
+    public void configure(ScanResult s){
         config.SSID = String.format("\"%s\"", s.SSID);
         config.priority = 40;
         config.BSSID = s.BSSID;
 
         String cap = s.capabilities;
-
-        //WEP Wi-Fi network
 
         //WPA, WPA2 Wi-Fi network
         if(cap.contains("WPA")) {
@@ -38,7 +37,7 @@ public class WifiSpecification {
             config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
             config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
 
-            config.preSharedKey = String.format("\"%s\"", password);
+            type = 1;
 
         //WEP Wi-Fi network
         } else if(cap.contains("WEP")) {
@@ -52,9 +51,7 @@ public class WifiSpecification {
             config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP40);
             config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.WEP104);
 
-            if (password.matches("[0-9a-fA-F]+")) config.wepKeys[0] = password;
-            else config.wepKeys[0] = String.format("\"%s\"", password);
-            config.wepTxKeyIndex = 0;
+            type = 2;
 
         //Open Wi-Fi network
         } else {
@@ -69,7 +66,20 @@ public class WifiSpecification {
             config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
             config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
         }
-
-        return config;
     }
+
+    public void setPassword(String password){
+        switch (type){
+            case 1:
+                config.preSharedKey = String.format("\"%s\"", password);
+                break;
+
+            case 2:
+                if (password.matches("[0-9a-fA-F]+")) config.wepKeys[0] = password;
+                else config.wepKeys[0] = String.format("\"%s\"", password);
+                config.wepTxKeyIndex = 0;
+        }
+    }
+
+    public WifiConfiguration getConfiguredNet(){ return config; }
 }

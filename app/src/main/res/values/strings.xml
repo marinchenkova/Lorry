@@ -6,4 +6,7 @@
     <string name="button_find">Обновить</string>
     <string name="listview_noNets">Нет сетей</string>
     <string name="textview_password">Введите пароль:</string>
+    <string name="button_exitvideo">Выход</string>
+    <string name="logging">Подключение...</string>
+    <string name="cant_logging">Не удалось подключиться</string>
 </resources>

@@ -1,21 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_video_stream"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:columnCount="1"
+    android:rowCount="2"
     android:orientation="vertical"
     tools:context="ru.marinchenko.lorry.VideoStreamActivity">
 
     <VideoView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:id="@+id/videoView"
+        android:layout_gravity="fill"
+        android:layout_height="512dp" />
 
-    <GridLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:columnCount="3">
+    <Button
+        android:id="@+id/button_exitvideo"
+        android:layout_gravity="fill"
+        android:text="@string/button_exitvideo"
+        android:textSize="30sp"
+        android:textAlignment="center"
+        android:onClick="exit"/>
 
-    </GridLayout>
-
-</LinearLayout>
+</GridLayout>
