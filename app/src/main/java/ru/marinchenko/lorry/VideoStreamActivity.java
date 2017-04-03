@@ -35,7 +35,7 @@ public class VideoStreamActivity extends Activity {
         //play();
     }
 
-    private void initStream(){
+    public void initStream(){
         //TODO video URL
         videoSource = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
         videoSource = "http://".concat(videoSource.concat(":8080/"));
@@ -46,7 +46,7 @@ public class VideoStreamActivity extends Activity {
     }
 
 
-    private void play(){
+    public void play(){
         videoView.start();
     }
 
@@ -60,7 +60,7 @@ public class VideoStreamActivity extends Activity {
         }
     };
 
-    private void checkWifiState(){
+    public void checkWifiState(){
         if (mainActivity.isWifiConnected()) {
             initStream();
             play();

@@ -16,7 +16,6 @@ public class WifiConfigurator {
     /**
      * Задание основных полей конфигурации сети.
      * @param s сеть Wi-Fi
-     * @return результат конфигурирования сети
      */
     public void configure(ScanResult s){
         config.SSID = String.format("\"%s\"", s.SSID);

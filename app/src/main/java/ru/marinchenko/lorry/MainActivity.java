@@ -1,13 +1,13 @@
 package ru.marinchenko.lorry;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -49,19 +49,18 @@ public class MainActivity extends Activity {
         setAutoConnect(findViewById(R.id.autoconnect_checkbox));
 
         initWifi();
-
-        netListAdapter = new NetListAdapter(this, scanResults);
-
-        if(wifiManager.isWifiEnabled()) scanWifi();
-
+        //if(wifiManager.isWifiEnabled()) scanWifi();
         initNetList();
     }
+
+    public WifiManager getWifiManager(){return wifiManager;}
 
     private void initWifi(){
         wifiConf = new WifiConfigurator();
         wifiReceiver = new WifiReceiver();
-        wifiManager = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
     }
+
 
     private void initNetList(){
         netListAdapter = new NetListAdapter(this, scanResults);
@@ -72,11 +71,11 @@ public class MainActivity extends Activity {
         netListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-                currNet = (ScanResult) netListAdapter.getItem(position);
-                toNet();
+                toNet((ScanResult) netListAdapter.getItem(position));
             }
         });
     }
+
 
     /**
      * Вызывается при нажатии кнопки "Настройки"
@@ -90,9 +89,7 @@ public class MainActivity extends Activity {
      * Вызывается при переключении флажка "Подключаться автоматически"
      * @param view флажок
      */
-    public void setAutoConnect(View view){
-        autoConnect = ((CheckBox) view).isChecked();
-    }
+    public void setAutoConnect(View view){ autoConnect = ((CheckBox) view).isChecked(); }
 
     /**
      * Вывод информации о времени обновления списка сетей
@@ -108,6 +105,9 @@ public class MainActivity extends Activity {
      */
     public void updateNets(View view){ scanWifi(); }
 
+    /**
+     * Сканирование доступных Wi-Fi сетей.
+     */
     public void scanWifi(){
         if(!wifiManager.isWifiEnabled()){
             wifiManager.setWifiEnabled(true);
@@ -124,12 +124,22 @@ public class MainActivity extends Activity {
      * Вызывается при нажатии на сеть из списка доступных сетей. Если сеть раздается
      * видеорегистратором, приложение перейдет к просмотру его камеры.
      */
-    public void toNet(){
+    public void toNet(ScanResult net){
+        currNet = net;
         wifiConf.configure(currNet);
+        Toast.makeText(this, currNet.capabilities, Toast.LENGTH_LONG).show();
         LoginDialog dialog = new LoginDialog();
         dialog.show(getFragmentManager(), "login");
     }
 
+    public boolean currNetNotNull(){
+        return currNet != null;
+    }
+
+    /**
+     * Аутентификация в сети.
+     * @param password пароль
+     */
     public void authenticate(String password){
         wifiConf.setPassword(password);
 
@@ -141,6 +151,10 @@ public class MainActivity extends Activity {
         wifiManager.reconnect();
     }
 
+    /**
+     * Проверка подключения к сети, которая была выбрана из списка доступных сетей.
+     * @return {@code true}, если подключение есть
+     */
     public boolean isWifiConnected(){
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         return currNet != null &&
@@ -152,13 +166,16 @@ public class MainActivity extends Activity {
         super.onPause();
     }
 
+
     protected void onResume() {
         IntentFilter inf = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         inf.addAction(WifiManager.ACTION_PICK_WIFI_NETWORK);
         inf.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
         registerReceiver(wifiReceiver, inf);
+        currNet = null;
         super.onResume();
     }
+
 
     private class WifiReceiver extends BroadcastReceiver {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -166,13 +183,17 @@ public class MainActivity extends Activity {
             if(updateTimer == 0) scanWifi();
 
             if (isWifiConnected()) {
-                currNet = null;
                 Intent i = new Intent(getApplicationContext(), VideoStreamActivity.class);
                 startActivityAsChild(i);
             }
         }
     }
 
+    /**
+     * Вызов Activity с помещением текущей Activity в стек переходов. При нажатии кнопки "Назад" в
+     * вызываемой Activity не будет зацикливания переходов.
+     * @param next вызываемая Activity
+     */
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     private void startActivityAsChild(Intent next){
         TaskStackBuilder.create(this).addNextIntentWithParentStack(this.getIntent());
