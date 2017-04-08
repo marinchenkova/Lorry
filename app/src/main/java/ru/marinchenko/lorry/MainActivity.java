@@ -135,7 +135,9 @@ public class MainActivity extends Activity {
     public void toNet(ScanResult net){
         currNet = net;
         wifiConf.configure(currNet);
+
         Toast.makeText(this, currNet.capabilities, Toast.LENGTH_LONG).show();
+
         LoginDialog dialog = new LoginDialog();
         dialog.show(getFragmentManager(), "login");
     }

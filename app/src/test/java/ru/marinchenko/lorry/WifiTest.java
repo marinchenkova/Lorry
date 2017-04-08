@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
+import android.util.Pair;
 import android.widget.ListView;
 
 import org.junit.Before;
@@ -13,21 +14,21 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowWifiManager;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-
 
 import ru.marinchenko.lorry.util.NetConfig;
 import ru.marinchenko.lorry.util.WifiConfigurator;
 
-import static org.mockito.Matchers.any;
+import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
+import static org.robolectric.Shadows.shadowOf;
+
 
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
@@ -38,9 +39,9 @@ public class WifiTest {
     @Mock
     private Context mContext;
 
-
     private WifiManager mWifiManager;
     private WifiManager spyWifiManager;
+    private ShadowWifiManager shadowWifiManager;
 
     private MainActivity mainActivity;
     private List<ScanResult> scans;
@@ -50,14 +51,17 @@ public class WifiTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        int scansNum = 1;
+        int scansNum = 2;
         scans = buildScanResults(mScan, scansNum);
 
-        mWifiManager = buildWifiManager();
+        mWifiManager =
+                (WifiManager) RuntimeEnvironment.application.getSystemService(Context.WIFI_SERVICE);
         spyWifiManager = spy(mWifiManager);
+        shadowWifiManager = shadowOf(spyWifiManager);
 
-        spyWifiManager.setWifiEnabled(true);
-        doReturn(scans).when(spyWifiManager).getScanResults();
+        shadowWifiManager.setWifiEnabled(true);
+        shadowWifiManager.setScanResults(scans);
+
         doReturn(true).when(spyWifiManager).disconnect();
         doReturn(true).when(spyWifiManager).reconnect();
 
@@ -71,32 +75,17 @@ public class WifiTest {
         mainActivity.scanWifi();
 
         ListView netList = (ListView) mainActivity.findViewById(R.id.netList);
+
         netList.performItemClick(netList.getChildAt(0), 0, netList.getItemIdAtPosition(0));
-
         mainActivity.authenticate("");
+
+        netList.performItemClick(netList.getChildAt(1), 1, netList.getItemIdAtPosition(1));
+        mainActivity.authenticate("");
+
+        Pair<Integer, Boolean> lastEnabled = shadowWifiManager.getLastEnabledNetwork();
+        assertThat(lastEnabled).isEqualTo(new Pair<>(1, true));
     }
 
-    private WifiManager buildWifiManager(){
-        Constructor<WifiManager> ctor;
-        WifiManager wm = null;
-
-        try {
-            ctor = WifiManager.class.getDeclaredConstructor(null);
-            ctor.setAccessible(true);
-            wm = ctor.newInstance(null);
-
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
-
-        return wm;
-    }
 
     private List<ScanResult> buildScanResults(ScanResult scan, int num) {
         List<ScanResult> scans = new ArrayList<>();
@@ -104,6 +93,7 @@ public class WifiTest {
             scans.add(randomScanResult(scan));
         return scans;
     }
+
 
     private ScanResult randomScanResult(ScanResult scan){
         scan.SSID = NetConfig.generateSSID();
@@ -113,9 +103,10 @@ public class WifiTest {
         return scan;
     }
 
-    private WifiConfiguration configure(int id){
+
+    private WifiConfiguration configure(ScanResult s){
         WifiConfigurator wifiConf = new WifiConfigurator();
-        wifiConf.configure(scans.get(id));
+        wifiConf.configure(s);
         return wifiConf.getConfiguredNet();
     }
 }
