@@ -2,7 +2,9 @@ package ru.marinchenko.lorry;
 
 import android.content.Context;
 import android.net.wifi.ScanResult;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
+import android.widget.ListView;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -11,69 +13,77 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowApplication;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
+
+import ru.marinchenko.lorry.util.NetConfig;
 import ru.marinchenko.lorry.util.WifiConfigurator;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(constants = BuildConfig.class)
 public class WifiTest {
 
     @Mock
-    private WifiManager mWifiManager;
+    private ScanResult mScan;
     @Mock
     private Context mContext;
 
+
+    private WifiManager mWifiManager;
+    private WifiManager spyWifiManager;
+
     private MainActivity mainActivity;
+    private List<ScanResult> scans;
 
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        ScanResult mNet = buildScanResult("LV-12345678", "01:02:03:04:05:06", 70);
-        WifiConfigurator wifiConf = new WifiConfigurator();
-        wifiConf.configure(mNet);
-        mWifiManager.addNetwork(wifiConf.getConfiguredNet());
-        mWifiManager.setWifiEnabled(false);
+        int scansNum = 1;
+        scans = buildScanResults(mScan, scansNum);
 
-        mContext = ShadowApplication.getInstance().getApplicationContext();
-        when(mContext.getSystemService(Context.WIFI_SERVICE)).thenReturn(mWifiManager);
+        mWifiManager = buildWifiManager();
+        spyWifiManager = spy(mWifiManager);
+
+        spyWifiManager.setWifiEnabled(true);
+        doReturn(scans).when(spyWifiManager).getScanResults();
+        doReturn(true).when(spyWifiManager).disconnect();
+        doReturn(true).when(spyWifiManager).reconnect();
+
         mainActivity = Robolectric.setupActivity(MainActivity.class);
+        mainActivity.setWifiManager(spyWifiManager);
     }
 
 
     @Test
     public void test(){
-        ScanResult mNet = buildScanResult("LV-12345678", "01:02:03:04:05:06", 70);
-        mainActivity.toNet(mNet);
-        mainActivity.authenticate("password");
+        mainActivity.scanWifi();
 
+        ListView netList = (ListView) mainActivity.findViewById(R.id.netList);
+        netList.performItemClick(netList.getChildAt(0), 0, netList.getItemIdAtPosition(0));
+
+        mainActivity.authenticate("");
     }
 
-
-    private ScanResult buildScanResult(String SSID, String BSSID, int level){
-        Constructor<ScanResult> ctor;
-        ScanResult sr = null;
+    private WifiManager buildWifiManager(){
+        Constructor<WifiManager> ctor;
+        WifiManager wm = null;
 
         try {
-            ctor = ScanResult.class.getDeclaredConstructor(null);
+            ctor = WifiManager.class.getDeclaredConstructor(null);
             ctor.setAccessible(true);
-            sr = ctor.newInstance(null);
-
-            sr.SSID = SSID;
-            sr.BSSID = BSSID;
-            sr.level = level;
-            sr.capabilities = "open";
+            wm = ctor.newInstance(null);
 
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
@@ -85,7 +95,27 @@ public class WifiTest {
             e.printStackTrace();
         }
 
-        return sr;
+        return wm;
     }
 
+    private List<ScanResult> buildScanResults(ScanResult scan, int num) {
+        List<ScanResult> scans = new ArrayList<>();
+        for(int i = 0; i < num; i++)
+            scans.add(randomScanResult(scan));
+        return scans;
+    }
+
+    private ScanResult randomScanResult(ScanResult scan){
+        scan.SSID = NetConfig.generateSSID();
+        scan.BSSID = NetConfig.generateBSSID();
+        scan.level = (int) (-60 + Math.random() * 20);
+        scan.capabilities = "[OPEN]";
+        return scan;
+    }
+
+    private WifiConfiguration configure(int id){
+        WifiConfigurator wifiConf = new WifiConfigurator();
+        wifiConf.configure(scans.get(id));
+        return wifiConf.getConfiguredNet();
+    }
 }

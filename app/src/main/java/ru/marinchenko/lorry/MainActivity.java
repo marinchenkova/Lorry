@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
-import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -41,6 +40,7 @@ public class MainActivity extends Activity {
     private int updateTimer = 1;
     private boolean autoConnect = false;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,11 +49,9 @@ public class MainActivity extends Activity {
         setAutoConnect(findViewById(R.id.autoconnect_checkbox));
 
         initWifi();
-        //if(wifiManager.isWifiEnabled()) scanWifi();
         initNetList();
     }
 
-    public WifiManager getWifiManager(){return wifiManager;}
 
     private void initWifi(){
         wifiConf = new WifiConfigurator();
@@ -77,6 +75,11 @@ public class MainActivity extends Activity {
     }
 
 
+    public void setWifiManager(WifiManager manager){
+        wifiManager = manager;
+    }
+
+
     /**
      * Вызывается при нажатии кнопки "Настройки"
      * @param view кнопка
@@ -85,11 +88,13 @@ public class MainActivity extends Activity {
         //TODO toSettings()
     }
 
+
     /**
      * Вызывается при переключении флажка "Подключаться автоматически"
      * @param view флажок
      */
     public void setAutoConnect(View view){ autoConnect = ((CheckBox) view).isChecked(); }
+
 
     /**
      * Вывод информации о времени обновления списка сетей
@@ -99,11 +104,13 @@ public class MainActivity extends Activity {
         //TODO showUpdateInfo()
     }
 
+
     /**
      * Вызывается при нажатии кнопки "ОБНОВИТЬ"
      * @param view кнопка
      */
     public void updateNets(View view){ scanWifi(); }
+
 
     /**
      * Сканирование доступных Wi-Fi сетей.
@@ -120,6 +127,7 @@ public class MainActivity extends Activity {
         netListAdapter.notifyDataSetChanged();
     }
 
+
     /**
      * Вызывается при нажатии на сеть из списка доступных сетей. Если сеть раздается
      * видеорегистратором, приложение перейдет к просмотру его камеры.
@@ -132,9 +140,6 @@ public class MainActivity extends Activity {
         dialog.show(getFragmentManager(), "login");
     }
 
-    public boolean currNetNotNull(){
-        return currNet != null;
-    }
 
     /**
      * Аутентификация в сети.
@@ -151,15 +156,17 @@ public class MainActivity extends Activity {
         wifiManager.reconnect();
     }
 
+
     /**
      * Проверка подключения к сети, которая была выбрана из списка доступных сетей.
      * @return {@code true}, если подключение есть
      */
-    public boolean isWifiConnected(){
+    public boolean isConnectedRight(){
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         return currNet != null &&
                 wifiInfo.getSSID().equals(String.format("\"%s\"", currNet.SSID));
     }
+
 
     protected void onPause() {
         unregisterReceiver(wifiReceiver);
@@ -182,12 +189,13 @@ public class MainActivity extends Activity {
         public void onReceive(Context c, Intent intent) {
             if(updateTimer == 0) scanWifi();
 
-            if (isWifiConnected()) {
+            if (isConnectedRight()) {
                 Intent i = new Intent(getApplicationContext(), VideoStreamActivity.class);
                 startActivityAsChild(i);
             }
         }
     }
+
 
     /**
      * Вызов Activity с помещением текущей Activity в стек переходов. При нажатии кнопки "Назад" в

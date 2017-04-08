@@ -9,7 +9,9 @@ import java.util.regex.Pattern;
  * Класс содержит {@code static} методы для автоматической аутентификации в сетях ведирегистраторов.
  */
 public class NetConfig {
-
+    public static void main(String[] args) {
+        System.out.println(generateBSSID());
+    }
     /**
      * Проверка, раздается ли сеть Wi-Fi видеорегистратором.
      * @param name имя сети
@@ -26,9 +28,20 @@ public class NetConfig {
      * десятичные цифры.
      * @return имя сети
      */
-    public static String generateID(){
-        int s = (int) (10000000 + Math.random() * 89999999);
-        return "LV-" + String.valueOf(s);
+    public static String generateSSID(){
+        int id = (int) (10000000 + Math.random() * 89999999);
+        return "LV-" + String.valueOf(id);
+    }
+
+    public static String generateBSSID(){
+        int n;
+        String s = "";
+        for(int i = 0; i < 6; i++){
+            n = (int) (Math.random() * 99);
+            if(n < 10) s += "0";
+            s += n + ":";
+        }
+        return s.substring(0, s.length() - 1);
     }
 
     /**

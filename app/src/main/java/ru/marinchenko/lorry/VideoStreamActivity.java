@@ -61,7 +61,7 @@ public class VideoStreamActivity extends Activity {
     };
 
     public void checkWifiState(){
-        if (mainActivity.isWifiConnected()) {
+        if (mainActivity.isConnectedRight()) {
             initStream();
             play();
         } else {
@@ -73,7 +73,7 @@ public class VideoStreamActivity extends Activity {
             wifiManager.disconnect();
             wifiManager.reconnect();
 
-            if (mainActivity.isWifiConnected()) logging.dismiss();
+            if (mainActivity.isConnectedRight()) logging.dismiss();
             initStream();
             play();
         }
