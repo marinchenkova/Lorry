@@ -5,7 +5,6 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.util.Pair;
-import android.widget.ListView;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +14,7 @@ import org.mockito.MockitoAnnotations;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.android.controller.ServiceController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowWifiManager;
 
@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.marinchenko.lorry.util.NetConfig;
+import ru.marinchenko.lorry.util.WifiAgent;
 import ru.marinchenko.lorry.util.WifiConfigurator;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
@@ -36,14 +37,14 @@ public class WifiTest {
 
     @Mock
     private ScanResult mScan;
-    @Mock
-    private Context mContext;
 
     private WifiManager mWifiManager;
     private WifiManager spyWifiManager;
     private ShadowWifiManager shadowWifiManager;
 
-    private MainActivity mainActivity;
+    private WifiAgent wifiAgent;
+    private ServiceController<WifiAgent> controller;
+
     private List<ScanResult> scans;
 
 
@@ -65,22 +66,19 @@ public class WifiTest {
         doReturn(true).when(spyWifiManager).disconnect();
         doReturn(true).when(spyWifiManager).reconnect();
 
-        //mainActivity = Robolectric.setupActivity(MainActivity.class);
-        //mainActivity.setWifiManager(spyWifiManager);
+        controller = Robolectric.buildService(WifiAgent.class);
+        wifiAgent = controller.bind().create().get();
+        wifiAgent.setWifiManager(spyWifiManager);
     }
 
 
     @Test
     public void wifiConnected(){
-        //mainActivity.scanWifi();
+        WifiConfiguration conf1 = configure(scans.get(0));
+        WifiConfiguration conf2 = configure(scans.get(1));
 
-        ListView netList = (ListView) mainActivity.findViewById(R.id.netList);
-
-        netList.performItemClick(netList.getChildAt(0), 0, netList.getItemIdAtPosition(0));
-        mainActivity.authenticate("");
-
-        netList.performItemClick(netList.getChildAt(1), 1, netList.getItemIdAtPosition(1));
-        mainActivity.authenticate("");
+        wifiAgent.authenticate(conf1);
+        wifiAgent.authenticate(conf2);
 
         Pair<Integer, Boolean> lastEnabled = shadowWifiManager.getLastEnabledNetwork();
         assertThat(lastEnabled).isEqualTo(new Pair<>(1, true));

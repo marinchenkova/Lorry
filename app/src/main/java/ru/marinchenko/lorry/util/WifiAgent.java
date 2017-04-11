@@ -14,6 +14,7 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -22,7 +23,7 @@ import ru.marinchenko.lorry.MainActivity;
 /**
  *
  */
-public class WifiAgent extends Service {
+public class WifiAgent extends IntentService {
 
     private WifiManager wifiManager;
     private WifiReceiver wifiReceiver;
@@ -32,6 +33,13 @@ public class WifiAgent extends Service {
 
 
     public WifiAgent(){
+        super("WifiAgent");
+    }
+
+
+    @Override
+    public void onCreate(){
+        super.onCreate();
         init();
     }
 
@@ -43,19 +51,20 @@ public class WifiAgent extends Service {
     }
 
 
-    public void setMainActivity(MainActivity activity){
-        mainActivity = activity;
-    }
-
-
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
 
 
+    @Override
+    protected void onHandleIntent(Intent intent) {
+
+    }
+
+
     private void init(){
-        wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+        wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         wifiReceiver = new WifiReceiver();
 
         IntentFilter inf = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
@@ -109,7 +118,8 @@ public class WifiAgent extends Service {
     private class WifiReceiver extends BroadcastReceiver {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         public void onReceive(Context c, Intent intent) {
-            //mainActivity.toVideoStream();
+            Intent in = new Intent(MainActivity.TO_NET);
+            sendBroadcast(in);
         }
     }
 }

@@ -42,6 +42,8 @@ public class MainActivity extends Activity {
     private List<ScanResult> scanResults = new ArrayList<>();
     private ScanResult currNet;
 
+    public final static String TO_NET = "toNet";
+
     private boolean autoConnect = false;
 
 
@@ -52,12 +54,17 @@ public class MainActivity extends Activity {
 
         setAutoConnect(findViewById(R.id.autoconnect_checkbox));
 
+        startWifiAgent();
+        initNetList();
+    }
+
+
+    private void startWifiAgent(){
         Intent intent = new Intent(this, WifiAgent.class);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        startService(intent);
-        //wifiAgent.setMainActivity(this);
 
-        initNetList();
+        IntentFilter intFilt = new IntentFilter(TO_NET);
+        registerReceiver(br, intFilt);
     }
 
 
@@ -142,8 +149,8 @@ public class MainActivity extends Activity {
     public void toVideoStream(){
         if(currNet != null &&
                 wifiAgent.getPresentSSID().equals(String.format("\"%s\"", currNet.SSID))){
-            //Intent i = new Intent(getApplicationContext(), VideoStreamActivity.class);
-            //startActivityAsChild(i);
+            Intent in = new Intent(getApplicationContext(), VideoStreamActivity.class);
+            startActivityAsChild(in);
         }
     }
 
@@ -158,6 +165,15 @@ public class MainActivity extends Activity {
         TaskStackBuilder.create(this).addNextIntentWithParentStack(this.getIntent());
         startActivity(next);
     }
+
+
+    private BroadcastReceiver br = new BroadcastReceiver() {
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            toVideoStream();
+        }
+    };
 
 
     private ServiceConnection mConnection = new ServiceConnection() {
