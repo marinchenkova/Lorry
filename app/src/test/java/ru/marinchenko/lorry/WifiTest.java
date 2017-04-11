@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ru.marinchenko.lorry.util.NetConfig;
-import ru.marinchenko.lorry.util.WifiAgent;
+import ru.marinchenko.lorry.services.WifiAgent;
 import ru.marinchenko.lorry.util.WifiConfigurator;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;

@@ -7,7 +7,7 @@
     android:columnCount="1"
     android:rowCount="2"
     android:orientation="vertical"
-    tools:context="ru.marinchenko.lorry.VideoStreamActivity">
+    tools:context="ru.marinchenko.lorry.activities.VideoStreamActivity">
 
     <VideoView
         android:id="@+id/videoView"

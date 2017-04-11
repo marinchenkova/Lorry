@@ -18,20 +18,20 @@
         android:permission=""
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <service android:name=".util.WifiAgent">
-        </service>
-        <activity android:name=".MainActivity">
+        <service android:name=".services.WifiAgent"></service>
+        <service android:name=".services.ScanManager"></service>
+        <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".VideoStreamActivity"
-            android:parentActivityName=".MainActivity">
+        <activity android:name=".activities.VideoStreamActivity"
+            android:parentActivityName=".activities.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity" />
+                android:value=".activities.MainActivity" />
         </activity>
     </application>
 

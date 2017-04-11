@@ -1,7 +1,6 @@
-package ru.marinchenko.lorry.util;
+package ru.marinchenko.lorry.services;
 
 import android.app.IntentService;
-import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -18,7 +17,7 @@ import android.widget.Toast;
 
 import java.util.List;
 
-import ru.marinchenko.lorry.MainActivity;
+import ru.marinchenko.lorry.activities.MainActivity;
 
 /**
  *
@@ -29,13 +28,12 @@ public class WifiAgent extends IntentService {
     private WifiReceiver wifiReceiver;
 
     private final IBinder mBinder = new LocalBinder();
-    private MainActivity mainActivity;
 
+    private boolean autoUpdate = false;
 
     public WifiAgent(){
         super("WifiAgent");
     }
-
 
     @Override
     public void onCreate(){
@@ -43,26 +41,23 @@ public class WifiAgent extends IntentService {
         init();
     }
 
-
     public class LocalBinder extends Binder {
         public WifiAgent getService() {
             return WifiAgent.this;
         }
     }
 
-
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
 
-
     @Override
-    protected void onHandleIntent(Intent intent) {
+    protected void onHandleIntent(Intent intent) {}
 
-    }
-
-
+    /**
+     * Инициализация {@link WifiManager}.
+     */
     private void init(){
         wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         wifiReceiver = new WifiReceiver();
@@ -70,9 +65,9 @@ public class WifiAgent extends IntentService {
         IntentFilter inf = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         inf.addAction(WifiManager.ACTION_PICK_WIFI_NETWORK);
         inf.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
+
         registerReceiver(wifiReceiver, inf);
     }
-
 
     /**
      * Сканирование доступных Wi-Fi сетей.
@@ -84,7 +79,6 @@ public class WifiAgent extends IntentService {
         wifiManager.startScan();
         return wifiManager.getScanResults();
     }
-
 
     /**
      * Аутентификация в сети.
@@ -99,27 +93,38 @@ public class WifiAgent extends IntentService {
         wifiManager.reconnect();
     }
 
+    public void setAutoUpdate(boolean auto){
+        autoUpdate = auto;
+    }
 
     /**
-     *
-     * @return
+     * Возвращение имени сети, к которой подключено устройство.
+     * @return имя сети (SSID)
      */
     public String getPresentSSID(){
         WifiInfo wifiInfo = wifiManager.getConnectionInfo();
         return wifiInfo.getSSID();
     }
 
-
+    /**
+     * Задание {@link WifiManager}. Используется для тестирования.
+     * @param manager альтернативный {@link WifiManager}
+     */
     public void setWifiManager(WifiManager manager){
         wifiManager = manager;
     }
 
-
+    /**
+     * Получатель сообщений для объекта {@link WifiManager}.
+     */
     private class WifiReceiver extends BroadcastReceiver {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         public void onReceive(Context c, Intent intent) {
-            Intent in = new Intent(MainActivity.TO_NET);
-            sendBroadcast(in);
+            Intent toNet = new Intent(MainActivity.TO_NET);
+            Intent update = new Intent(MainActivity.UPDATE_NETS);
+
+            sendBroadcast(toNet);
+            if(autoUpdate) sendBroadcast(update);
         }
     }
 }

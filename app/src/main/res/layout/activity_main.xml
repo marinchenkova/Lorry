@@ -34,7 +34,7 @@
         android:layout_width="267dp" />
 
     <TextView
-        android:id="@+id/updateInfo_text"
+        android:id="@+id/textview_update"
         android:layout_gravity="fill_horizontal"
         android:layout_height="40dp"
         android:layout_columnSpan="2"

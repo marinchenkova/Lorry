@@ -8,7 +8,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 
-import ru.marinchenko.lorry.MainActivity;
+import ru.marinchenko.lorry.activities.MainActivity;
 import ru.marinchenko.lorry.R;
 
 

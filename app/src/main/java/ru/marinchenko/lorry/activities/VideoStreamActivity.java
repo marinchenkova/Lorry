@@ -1,17 +1,15 @@
-package ru.marinchenko.lorry;
+package ru.marinchenko.lorry.activities;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.media.MediaPlayer;
 import android.widget.MediaController;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.text.format.Formatter;
 import android.view.View;
-import android.widget.Toast;
 import android.widget.VideoView;
+
+import ru.marinchenko.lorry.R;
 
 public class VideoStreamActivity extends Activity {
 
