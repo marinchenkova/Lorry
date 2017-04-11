@@ -1,16 +1,20 @@
 package ru.marinchenko.lorry;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.RequiresApi;
 import android.view.View;
 import android.widget.AdapterView;
@@ -23,6 +27,7 @@ import java.util.List;
 
 import ru.marinchenko.lorry.dialogs.LoginDialog;
 import ru.marinchenko.lorry.util.NetListAdapter;
+import ru.marinchenko.lorry.util.WifiAgent;
 import ru.marinchenko.lorry.util.WifiConfigurator;
 
 public class MainActivity extends Activity {
@@ -30,14 +35,13 @@ public class MainActivity extends Activity {
     private NetListAdapter netListAdapter;
     private Settings settings = new Settings();
 
-    private WifiConfigurator wifiConf;
-    private WifiManager wifiManager;
-    private WifiReceiver wifiReceiver;
+    private WifiConfigurator wifiConf = new WifiConfigurator();
+    private WifiAgent wifiAgent;
+    private boolean wifiAgentBound = false;
 
     private List<ScanResult> scanResults = new ArrayList<>();
     private ScanResult currNet;
 
-    private int updateTimer = 1;
     private boolean autoConnect = false;
 
 
@@ -48,15 +52,12 @@ public class MainActivity extends Activity {
 
         setAutoConnect(findViewById(R.id.autoconnect_checkbox));
 
-        initWifi();
+        Intent intent = new Intent(this, WifiAgent.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        startService(intent);
+        //wifiAgent.setMainActivity(this);
+
         initNetList();
-    }
-
-
-    private void initWifi(){
-        wifiConf = new WifiConfigurator();
-        wifiReceiver = new WifiReceiver();
-        wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
     }
 
 
@@ -72,11 +73,6 @@ public class MainActivity extends Activity {
                 toNet((ScanResult) netListAdapter.getItem(position));
             }
         });
-    }
-
-
-    public void setWifiManager(WifiManager manager){
-        wifiManager = manager;
     }
 
 
@@ -109,22 +105,11 @@ public class MainActivity extends Activity {
      * Вызывается при нажатии кнопки "ОБНОВИТЬ"
      * @param view кнопка
      */
-    public void updateNets(View view){ scanWifi(); }
-
-
-    /**
-     * Сканирование доступных Wi-Fi сетей.
-     */
-    public void scanWifi(){
-        if(!wifiManager.isWifiEnabled()){
-            wifiManager.setWifiEnabled(true);
+    public void updateNets(View view){
+        if(wifiAgentBound) {
+            netListAdapter.updateNets(wifiAgent.scanWifi());
+            netListAdapter.notifyDataSetChanged();
         }
-
-        wifiManager.startScan();
-        scanResults = wifiManager.getScanResults();
-
-        netListAdapter.updateNets(scanResults);
-        netListAdapter.notifyDataSetChanged();
     }
 
 
@@ -149,52 +134,16 @@ public class MainActivity extends Activity {
      */
     public void authenticate(String password){
         wifiConf.setPassword(password);
-
-        int netId = wifiManager.addNetwork(wifiConf.getConfiguredNet());
-        wifiManager.saveConfiguration();
-
-        wifiManager.disconnect();
-        wifiManager.enableNetwork(netId, true);
-        wifiManager.reconnect();
+        if(wifiAgentBound) wifiAgent.authenticate(wifiConf.getConfiguredNet());
     }
 
 
-    /**
-     * Проверка подключения к сети, которая была выбрана из списка доступных сетей.
-     * @return {@code true}, если подключение есть
-     */
-    public boolean isConnectedRight(){
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        return currNet != null &&
-                wifiInfo.getSSID().equals(String.format("\"%s\"", currNet.SSID));
-    }
-
-
-    protected void onPause() {
-        unregisterReceiver(wifiReceiver);
-        super.onPause();
-    }
-
-
-    protected void onResume() {
-        IntentFilter inf = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-        inf.addAction(WifiManager.ACTION_PICK_WIFI_NETWORK);
-        inf.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
-        registerReceiver(wifiReceiver, inf);
-        currNet = null;
-        super.onResume();
-    }
-
-
-    private class WifiReceiver extends BroadcastReceiver {
-        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-        public void onReceive(Context c, Intent intent) {
-            if(updateTimer == 0) scanWifi();
-
-            if (isConnectedRight()) {
-                Intent i = new Intent(getApplicationContext(), VideoStreamActivity.class);
-                startActivityAsChild(i);
-            }
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    public void toVideoStream(){
+        if(currNet != null &&
+                wifiAgent.getPresentSSID().equals(String.format("\"%s\"", currNet.SSID))){
+            //Intent i = new Intent(getApplicationContext(), VideoStreamActivity.class);
+            //startActivityAsChild(i);
         }
     }
 
@@ -209,4 +158,19 @@ public class MainActivity extends Activity {
         TaskStackBuilder.create(this).addNextIntentWithParentStack(this.getIntent());
         startActivity(next);
     }
+
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            WifiAgent.LocalBinder binder = (WifiAgent.LocalBinder) service;
+            wifiAgent = binder.getService();
+            wifiAgentBound = true;
+        }
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            wifiAgentBound = false;
+        }
+    };
 }

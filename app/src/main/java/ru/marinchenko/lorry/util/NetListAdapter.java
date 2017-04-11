@@ -21,7 +21,6 @@ public class NetListAdapter extends BaseAdapter{
     private List<ScanResult> recs = new ArrayList<>();
     private List<ScanResult> nets = new ArrayList<>();
 
-
     public NetListAdapter(Context ctx, List<ScanResult> netList) {
         updateNets(netList);
         layoutInf = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);

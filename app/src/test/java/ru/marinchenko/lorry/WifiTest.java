@@ -65,14 +65,14 @@ public class WifiTest {
         doReturn(true).when(spyWifiManager).disconnect();
         doReturn(true).when(spyWifiManager).reconnect();
 
-        mainActivity = Robolectric.setupActivity(MainActivity.class);
-        mainActivity.setWifiManager(spyWifiManager);
+        //mainActivity = Robolectric.setupActivity(MainActivity.class);
+        //mainActivity.setWifiManager(spyWifiManager);
     }
 
 
     @Test
-    public void test(){
-        mainActivity.scanWifi();
+    public void wifiConnected(){
+        //mainActivity.scanWifi();
 
         ListView netList = (ListView) mainActivity.findViewById(R.id.netList);
 

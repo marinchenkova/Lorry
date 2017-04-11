@@ -43,7 +43,7 @@
         android:textSize="14sp" />
 
     <Button
-        android:id="@+id/findNet_button"
+        android:id="@+id/button_update"
         android:layout_gravity="fill_horizontal"
         android:layout_height="80dp"
         android:layout_columnSpan="2"
