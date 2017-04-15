@@ -64,7 +64,6 @@ public class WifiAgent extends IntentService {
 
         IntentFilter inf = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         inf.addAction(WifiManager.ACTION_PICK_WIFI_NETWORK);
-        inf.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
 
         registerReceiver(wifiReceiver, inf);
     }

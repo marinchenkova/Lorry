@@ -4,7 +4,6 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.widget.Toast;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -54,7 +53,6 @@ public class ScanManager extends IntentService{
         stopTimer();
         timer = new Timer();
         timer.schedule(updateTask, 0, sec*1000);
-        Toast.makeText(getApplicationContext(), "START TIMER", Toast.LENGTH_SHORT).show();
     }
 
     /**
