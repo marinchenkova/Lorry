@@ -13,6 +13,8 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
+import android.support.v4.content.LocalBroadcastManager;
+import android.text.format.Formatter;
 import android.widget.Toast;
 
 import java.util.List;
@@ -28,8 +30,6 @@ public class WifiAgent extends IntentService {
     private WifiReceiver wifiReceiver;
 
     private final IBinder mBinder = new LocalBinder();
-
-    private boolean autoUpdate = false;
 
     public WifiAgent(){
         super("WifiAgent");
@@ -92,17 +92,20 @@ public class WifiAgent extends IntentService {
         wifiManager.reconnect();
     }
 
-    public void setAutoUpdate(boolean auto){
-        autoUpdate = auto;
-    }
-
     /**
      * Возвращение имени сети, к которой подключено устройство.
      * @return имя сети (SSID)
      */
     public String getPresentSSID(){
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        return wifiInfo.getSSID();
+        return wifiManager.getConnectionInfo().getSSID();
+    }
+
+    /**
+     * Возвращение IP адреса сети, к которой подключено устройство.
+     * @return IP адрес
+     */
+    public int getPresentIP(){
+        return wifiManager.getConnectionInfo().getIpAddress();
     }
 
     /**
@@ -114,16 +117,29 @@ public class WifiAgent extends IntentService {
     }
 
     /**
+     * Отправка сообщений внутри приложения.
+     * @param intent сообщение
+     */
+    private void sendLocalBroadcastMessage(Intent intent){
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    /**
      * Получатель сообщений для объекта {@link WifiManager}.
      */
     private class WifiReceiver extends BroadcastReceiver {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         public void onReceive(Context c, Intent intent) {
             Intent toNet = new Intent(MainActivity.TO_NET);
-            Intent update = new Intent(MainActivity.UPDATE_NETS);
+            Intent update = new Intent(MainActivity.UPDATE_NETS_AGENT);
 
-            sendBroadcast(toNet);
-            if(autoUpdate) sendBroadcast(update);
+            Intent info = new Intent(MainActivity.WIFI_INFO);
+            info.putExtra("IP", getPresentIP());
+            info.putExtra("SSID", getPresentSSID());
+
+
+            sendLocalBroadcastMessage(toNet);
+            sendLocalBroadcastMessage(update);
         }
     }
 }

@@ -9,8 +9,8 @@
     android:orientation="vertical"
     tools:context="ru.marinchenko.lorry.activities.VideoStreamActivity">
 
-    <VideoView
-        android:id="@+id/videoView"
+    <SurfaceView
+        android:id="@+id/surfaceView"
         android:layout_gravity="fill"
         android:layout_height="512dp" />
 

@@ -71,7 +71,7 @@ public class ScanManager extends IntentService{
     private class UpdateTimerTask extends TimerTask{
         @Override
         public void run() {
-            Intent update = new Intent(MainActivity.UPDATE_NETS);
+            Intent update = new Intent(MainActivity.UPDATE_NETS_TIMER);
             sendBroadcast(update);
 
         }

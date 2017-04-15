@@ -19,7 +19,6 @@ import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,15 +38,17 @@ public class MainActivity extends Activity {
      * Указатели для приема сообщений, рассылаемых сервисом {@link WifiAgent}.
      */
     public final static String TO_NET = "toNet";
-    public final static String UPDATE_NETS = "updateNets";
+    public final static String UPDATE_NETS_AGENT = "updateNetsAgent";
+    public final static String UPDATE_NETS_TIMER = "updateNetsTimer";
+    public final static String WIFI_INFO = "wifiInfo";
 
     private Settings settings = new Settings();
     private boolean autoConnect = false;
     private int updateTime = 0;
 
     private WifiConfigurator wifiConf = new WifiConfigurator();
-    private WifiAgent wifiAgent;
-    private boolean wifiAgentBound = false;
+    private String presentSSID;
+    private int presentIP;
 
     private ScanManager scanManager;
     private boolean scanManagerBound = false;
@@ -64,6 +65,7 @@ public class MainActivity extends Activity {
 
         setAutoConnect(findViewById(R.id.autoconnect_checkbox));
 
+        registerActionReceiver();
         initWifiAgent();
         initNetList();
     }
@@ -74,11 +76,18 @@ public class MainActivity extends Activity {
      */
     private void initWifiAgent(){
         Intent wifiAgency = new Intent(this, WifiAgent.class);
-        bindService(wifiAgency, wifiAgentConnection, Context.BIND_AUTO_CREATE);
+        startService(wifiAgency);
+    }
 
+    /**
+     * Регистрация получателя сообщений для действия.
+     */
+    private void registerActionReceiver(){
         IntentFilter intFilter = new IntentFilter(TO_NET);
-        intFilter.addAction(UPDATE_NETS);
-        registerReceiver(br, intFilter);
+        intFilter.addAction(UPDATE_NETS_AGENT);
+        intFilter.addAction(UPDATE_NETS_TIMER);
+        intFilter.addAction(WIFI_INFO);
+        registerReceiver(actionReceiver, intFilter);
     }
 
     /**
@@ -103,7 +112,14 @@ public class MainActivity extends Activity {
 
     protected void onPause() {
         currNet = null;
+        unregisterReceiver(actionReceiver);
         super.onPause();
+    }
+
+    protected void onResume() {
+        currNet = null;
+        registerActionReceiver();
+        super.onResume();
     }
 
     private void animateTimerTask(){
@@ -133,15 +149,9 @@ public class MainActivity extends Activity {
      */
     public void setUpdateTime(int sec){
         updateTime = sec;
-        if(sec == 0){
-            if(wifiAgentBound) wifiAgent.setAutoUpdate(true);
-            if(scanManagerBound) scanManager.stopTimer();
-        } else if(sec <= 900){
-            if(wifiAgentBound) wifiAgent.setAutoUpdate(false);
-            if(scanManagerBound) scanManager.startTimer(sec);
-        } else {
-            if(wifiAgentBound) wifiAgent.setAutoUpdate(false);
-            if(scanManagerBound) scanManager.stopTimer();
+        if(scanManagerBound){
+            if(sec != 0 && sec <= 900) scanManager.startTimer(sec);
+            else scanManager.stopTimer();
         }
 
         ((TextView) findViewById(R.id.textview_update)).setText(UpdateFormatter.format(updateTime));
@@ -152,10 +162,8 @@ public class MainActivity extends Activity {
      * @param view кнопка
      */
     public void updateNets(View view){
-        if(wifiAgentBound) {
-            netListAdapter.updateNets(wifiAgent.scanWifi());
-            netListAdapter.notifyDataSetChanged();
-        }
+        //TODO netListAdapter.updateNets(wifiAgent.scanWifi());
+        netListAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -177,7 +185,7 @@ public class MainActivity extends Activity {
      */
     public void authenticate(String password){
         wifiConf.setPassword(password);
-        if(wifiAgentBound) wifiAgent.authenticate(wifiConf.getConfiguredNet());
+        //TODO wifiAgent.authenticate(wifiConf.getConfiguredNet());
     }
 
     /**
@@ -186,8 +194,9 @@ public class MainActivity extends Activity {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void toVideoStream(){
         if(currNet != null &&
-                wifiAgent.getPresentSSID().equals(String.format("\"%s\"", currNet.SSID))){
-            Intent in = new Intent(getApplicationContext(), VideoStreamActivity.class);
+                presentSSID.equals(String.format("\"%s\"", currNet.SSID))){
+            Intent in = new Intent(this, VideoStreamActivity.class);
+            in.putExtra("IP", presentIP);
             startActivityAsChild(in);
         }
     }
@@ -208,7 +217,7 @@ public class MainActivity extends Activity {
      * списке доступных сетей, соответствует сети, к которой подключено устройство, совершается
      * переход к {@link VideoStreamActivity}.
      */
-    private BroadcastReceiver br = new BroadcastReceiver() {
+    private BroadcastReceiver actionReceiver = new BroadcastReceiver() {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -216,31 +225,20 @@ public class MainActivity extends Activity {
                 case TO_NET:
                     toVideoStream();
                     break;
-                case UPDATE_NETS:
+                case UPDATE_NETS_AGENT:
+                    if(updateTime == 0) updateNets(findViewById(R.id.button_update));
+                    break;
+                case UPDATE_NETS_TIMER:
                     if(updateTime <= 900) {
                         updateNets(findViewById(R.id.button_update));
-                        if(updateTime != 0) animateTimerTask();
+                        animateTimerTask();
                     }
                     break;
+                case WIFI_INFO:
+                    presentIP = intent.getIntExtra("IP", 0);
+                    presentSSID = intent.getStringExtra("SSID");
+                    break;
             }
-        }
-    };
-
-    /**
-     * Соединение {@link MainActivity} с сервисом {@link WifiAgent}.
-     */
-    private ServiceConnection wifiAgentConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            WifiAgent.LocalBinder binder = (WifiAgent.LocalBinder) service;
-            wifiAgent = binder.getService();
-            wifiAgentBound = true;
-            updateNets(findViewById(R.id.button_update));
-        }
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            wifiAgentBound = false;
         }
     };
 
