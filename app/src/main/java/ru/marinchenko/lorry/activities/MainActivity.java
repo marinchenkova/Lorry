@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
@@ -38,8 +39,7 @@ public class MainActivity extends Activity {
      * Указатели для приема сообщений, рассылаемых сервисом {@link WifiAgent}.
      */
     public final static String TO_NET = "toNet";
-    public final static String UPDATE_NETS_AGENT = "updateNetsAgent";
-    public final static String UPDATE_NETS_TIMER = "updateNetsTimer";
+    public final static String UPDATE_NETS = "updateNets";
     public final static String WIFI_INFO = "wifiInfo";
 
     private Settings settings = new Settings();
@@ -54,8 +54,7 @@ public class MainActivity extends Activity {
     private boolean scanManagerBound = false;
 
     private NetListAdapter netListAdapter;
-    private List<ScanResult> scanResults = new ArrayList<>();
-    private ScanResult currNet;
+    private String currNet;
 
 
     @Override
@@ -70,46 +69,6 @@ public class MainActivity extends Activity {
         initNetList();
     }
 
-    /**
-     * Инициализация сервиса {@link WifiAgent}. Сервис привязывается к компоненту
-     * {@link MainActivity}.
-     */
-    private void initWifiAgent(){
-        Intent wifiAgency = new Intent(this, WifiAgent.class);
-        startService(wifiAgency);
-    }
-
-    /**
-     * Регистрация получателя сообщений для действия.
-     */
-    private void registerActionReceiver(){
-        IntentFilter intFilter = new IntentFilter(TO_NET);
-        intFilter.addAction(UPDATE_NETS_AGENT);
-        intFilter.addAction(UPDATE_NETS_TIMER);
-        intFilter.addAction(WIFI_INFO);
-        registerReceiver(actionReceiver, intFilter);
-    }
-
-    /**
-     * Инициализация списка доступных Wi-Fi сетей.
-     */
-    private void initNetList(){
-        Intent scanManage = new Intent(this, ScanManager.class);
-        bindService(scanManage, scanManagerConnection, Context.BIND_AUTO_CREATE);
-
-        netListAdapter = new NetListAdapter(this, scanResults);
-
-        final ListView netListView = (ListView) findViewById(R.id.netList);
-        netListView.setAdapter(netListAdapter);
-
-        netListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-                toNet((ScanResult) netListAdapter.getItem(position));
-            }
-        });
-    }
-
     protected void onPause() {
         currNet = null;
         unregisterReceiver(actionReceiver);
@@ -122,10 +81,46 @@ public class MainActivity extends Activity {
         super.onResume();
     }
 
-    private void animateTimerTask(){
-        findViewById(R.id.textview_update).startAnimation(
-                AnimationUtils.loadAnimation(this, R.anim.fade_in));
+
+    /**
+     * Инициализация сервиса {@link WifiAgent}. Сервис привязывается к компоненту
+     * {@link MainActivity}.
+     */
+    private void initWifiAgent(){
+        Intent wifiAgency = new Intent(this, WifiAgent.class);
+        startService(wifiAgency);
     }
+
+    /**
+     * Инициализация списка доступных Wi-Fi сетей.
+     */
+    private void initNetList(){
+        Intent scanManage = new Intent(this, ScanManager.class);
+        bindService(scanManage, scanManagerConnection, Context.BIND_AUTO_CREATE);
+
+        netListAdapter = new NetListAdapter(this);
+
+        final ListView netListView = (ListView) findViewById(R.id.netList);
+        netListView.setAdapter(netListAdapter);
+
+        netListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                toNet((String) netListAdapter.getItem(position));
+            }
+        });
+    }
+
+    /**
+     * Регистрация получателя сообщений для действия.
+     */
+    private void registerActionReceiver(){
+        IntentFilter intFilter = new IntentFilter(TO_NET);
+        intFilter.addAction(UPDATE_NETS);
+        intFilter.addAction(WIFI_INFO);
+        registerReceiver(actionReceiver, intFilter);
+    }
+
 
     /**
      * Вызывается при нажатии кнопки "Настройки".
@@ -134,6 +129,30 @@ public class MainActivity extends Activity {
     public void toSettings(View view){
         //TODO toSettings()
     }
+
+    /**
+     * Вызывается при нажатии кнопки "ОБНОВИТЬ".
+     * @param view кнопка
+     */
+    public void updateNets(View view){
+        scanManager.scan();
+    }
+
+    /**
+     * Вызывается при нажатии на сеть из списка доступных сетей. Если сеть раздается
+     * видеорегистратором, приложение перейдет к просмотру его камеры.
+     * @param net объект {@link ScanResult}, соответствующий пункту в списке доступных сетей
+     */
+    public void toNet(String net){
+        currNet = net;
+        Intent toNet = new Intent(WifiAgent.CONFIGURE);
+        toNet.putExtra("id", currNet);
+        sendLocalBroadcastMessage(toNet);
+
+        LoginDialog dialog = new LoginDialog();
+        dialog.show(getFragmentManager(), "login");
+    }
+
 
     /**
      * Вызывается при переключении флажка "Подключаться автоматически".
@@ -149,34 +168,9 @@ public class MainActivity extends Activity {
      */
     public void setUpdateTime(int sec){
         updateTime = sec;
-        if(scanManagerBound){
-            if(sec != 0 && sec <= 900) scanManager.startTimer(sec);
-            else scanManager.stopTimer();
-        }
-
-        ((TextView) findViewById(R.id.textview_update)).setText(UpdateFormatter.format(updateTime));
-    }
-
-    /**
-     * Вызывается при нажатии кнопки "ОБНОВИТЬ".
-     * @param view кнопка
-     */
-    public void updateNets(View view){
-        //TODO netListAdapter.updateNets(wifiAgent.scanWifi());
-        netListAdapter.notifyDataSetChanged();
-    }
-
-    /**
-     * Вызывается при нажатии на сеть из списка доступных сетей. Если сеть раздается
-     * видеорегистратором, приложение перейдет к просмотру его камеры.
-     * @param net объект {@link ScanResult}, соответствующий пункту в списке доступных сетей
-     */
-    public void toNet(ScanResult net){
-        currNet = net;
-        wifiConf.configure(currNet);
-
-        LoginDialog dialog = new LoginDialog();
-        dialog.show(getFragmentManager(), "login");
+        if(scanManagerBound) scanManager.startTimer(sec);
+        ((TextView) findViewById(R.id.textview_update))
+                .setText(UpdateFormatter.format(updateTime));
     }
 
     /**
@@ -184,8 +178,9 @@ public class MainActivity extends Activity {
      * @param password пароль
      */
     public void authenticate(String password){
-        wifiConf.setPassword(password);
-        //TODO wifiAgent.authenticate(wifiConf.getConfiguredNet());
+        Intent toNet = new Intent(WifiAgent.AUTH);
+        toNet.putExtra("password", password);
+        sendLocalBroadcastMessage(toNet);
     }
 
     /**
@@ -193,8 +188,9 @@ public class MainActivity extends Activity {
      */
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void toVideoStream(){
+        sendLocalBroadcastMessage(new Intent(WifiAgent.RETURN_INFO));
         if(currNet != null &&
-                presentSSID.equals(String.format("\"%s\"", currNet.SSID))){
+                presentSSID.equals(String.format("\"%s\"", currNet))){
             Intent in = new Intent(this, VideoStreamActivity.class);
             in.putExtra("IP", presentIP);
             startActivityAsChild(in);
@@ -213,7 +209,23 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Получатель сообщений сервиса {@link WifiAgent}. При условии, что последняя сеть, выбранная в
+     * Отправка сообщений внутри приложения.
+     * @param intent сообщение
+     */
+    private void sendLocalBroadcastMessage(Intent intent){
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    /**
+     * Анимация текстового поля с информацией о способе обновления списка.
+     */
+    private void animateTimerTask(){
+        findViewById(R.id.textview_update).startAnimation(
+                AnimationUtils.loadAnimation(this, R.anim.fade_in));
+    }
+
+    /**
+     * Получатель сообщений действия. При условии, что последняя сеть, выбранная в
      * списке доступных сетей, соответствует сети, к которой подключено устройство, совершается
      * переход к {@link VideoStreamActivity}.
      */
@@ -225,15 +237,13 @@ public class MainActivity extends Activity {
                 case TO_NET:
                     toVideoStream();
                     break;
-                case UPDATE_NETS_AGENT:
-                    if(updateTime == 0) updateNets(findViewById(R.id.button_update));
+
+                case UPDATE_NETS:
+                    netListAdapter.updateNets(intent.getStringArrayListExtra("ids"));
+                    netListAdapter.notifyDataSetChanged();
+                    if(scanManagerBound && scanManager.isOnTimer()) animateTimerTask();
                     break;
-                case UPDATE_NETS_TIMER:
-                    if(updateTime <= 900) {
-                        updateNets(findViewById(R.id.button_update));
-                        animateTimerTask();
-                    }
-                    break;
+
                 case WIFI_INFO:
                     presentIP = intent.getIntExtra("IP", 0);
                     presentSSID = intent.getStringExtra("SSID");

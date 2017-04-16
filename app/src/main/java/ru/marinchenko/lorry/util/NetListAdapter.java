@@ -1,7 +1,6 @@
 package ru.marinchenko.lorry.util;
 
 import android.content.Context;
-import android.net.wifi.ScanResult;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,11 +17,10 @@ import ru.marinchenko.lorry.R;
 public class NetListAdapter extends BaseAdapter{
 
     private LayoutInflater layoutInf;
-    private List<ScanResult> recs = new ArrayList<>();
-    private List<ScanResult> nets = new ArrayList<>();
+    private ArrayList<String> recs = new ArrayList<>();
+    private ArrayList<String> nets = new ArrayList<>();
 
-    public NetListAdapter(Context ctx, List<ScanResult> netList) {
-        updateNets(netList);
+    public NetListAdapter(Context ctx) {
         layoutInf = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
@@ -44,16 +42,16 @@ public class NetListAdapter extends BaseAdapter{
         int recIcon = R.drawable.button_net_rec;
         int wifiIcon = R.drawable.button_net_wifi;
 
-        ScanResult net = nets.get(position);
+        String net = nets.get(position);
         View view = convertView;
 
         if (view == null) {
             view = layoutInf.inflate(R.layout.netlist_item, parent, false);
         }
 
-        ((TextView) view.findViewById(R.id.netList_item_name)).setText(net.SSID);
+        ((TextView) view.findViewById(R.id.netList_item_name)).setText(net);
         ((ImageView) view.findViewById(R.id.netList_item_image)).setImageResource(
-                NetConfig.ifRec(net.SSID) ? recIcon : wifiIcon);
+                NetConfig.ifRec(net) ? recIcon : wifiIcon);
 
         return view;
     }
@@ -62,13 +60,13 @@ public class NetListAdapter extends BaseAdapter{
      * Обновление списка сетей {@link NetListAdapter#recs}.
      * @param newNets новый список сетей
      */
-    public void updateNets(List<ScanResult> newNets){
-        List<ScanResult> wifi = new ArrayList<>();
+    public void updateNets(ArrayList<String> newNets){
+        List<String> wifi = new ArrayList<>();
         nets.clear();
         recs.clear();
 
-        for(ScanResult s: newNets){
-            if(NetConfig.ifRec(s.SSID)) recs.add(s);
+        for(String s: newNets){
+            if(NetConfig.ifRec(s)) recs.add(s);
             else wifi.add(s);
         }
 

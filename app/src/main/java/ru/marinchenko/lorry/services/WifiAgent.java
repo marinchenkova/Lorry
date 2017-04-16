@@ -7,49 +7,46 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
-import android.text.format.Formatter;
-import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ru.marinchenko.lorry.activities.MainActivity;
+import ru.marinchenko.lorry.util.WifiConfigurator;
 
 /**
  *
  */
 public class WifiAgent extends IntentService {
 
+    public final static String AUTH = "auth";
+    public final static String AUTO_UPDATE = "autoUpdate";
+    public final static String CONFIGURE = "configure";
+    public final static String RETURN_INFO = "returnInfo";
+    public final static String RETURN_NETS = "returnNets";
+
+
+    private boolean autoUpdate = false;
+
     private WifiManager wifiManager;
     private WifiReceiver wifiReceiver;
+    private WifiConfigurator wifiConf;
 
-    private final IBinder mBinder = new LocalBinder();
+    List<ScanResult> scanResults = new ArrayList<>();
 
-    public WifiAgent(){
-        super("WifiAgent");
-    }
+    public WifiAgent(){ super("WifiAgent"); }
 
     @Override
     public void onCreate(){
         super.onCreate();
         init();
-    }
-
-    public class LocalBinder extends Binder {
-        public WifiAgent getService() {
-            return WifiAgent.this;
-        }
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return mBinder;
     }
 
     @Override
@@ -61,30 +58,58 @@ public class WifiAgent extends IntentService {
     private void init(){
         wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         wifiReceiver = new WifiReceiver();
+        wifiConf = new WifiConfigurator();
 
-        IntentFilter inf = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-        inf.addAction(WifiManager.ACTION_PICK_WIFI_NETWORK);
+        IntentFilter wifiFilter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        wifiFilter.addAction(WifiManager.ACTION_PICK_WIFI_NETWORK);
+        registerReceiver(wifiReceiver, wifiFilter);
 
-        registerReceiver(wifiReceiver, inf);
+        IntentFilter actionFilter = new IntentFilter(RETURN_NETS);
+        actionFilter.addAction(AUTO_UPDATE);
+        actionFilter.addAction(CONFIGURE);
+        registerReceiver(actionReceiver, actionFilter);
     }
 
-    /**
-     * Сканирование доступных Wi-Fi сетей.
-     */
-    public List<ScanResult> scanWifi(){
+    public Intent wrapScanResults(){
         if(!wifiManager.isWifiEnabled()){
             wifiManager.setWifiEnabled(true);
         }
         wifiManager.startScan();
-        return wifiManager.getScanResults();
+        scanResults = wifiManager.getScanResults();
+
+        Intent nets = new Intent(MainActivity.UPDATE_NETS);
+
+        ArrayList<String> stringList = new ArrayList<>();
+        for(ScanResult s : scanResults)
+            stringList.add(s.SSID);
+
+        nets.putStringArrayListExtra("ids", stringList);
+        return nets;
+    }
+
+    public Intent wrapInfo(){
+        Intent info = new Intent(MainActivity.WIFI_INFO);
+        info.putExtra("IP", getPresentIP());
+        info.putExtra("SSID", getPresentSSID());
+        return info;
+    }
+
+    public void configure(String id){
+        for(ScanResult s : scanResults)
+            if(s.SSID.equals(id)) {
+                wifiConf.configure(s);
+                break;
+            }
     }
 
     /**
      * Аутентификация в сети.
-     * @param config конфигурация сети
+     * @param password пароль
      */
-    public void authenticate(WifiConfiguration config){
-        int netId = wifiManager.addNetwork(config);
+    public void authenticate(String password){
+        wifiConf.setPassword(password);
+
+        int netId = wifiManager.addNetwork(wifiConf.getConfiguredNet());
         wifiManager.saveConfiguration();
 
         wifiManager.disconnect();
@@ -124,22 +149,37 @@ public class WifiAgent extends IntentService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
+    private BroadcastReceiver actionReceiver = new BroadcastReceiver() {
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()){
+                case AUTH:
+                    authenticate(intent.getStringExtra("password"));
+                    break;
+                case AUTO_UPDATE:
+                    autoUpdate = intent.getBooleanExtra("flag", false);
+                    break;
+                case CONFIGURE:
+                    configure(intent.getStringExtra("id"));
+                    break;
+                case RETURN_INFO:
+                    sendLocalBroadcastMessage(wrapInfo());
+                    break;
+                case RETURN_NETS:
+                    sendLocalBroadcastMessage(wrapScanResults());
+                    break;
+            }
+        }
+    };
+
     /**
      * Получатель сообщений для объекта {@link WifiManager}.
      */
     private class WifiReceiver extends BroadcastReceiver {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         public void onReceive(Context c, Intent intent) {
-            Intent toNet = new Intent(MainActivity.TO_NET);
-            Intent update = new Intent(MainActivity.UPDATE_NETS_AGENT);
-
-            Intent info = new Intent(MainActivity.WIFI_INFO);
-            info.putExtra("IP", getPresentIP());
-            info.putExtra("SSID", getPresentSSID());
-
-
-            sendLocalBroadcastMessage(toNet);
-            sendLocalBroadcastMessage(update);
+            if(autoUpdate) sendLocalBroadcastMessage(wrapScanResults());
         }
     }
 }
