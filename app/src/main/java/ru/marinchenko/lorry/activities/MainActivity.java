@@ -20,6 +20,7 @@ import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,9 +45,8 @@ public class MainActivity extends Activity {
 
     private Settings settings = new Settings();
     private boolean autoConnect = false;
-    private int updateTime = 0;
+    private int updateTime = 10;
 
-    private WifiConfigurator wifiConf = new WifiConfigurator();
     private String presentSSID;
     private int presentIP;
 
@@ -69,16 +69,27 @@ public class MainActivity extends Activity {
         initNetList();
     }
 
+    @Override
+    protected void onDestroy() {
+        if (scanManagerConnection != null) {
+            unbindService(scanManagerConnection);
+        }
+        super.onDestroy();
+    }
+
+    @Override
     protected void onPause() {
         currNet = null;
-        unregisterReceiver(actionReceiver);
+        LocalBroadcastManager.getInstance(getApplicationContext())
+                .unregisterReceiver(actionReceiver);
         super.onPause();
     }
 
+    @Override
     protected void onResume() {
+        super.onResume();
         currNet = null;
         registerActionReceiver();
-        super.onResume();
     }
 
 
@@ -88,6 +99,7 @@ public class MainActivity extends Activity {
      */
     private void initWifiAgent(){
         Intent wifiAgency = new Intent(this, WifiAgent.class);
+        wifiAgency.setAction(WifiAgent.RETURN_NETS);
         startService(wifiAgency);
     }
 
@@ -118,7 +130,8 @@ public class MainActivity extends Activity {
         IntentFilter intFilter = new IntentFilter(TO_NET);
         intFilter.addAction(UPDATE_NETS);
         intFilter.addAction(WIFI_INFO);
-        registerReceiver(actionReceiver, intFilter);
+        LocalBroadcastManager.getInstance(getApplicationContext())
+                .registerReceiver(actionReceiver, intFilter);
     }
 
 
@@ -145,9 +158,10 @@ public class MainActivity extends Activity {
      */
     public void toNet(String net){
         currNet = net;
-        Intent toNet = new Intent(WifiAgent.CONFIGURE);
-        toNet.putExtra("id", currNet);
-        sendLocalBroadcastMessage(toNet);
+        Intent config = new Intent(this, WifiAgent.class);
+        config.setAction(WifiAgent.CONFIGURE);
+        config.putExtra("id", currNet);
+        startService(config);
 
         LoginDialog dialog = new LoginDialog();
         dialog.show(getFragmentManager(), "login");
@@ -178,9 +192,10 @@ public class MainActivity extends Activity {
      * @param password пароль
      */
     public void authenticate(String password){
-        Intent toNet = new Intent(WifiAgent.AUTH);
-        toNet.putExtra("password", password);
-        sendLocalBroadcastMessage(toNet);
+        Intent auth = new Intent(this, WifiAgent.class);
+        auth.setAction(WifiAgent.AUTH);
+        auth.putExtra("password", password);
+        startService(auth);
     }
 
     /**
@@ -188,7 +203,10 @@ public class MainActivity extends Activity {
      */
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void toVideoStream(){
-        sendLocalBroadcastMessage(new Intent(WifiAgent.RETURN_INFO));
+        Intent info = new Intent(this, WifiAgent.class);
+        info.setAction(WifiAgent.RETURN_INFO);
+        startService(info);
+
         if(currNet != null &&
                 presentSSID.equals(String.format("\"%s\"", currNet))){
             Intent in = new Intent(this, VideoStreamActivity.class);
@@ -206,14 +224,6 @@ public class MainActivity extends Activity {
     private void startActivityAsChild(Intent next){
         TaskStackBuilder.create(this).addNextIntentWithParentStack(this.getIntent());
         startActivity(next);
-    }
-
-    /**
-     * Отправка сообщений внутри приложения.
-     * @param intent сообщение
-     */
-    private void sendLocalBroadcastMessage(Intent intent){
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     /**
@@ -265,8 +275,6 @@ public class MainActivity extends Activity {
             setUpdateTime(updateTime);
         }
         @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            scanManagerBound = false;
-        }
+        public void onServiceDisconnected(ComponentName arg0) { scanManagerBound = false; }
     };
 }

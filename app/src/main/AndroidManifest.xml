@@ -19,8 +19,14 @@
         android:permission=""
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <service android:name=".services.WifiAgent"></service>
-        <service android:name=".services.ScanManager"></service>
+        <service android:name=".services.WifiAgent"
+            android:exported="false">
+
+        </service>
+        <service android:name=".services.ScanManager"
+            android:exported="false">
+
+        </service>
         <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

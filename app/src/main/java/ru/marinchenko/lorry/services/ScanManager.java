@@ -4,8 +4,6 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.v4.content.LocalBroadcastManager;
-
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -31,6 +29,12 @@ public class ScanManager extends IntentService{
     }
 
     @Override
+    public void onDestroy() {
+        resetTimer();
+        super.onDestroy();
+    }
+
+    @Override
     protected void onHandleIntent(Intent intent) {}
 
     public class LocalBinder extends Binder {
@@ -48,12 +52,12 @@ public class ScanManager extends IntentService{
     public void startTimer(int sec) {
         resetTimer();
 
-        if (sec == 0) {
-            Intent autoUpdate = new Intent(WifiAgent.AUTO_UPDATE);
-            autoUpdate.putExtra("flag", true);
-            sendLocalBroadcastMessage(autoUpdate);
+        Intent autoUpdate = new Intent(this, WifiAgent.class);
+        autoUpdate.setAction(WifiAgent.AUTO_UPDATE);
+        autoUpdate.putExtra("flag", sec == 0);
+        startService(autoUpdate);
 
-        } else if (sec <= 900) {
+        if (sec != 0 && sec <= 900) {
             onTimer = true;
             timer = new Timer();
             timer.schedule(updateTask, 0, sec*1000);
@@ -74,9 +78,7 @@ public class ScanManager extends IntentService{
     /**
      * Выполнение задачи таймера вне расписания.
      */
-    public void scan(){
-        updateTask.run();
-    }
+    public void scan(){ updateTask.run(); }
 
     /**
      * Проверка, работает ли обновление списка сетей по таймеру.
@@ -85,21 +87,14 @@ public class ScanManager extends IntentService{
     public boolean isOnTimer(){ return onTimer; }
 
     /**
-     * Отправка сообщений внутри приложения.
-     * @param intent сообщение
-     */
-    private void sendLocalBroadcastMessage(Intent intent){
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-    }
-
-    /**
      * Задача таймера - обновление списка доступных сетей.
      */
     private class UpdateTimerTask extends TimerTask{
         @Override
         public void run() {
-            Intent update = new Intent(WifiAgent.RETURN_NETS);
-            sendLocalBroadcastMessage(update);
+            Intent update = new Intent(ScanManager.this, WifiAgent.class);
+            update.setAction(WifiAgent.RETURN_NETS);
+            startService(update);
         }
     }
 }

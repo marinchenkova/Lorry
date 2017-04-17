@@ -1,17 +1,15 @@
 package ru.marinchenko.lorry.services;
 
-import android.app.IntentService;
+import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
-import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
-import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.Parcelable;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -24,7 +22,7 @@ import ru.marinchenko.lorry.util.WifiConfigurator;
 /**
  *
  */
-public class WifiAgent extends IntentService {
+public class WifiAgent extends Service {
 
     public final static String AUTH = "auth";
     public final static String AUTO_UPDATE = "autoUpdate";
@@ -41,8 +39,6 @@ public class WifiAgent extends IntentService {
 
     List<ScanResult> scanResults = new ArrayList<>();
 
-    public WifiAgent(){ super("WifiAgent"); }
-
     @Override
     public void onCreate(){
         super.onCreate();
@@ -50,7 +46,40 @@ public class WifiAgent extends IntentService {
     }
 
     @Override
-    protected void onHandleIntent(Intent intent) {}
+    public void onDestroy() {
+        unregisterReceiver(wifiReceiver);
+        super.onDestroy();
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent.getAction() != null) {
+            switch (intent.getAction()){
+                case AUTH:
+                    authenticate(intent.getStringExtra("password"));
+                    break;
+                case AUTO_UPDATE:
+                    autoUpdate = intent.getBooleanExtra("flag", false);
+                    break;
+                case CONFIGURE:
+                    configure(intent.getStringExtra("id"));
+                    break;
+                case RETURN_INFO:
+                    sendLocalBroadcastMessage(wrapInfo());
+                    break;
+                case RETURN_NETS:
+                    sendLocalBroadcastMessage(wrapScanResults());
+                    break;
+            }
+        }
+        return super.onStartCommand(intent, flags, startId);
+    }
+
 
     /**
      * Инициализация {@link WifiManager}.
@@ -63,11 +92,6 @@ public class WifiAgent extends IntentService {
         IntentFilter wifiFilter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         wifiFilter.addAction(WifiManager.ACTION_PICK_WIFI_NETWORK);
         registerReceiver(wifiReceiver, wifiFilter);
-
-        IntentFilter actionFilter = new IntentFilter(RETURN_NETS);
-        actionFilter.addAction(AUTO_UPDATE);
-        actionFilter.addAction(CONFIGURE);
-        registerReceiver(actionReceiver, actionFilter);
     }
 
     public Intent wrapScanResults(){
@@ -77,18 +101,20 @@ public class WifiAgent extends IntentService {
         wifiManager.startScan();
         scanResults = wifiManager.getScanResults();
 
-        Intent nets = new Intent(MainActivity.UPDATE_NETS);
+        Intent updateNets = new Intent(this, MainActivity.class);
+        updateNets.setAction(MainActivity.UPDATE_NETS);
 
         ArrayList<String> stringList = new ArrayList<>();
         for(ScanResult s : scanResults)
             stringList.add(s.SSID);
 
-        nets.putStringArrayListExtra("ids", stringList);
-        return nets;
+        updateNets.putStringArrayListExtra("ids", stringList);
+        return updateNets;
     }
 
     public Intent wrapInfo(){
-        Intent info = new Intent(MainActivity.WIFI_INFO);
+        Intent info = new Intent(this, MainActivity.class);
+        info.setAction(MainActivity.WIFI_INFO);
         info.putExtra("IP", getPresentIP());
         info.putExtra("SSID", getPresentSSID());
         return info;
@@ -137,41 +163,15 @@ public class WifiAgent extends IntentService {
      * Задание {@link WifiManager}. Используется для тестирования.
      * @param manager альтернативный {@link WifiManager}
      */
-    public void setWifiManager(WifiManager manager){
-        wifiManager = manager;
-    }
+    public void setWifiManager(WifiManager manager){ wifiManager = manager; }
 
     /**
      * Отправка сообщений внутри приложения.
      * @param intent сообщение
      */
     private void sendLocalBroadcastMessage(Intent intent){
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
     }
-
-    private BroadcastReceiver actionReceiver = new BroadcastReceiver() {
-        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            switch (intent.getAction()){
-                case AUTH:
-                    authenticate(intent.getStringExtra("password"));
-                    break;
-                case AUTO_UPDATE:
-                    autoUpdate = intent.getBooleanExtra("flag", false);
-                    break;
-                case CONFIGURE:
-                    configure(intent.getStringExtra("id"));
-                    break;
-                case RETURN_INFO:
-                    sendLocalBroadcastMessage(wrapInfo());
-                    break;
-                case RETURN_NETS:
-                    sendLocalBroadcastMessage(wrapScanResults());
-                    break;
-            }
-        }
-    };
 
     /**
      * Получатель сообщений для объекта {@link WifiManager}.
