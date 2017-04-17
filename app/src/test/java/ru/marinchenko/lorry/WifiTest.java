@@ -77,8 +77,8 @@ public class WifiTest {
         WifiConfiguration conf1 = configure(scans.get(0));
         WifiConfiguration conf2 = configure(scans.get(1));
 
-        wifiAgent.authenticate(conf1);
-        wifiAgent.authenticate(conf2);
+        //wifiAgent.authenticate(conf1);
+        //wifiAgent.authenticate(conf2);
 
         Pair<Integer, Boolean> lastEnabled = shadowWifiManager.getLastEnabledNetwork();
         assertThat(lastEnabled).isEqualTo(new Pair<>(1, true));
