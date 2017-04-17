@@ -79,7 +79,6 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onPause() {
-        currNet = null;
         LocalBroadcastManager.getInstance(getApplicationContext())
                 .unregisterReceiver(actionReceiver);
         super.onPause();
@@ -87,9 +86,8 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onResume() {
-        super.onResume();
-        currNet = null;
         registerActionReceiver();
+        super.onResume();
     }
 
 
@@ -207,10 +205,10 @@ public class MainActivity extends Activity {
         info.setAction(WifiAgent.RETURN_INFO);
         startService(info);
 
-        if(currNet != null &&
-                presentSSID.equals(String.format("\"%s\"", currNet))){
+        if(currNet != null && presentSSID.equals(String.format("\"%s\"", currNet))){
             Intent in = new Intent(this, VideoStreamActivity.class);
             in.putExtra("IP", presentIP);
+            currNet = null;
             startActivityAsChild(in);
         }
     }

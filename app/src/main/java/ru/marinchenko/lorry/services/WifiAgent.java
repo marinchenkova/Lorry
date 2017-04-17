@@ -179,6 +179,10 @@ public class WifiAgent extends Service {
     private class WifiReceiver extends BroadcastReceiver {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         public void onReceive(Context c, Intent intent) {
+            Intent toNet = new Intent(WifiAgent.this, MainActivity.class);
+            toNet.setAction(MainActivity.TO_NET);
+            sendLocalBroadcastMessage(toNet);
+
             if(autoUpdate) sendLocalBroadcastMessage(wrapScanResults());
         }
     }
