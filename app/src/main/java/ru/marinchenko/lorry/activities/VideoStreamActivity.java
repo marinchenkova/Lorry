@@ -3,6 +3,7 @@ package ru.marinchenko.lorry.activities;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.text.format.Formatter;
@@ -12,24 +13,21 @@ import android.view.SurfaceView;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import ru.marinchenko.lorry.R;
+import ru.marinchenko.lorry.services.WifiAgent;
 
-public class VideoStreamActivity extends Activity implements MediaPlayer.OnPreparedListener,
-        SurfaceHolder.Callback {
+public class VideoStreamActivity extends Activity {
 
-    private final static String USERNAME = "admin";
-    private final static String PASSWORD = "camera";
     private String rtspUrl;
 
-    private ProgressDialog pDialog;
 
     private MediaPlayer mediaPlayer;
-    private SurfaceView surfaceView;
-    private SurfaceHolder surfaceHolder;
+    private VideoView videoView;
 
 
     @Override
@@ -41,19 +39,33 @@ public class VideoStreamActivity extends Activity implements MediaPlayer.OnPrepa
     }
 
     public void initVideo(){
-        surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+        videoView = (VideoView) findViewById(R.id.videoView);
 
+        /*
         rtspUrl = Formatter.formatIpAddress(getIntent().getIntExtra("IP", 0));
-        rtspUrl = "rtsp://".concat(rtspUrl).concat(":554");
+        rtspUrl = "rtsp://".concat(rtspUrl).concat(":8554/rec");
+        */
+        //rtspUrl = "rtsp://192.168.4.85:8554/rec";
 
-        //TODO find port
+        rtspUrl = "https://www.youtube.com/watch?v=qzMQza8xZCc";
 
-        Toast.makeText(getApplicationContext(), rtspUrl, Toast.LENGTH_LONG).show();
+        videoView.setVideoURI(Uri.parse("vnd.youtube://" + "qzMQza8xZCc"));
 
-        //rtspUrl = "http://www.ustream.tv/exploreOsprey";
+        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                videoView.start();
+            }
+        });
 
-        surfaceHolder = surfaceView.getHolder();
-        surfaceHolder.addCallback(this);
+        videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+                Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_LONG).show();
+                return false;
+            }
+        });
+
     }
 
 
@@ -61,48 +73,15 @@ public class VideoStreamActivity extends Activity implements MediaPlayer.OnPrepa
         onBackPressed();
     }
 
-    @Override
-    public void onPrepared(MediaPlayer mp) {
-        mediaPlayer.start();
+    public void testDisconnect(View view) {
+        Intent disconnection = new Intent(this, WifiAgent.class);
+        disconnection.setAction(WifiAgent.DISCONNECT);
+        startService(disconnection);
     }
 
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setDisplay(surfaceHolder);
-
-        Context context = getApplicationContext();
-        Map<String, String> headers = getRtspHeaders();
-        Uri source = Uri.parse(rtspUrl);
-
-        try {
-            mediaPlayer.setDataSource(context, source, headers);
-
-            mediaPlayer.setOnPreparedListener(this);
-            mediaPlayer.prepareAsync();
-        }
-        catch (Exception e) {}
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {}
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        mediaPlayer.release();
-    }
-
-    private Map<String, String> getRtspHeaders() {
-        Map<String, String> headers = new HashMap<>();
-        String basicAuthValue = getBasicAuthValue(USERNAME, PASSWORD);
-        headers.put("Authorization", basicAuthValue);
-        return headers;
-    }
-
-    private String getBasicAuthValue(String usr, String pwd) {
-        String credentials = usr + ":" + pwd;
-        int flags = Base64.URL_SAFE | Base64.NO_WRAP;
-        byte[] bytes = credentials.getBytes();
-        return "Basic " + Base64.encodeToString(bytes, flags);
+    public void testReconnect(View view) {
+        Intent reconnection = new Intent(this, WifiAgent.class);
+        reconnection.setAction(WifiAgent.RECONNECT);
+        startService(reconnection);
     }
 }

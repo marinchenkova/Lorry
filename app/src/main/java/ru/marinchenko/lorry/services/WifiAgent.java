@@ -27,6 +27,8 @@ public class WifiAgent extends Service {
     public final static String AUTH = "auth";
     public final static String AUTO_UPDATE = "autoUpdate";
     public final static String CONFIGURE = "configure";
+    public final static String DISCONNECT = "disconnect";
+    public final static String RECONNECT = "reconnect";
     public final static String RETURN_INFO = "returnInfo";
     public final static String RETURN_NETS = "returnNets";
 
@@ -68,6 +70,12 @@ public class WifiAgent extends Service {
                     break;
                 case CONFIGURE:
                     configure(intent.getStringExtra("id"));
+                    break;
+                case DISCONNECT:
+                    disconnect();
+                    break;
+                case RECONNECT:
+                    reconnect();
                     break;
                 case RETURN_INFO:
                     sendLocalBroadcastMessage(wrapInfo());
@@ -140,6 +148,14 @@ public class WifiAgent extends Service {
 
         wifiManager.disconnect();
         wifiManager.enableNetwork(netId, true);
+        wifiManager.reconnect();
+    }
+
+    public void disconnect(){
+        wifiManager.disconnect();
+    }
+
+    public void reconnect(){
         wifiManager.reconnect();
     }
 
