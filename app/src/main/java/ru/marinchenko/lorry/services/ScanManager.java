@@ -9,16 +9,21 @@ import java.util.TimerTask;
 
 
 /**
- * Обновление списка доступных сетей по таймеру.
+ * Сервис предназначен для обновления списка доступных сетей в
+ * {@link ru.marinchenko.lorry.activities.MainActivity}. Обновление может производиться по кнопке,
+ * по таймеру или автоматически.
  */
 public class ScanManager extends IntentService{
 
-    private Timer timer;
-    private UpdateTimerTask updateTask;
-    private boolean onTimer = false;
-
     private final IBinder mBinder = new LocalBinder();
 
+    private final static int TURN_TIME = 5000;
+    private boolean onTimer = false;
+
+    private Timer timerMain;
+    private Timer timerPrepare;
+    private UpdateTimerTask updateTask;
+    private PrepareTimerTask prepareTask;
 
     public ScanManager(){ super("ScanManager"); }
 
@@ -26,19 +31,16 @@ public class ScanManager extends IntentService{
     public void onCreate(){
         super.onCreate();
         updateTask = new UpdateTimerTask();
-    }
-
-    @Override
-    public void onDestroy() {
-        resetTimer();
-        super.onDestroy();
+        prepareTask = new PrepareTimerTask();
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {}
 
-    public class LocalBinder extends Binder {
-        public ScanManager getService() { return ScanManager.this; }
+    @Override
+    public void onDestroy() {
+        resetTimers();
+        super.onDestroy();
     }
 
     @Override
@@ -50,7 +52,7 @@ public class ScanManager extends IntentService{
      * @param sec время обновления списка в секундах
      */
     public void startTimer(int sec) {
-        resetTimer();
+        resetTimers();
 
         Intent autoUpdate = new Intent(this, WifiAgent.class);
         autoUpdate.setAction(WifiAgent.AUTO_UPDATE);
@@ -59,26 +61,31 @@ public class ScanManager extends IntentService{
 
         if (sec != 0 && sec <= 900) {
             onTimer = true;
-            timer = new Timer();
-            timer.schedule(updateTask, 0, sec*1000);
+
+            timerPrepare = new Timer();
+            timerPrepare.schedule(prepareTask, 0, sec*1000);
+
+            timerMain = new Timer();
+            timerMain.schedule(updateTask, TURN_TIME, sec*1000);
         }
     }
 
     /**
      * Остановка таймера.
      */
-    public void resetTimer(){
-        if(timer != null) {
-            timer.cancel();
-            timer = null;
+    public void resetTimers(){
+        if(timerMain != null) {
+            timerMain.cancel();
+            timerMain = null;
         }
+
+        if(timerPrepare != null) {
+            timerPrepare.cancel();
+            timerPrepare = null;
+        }
+
         onTimer = false;
     }
-
-    /**
-     * Выполнение задачи таймера вне расписания.
-     */
-    public void scan(){ updateTask.run(); }
 
     /**
      * Проверка, работает ли обновление списка сетей по таймеру.
@@ -87,13 +94,41 @@ public class ScanManager extends IntentService{
     public boolean isOnTimer(){ return onTimer; }
 
     /**
-     * Задача таймера - обновление списка доступных сетей.
+     * Выполнение задачи таймера вне расписания.
+     */
+    public void scan(){
+        prepareTask.run();
+        Timer onButton = new Timer();
+        UpdateTimerTask onButtonUpdateTask = new UpdateTimerTask();
+        onButton.schedule(onButtonUpdateTask, TURN_TIME);
+    }
+
+
+    public class LocalBinder extends Binder {
+        public ScanManager getService() { return ScanManager.this; }
+    }
+
+    /**
+     * Задача таймера {@link ScanManager#timerMain} - обновление списка доступных сетей.
      */
     private class UpdateTimerTask extends TimerTask{
         @Override
         public void run() {
             Intent update = new Intent(ScanManager.this, WifiAgent.class);
             update.setAction(WifiAgent.RETURN_NETS);
+            startService(update);
+        }
+    }
+
+    /**
+     * Задача вспомогательного таймера {@link ScanManager#timerPrepare} - предварительное включение
+     * Wi-Fi сервиса, если он был выключен, иначе происходит обновление списка доступных сетей.
+     */
+    private class PrepareTimerTask extends TimerTask{
+        @Override
+        public void run() {
+            Intent update = new Intent(ScanManager.this, WifiAgent.class);
+            update.setAction(WifiAgent.PREPARE_RETURN_NETS);
             startService(update);
         }
     }

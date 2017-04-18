@@ -20,10 +20,6 @@ import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import ru.marinchenko.lorry.R;
 import ru.marinchenko.lorry.Settings;
@@ -32,7 +28,6 @@ import ru.marinchenko.lorry.util.NetListAdapter;
 import ru.marinchenko.lorry.services.ScanManager;
 import ru.marinchenko.lorry.services.WifiAgent;
 import ru.marinchenko.lorry.util.UpdateFormatter;
-import ru.marinchenko.lorry.util.WifiConfigurator;
 
 public class MainActivity extends Activity {
 
@@ -44,7 +39,6 @@ public class MainActivity extends Activity {
     public final static String WIFI_INFO = "wifiInfo";
 
     private Settings settings = new Settings();
-    private boolean autoConnect = false;
     private int updateTime = 10;
 
     private String presentSSID;
@@ -70,11 +64,9 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onDestroy() {
-        if (scanManagerConnection != null) {
-            unbindService(scanManagerConnection);
-        }
-        super.onDestroy();
+    protected void onResume() {
+        registerActionReceiver();
+        super.onResume();
     }
 
     @Override
@@ -85,20 +77,73 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onResume() {
-        registerActionReceiver();
-        super.onResume();
+    protected void onDestroy() {
+        if (scanManagerConnection != null) {
+            unbindService(scanManagerConnection);
+        }
+        super.onDestroy();
     }
 
 
     /**
-     * Инициализация сервиса {@link WifiAgent}. Сервис привязывается к компоненту
-     * {@link MainActivity}.
+     * Вызывается при переключении флажка "Подключаться автоматически".
+     * @param view флажок
      */
-    private void initWifiAgent(){
-        Intent wifiAgency = new Intent(this, WifiAgent.class);
-        wifiAgency.setAction(WifiAgent.RETURN_NETS);
-        startService(wifiAgency);
+    public void setAutoConnect(View view){
+        Intent autoConnection = new Intent(this, WifiAgent.class);
+        autoConnection.setAction(WifiAgent.AUTO_CONNECT);
+        autoConnection.putExtra("flag", ((CheckBox) view).isChecked());
+        startService(autoConnection);
+    }
+
+    /**
+     * Вызывается при нажатии на сеть из списка доступных сетей. Если сеть раздается
+     * видеорегистратором, приложение перейдет к просмотру его камеры.
+     * @param net объект {@link ScanResult}, соответствующий пункту в списке доступных сетей
+     */
+    public void toNet(String net){
+        currNet = net;
+        Intent config = new Intent(this, WifiAgent.class);
+        config.setAction(WifiAgent.CONFIGURE);
+        config.putExtra("id", currNet);
+        startService(config);
+
+        LoginDialog dialog = new LoginDialog();
+        dialog.show(getFragmentManager(), "login");
+    }
+
+    /**
+     * Вызывается при нажатии кнопки "Настройки".
+     * @param view кнопка
+     */
+    public void toSettings(View view){
+        //TODO toSettings()
+    }
+
+    /**
+     * Вызывается при нажатии кнопки "ОБНОВИТЬ".
+     * @param view кнопка
+     */
+    public void updateNets(View view){ scanManager.scan(); }
+
+
+    /**
+     * Анимация текстового поля с информацией о способе обновления списка.
+     */
+    private void animateTimerTask(){
+        findViewById(R.id.textview_update).startAnimation(
+                AnimationUtils.loadAnimation(this, R.anim.fade_in));
+    }
+
+    /**
+     * Аутентификация в сети.
+     * @param password пароль
+     */
+    public void authenticate(String password){
+        Intent auth = new Intent(this, WifiAgent.class);
+        auth.setAction(WifiAgent.AUTH);
+        auth.putExtra("password", password);
+        startService(auth);
     }
 
     /**
@@ -122,6 +167,14 @@ public class MainActivity extends Activity {
     }
 
     /**
+     * Инициализация сервиса {@link WifiAgent}.
+     */
+    private void initWifiAgent(){
+        Intent wifiAgency = new Intent(this, WifiAgent.class);
+        startService(wifiAgency);
+    }
+
+    /**
      * Регистрация получателя сообщений для действия.
      */
     private void registerActionReceiver(){
@@ -130,48 +183,6 @@ public class MainActivity extends Activity {
         intFilter.addAction(WIFI_INFO);
         LocalBroadcastManager.getInstance(getApplicationContext())
                 .registerReceiver(actionReceiver, intFilter);
-    }
-
-
-    /**
-     * Вызывается при нажатии кнопки "Настройки".
-     * @param view кнопка
-     */
-    public void toSettings(View view){
-        //TODO toSettings()
-    }
-
-    /**
-     * Вызывается при нажатии кнопки "ОБНОВИТЬ".
-     * @param view кнопка
-     */
-    public void updateNets(View view){
-        scanManager.scan();
-    }
-
-    /**
-     * Вызывается при нажатии на сеть из списка доступных сетей. Если сеть раздается
-     * видеорегистратором, приложение перейдет к просмотру его камеры.
-     * @param net объект {@link ScanResult}, соответствующий пункту в списке доступных сетей
-     */
-    public void toNet(String net){
-        currNet = net;
-        Intent config = new Intent(this, WifiAgent.class);
-        config.setAction(WifiAgent.CONFIGURE);
-        config.putExtra("id", currNet);
-        startService(config);
-
-        LoginDialog dialog = new LoginDialog();
-        dialog.show(getFragmentManager(), "login");
-    }
-
-
-    /**
-     * Вызывается при переключении флажка "Подключаться автоматически".
-     * @param view флажок
-     */
-    public void setAutoConnect(View view){
-        autoConnect = ((CheckBox) view).isChecked();
     }
 
     /**
@@ -186,14 +197,14 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * Аутентификация в сети.
-     * @param password пароль
+     * Переход к новой {@link Activity} с помещением текущей в стек переходов.
+     * При нажатии кнопки "Назад" в вызываемой {@link Activity} не будет зацикливания переходов.
+     * @param next вызываемая {@link Activity}
      */
-    public void authenticate(String password){
-        Intent auth = new Intent(this, WifiAgent.class);
-        auth.setAction(WifiAgent.AUTH);
-        auth.putExtra("password", password);
-        startService(auth);
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    private void startActivityAsChild(Intent next){
+        TaskStackBuilder.create(this).addNextIntentWithParentStack(this.getIntent());
+        startActivity(next);
     }
 
     /**
@@ -213,24 +224,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    /**
-     * Переход к новой {@link Activity} с помещением текущей в стек переходов.
-     * При нажатии кнопки "Назад" в вызываемой {@link Activity} не будет зацикливания переходов.
-     * @param next вызываемая {@link Activity}
-     */
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    private void startActivityAsChild(Intent next){
-        TaskStackBuilder.create(this).addNextIntentWithParentStack(this.getIntent());
-        startActivity(next);
-    }
-
-    /**
-     * Анимация текстового поля с информацией о способе обновления списка.
-     */
-    private void animateTimerTask(){
-        findViewById(R.id.textview_update).startAnimation(
-                AnimationUtils.loadAnimation(this, R.anim.fade_in));
-    }
 
     /**
      * Получатель сообщений действия. При условии, что последняя сеть, выбранная в

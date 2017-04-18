@@ -68,7 +68,7 @@ public class WifiTest {
 
         controller = Robolectric.buildService(WifiAgent.class);
         wifiAgent = controller.bind().create().get();
-        wifiAgent.setWifiManager(spyWifiManager);
+        //wifiAgent.setWifiManager(spyWifiManager);
     }
 
 

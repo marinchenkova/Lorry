@@ -47,9 +47,9 @@ public class VideoStreamActivity extends Activity {
         */
         //rtspUrl = "rtsp://192.168.4.85:8554/rec";
 
-        rtspUrl = "https://www.youtube.com/watch?v=qzMQza8xZCc";
+        rtspUrl = "rtsp://v4.cache1.c.youtube.com/CiILENy73wIaGQmC00ZlwwIDOxMYESARFEgGUgZ2aWRlb3MM/0/0/0/video.3gp";
 
-        videoView.setVideoURI(Uri.parse("vnd.youtube://" + "qzMQza8xZCc"));
+        videoView.setVideoURI(Uri.parse(rtspUrl));
 
         videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
@@ -70,6 +70,10 @@ public class VideoStreamActivity extends Activity {
 
 
     public void exit(View view) {
+        Intent disconnection = new Intent(this, WifiAgent.class);
+        disconnection.setAction(WifiAgent.DISCONNECT);
+        startService(disconnection);
+
         onBackPressed();
     }
 
@@ -77,11 +81,5 @@ public class VideoStreamActivity extends Activity {
         Intent disconnection = new Intent(this, WifiAgent.class);
         disconnection.setAction(WifiAgent.DISCONNECT);
         startService(disconnection);
-    }
-
-    public void testReconnect(View view) {
-        Intent reconnection = new Intent(this, WifiAgent.class);
-        reconnection.setAction(WifiAgent.RECONNECT);
-        startService(reconnection);
     }
 }

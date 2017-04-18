@@ -23,14 +23,7 @@
             android:onClick="testDisconnect"
             />
 
-        <ImageButton
-            android:layout_height="fill_parent"
-            android:layout_width="64dp"
-            android:id="@+id/test_reconnect"
-            android:src="@drawable/button_reconnect"
-            android:contentDescription="test_reconnect"
-            android:onClick="testReconnect"
-            />
+
 
     </LinearLayout>
 
