@@ -19,6 +19,7 @@ import java.util.List;
 
 import ru.marinchenko.lorry.activities.MainActivity;
 import ru.marinchenko.lorry.util.WifiConfigurator;
+import ru.marinchenko.lorry.util.WifiStateAgent;
 
 /**
  * Сервис для работы с Wi-Fi.
@@ -89,10 +90,12 @@ public class WifiAgent extends Service {
                     break;
 
                 case PREPARE_RETURN_NETS:
-                    if(wifiManager.getWifiState() != WifiManager.WIFI_STATE_ENABLED){
+                    if(wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED){
+                        scanResultsReturned = sendLocalBroadcastMessage(wrapScanResults());
+                    } else {
                         wifiStateAgent.saveAndPrepare();
                         scanResultsReturned = false;
-                    } else scanResultsReturned = sendLocalBroadcastMessage(wrapScanResults());
+                    }
                     break;
 
                 case RETURN_INFO:
@@ -176,7 +179,7 @@ public class WifiAgent extends Service {
         wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         wifiReceiver = new WifiReceiver();
         wifiConf = new WifiConfigurator();
-        wifiStateAgent = new WifiStateAgent();
+        wifiStateAgent = new WifiStateAgent(wifiManager);
         wifiStateAgent.saveAndPrepare();
 
         IntentFilter wifiFilter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
@@ -244,34 +247,6 @@ public class WifiAgent extends Service {
             }
 
             if(autoUpdate) sendLocalBroadcastMessage(wrapScanResults());
-        }
-    }
-
-    /**
-     * Сохранение и восстановление настроек Wi-Fi.
-     */
-    private class WifiStateAgent {
-        private int wasConnectedId = -2;
-        private boolean wasEnabled = false;
-        private boolean saved = false;
-
-        void saveAndPrepare(){
-            saved = true;
-            wasEnabled = wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED;
-            wasConnectedId = -2;
-            if(wasEnabled) wasConnectedId = wifiManager.getConnectionInfo().getNetworkId();
-            else wifiManager.setWifiEnabled(true);
-        }
-
-        void restore(boolean reconnect){
-            if(saved){
-                if(!wasEnabled) wifiManager.setWifiEnabled(false);
-                else if(wasConnectedId != -1 && reconnect) {
-                    wifiManager.disconnect();
-                    wifiManager.enableNetwork(wasConnectedId, true);
-                    wifiManager.reconnect();
-                }
-            }
         }
     }
 }
