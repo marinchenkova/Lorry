@@ -13,7 +13,7 @@ public class WifiStateAgent {
     private int wasConnectedId = -2;
     private boolean wasEnabled = false;
     private boolean saved = false;
-
+    private boolean restored = true;
 
     public WifiStateAgent(WifiManager wm){ wifiManager = wm; }
 
@@ -21,11 +21,14 @@ public class WifiStateAgent {
      * Сохранение состояния и включение Wi-Fi.
      */
     public void saveAndPrepare(){
+        if(restored){
+            wasEnabled = wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED;
+            wasConnectedId = -2;
+            if(wasEnabled) wasConnectedId = wifiManager.getConnectionInfo().getNetworkId();
+            else wifiManager.setWifiEnabled(true);
+        }
+
         saved = true;
-        wasEnabled = wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED;
-        wasConnectedId = -2;
-        if(wasEnabled) wasConnectedId = wifiManager.getConnectionInfo().getNetworkId();
-        else wifiManager.setWifiEnabled(true);
     }
 
     /**
@@ -41,5 +44,7 @@ public class WifiStateAgent {
                 wifiManager.reconnect();
             }
         }
+
+        restored = true;
     }
 }

@@ -32,6 +32,7 @@ public class WifiAgent extends Service {
     public final static String CONFIGURE = "configure";
     public final static String DISCONNECT = "disconnect";
     public final static String PREPARE_RETURN_NETS = "prepareReturnNets";
+    public final static String RESTORE_WIFI = "restoreWifi";
     public final static String RETURN_INFO = "returnInfo";
     public final static String RETURN_NETS = "returnNets";
 
@@ -96,6 +97,10 @@ public class WifiAgent extends Service {
                         wifiStateAgent.saveAndPrepare();
                         scanResultsReturned = false;
                     }
+                    break;
+
+                case RESTORE_WIFI:
+                    wifiStateAgent.restore(false);
                     break;
 
                 case RETURN_INFO:

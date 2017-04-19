@@ -66,21 +66,31 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         registerActionReceiver();
+        if(scanManagerBound) scanManager.startTimer();
         super.onResume();
     }
 
     @Override
     protected void onPause() {
+        if(scanManagerBound) scanManager.resetTimers();
+
+        Intent restoreWifiState = new Intent(this, WifiAgent.class);
+        restoreWifiState.setAction(WifiAgent.RESTORE_WIFI);
+        startService(restoreWifiState);
+
         LocalBroadcastManager.getInstance(getApplicationContext())
                 .unregisterReceiver(actionReceiver);
+
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
-        if (scanManagerConnection != null) {
-            unbindService(scanManagerConnection);
-        }
+        if (scanManagerConnection != null) unbindService(scanManagerConnection);
+
+        Intent stopWifiAgency = new Intent(this, WifiAgent.class);
+        stopService(stopWifiAgency);
+
         super.onDestroy();
     }
 
