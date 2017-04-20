@@ -1,7 +1,6 @@
 package ru.marinchenko.lorry.util;
 
 
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -9,9 +8,7 @@ import java.util.regex.Pattern;
  * Класс содержит {@code static} методы для автоматической аутентификации в сетях ведирегистраторов.
  */
 public class NetConfig {
-    public static void main(String[] args) {
-        System.out.println(generateBSSID());
-    }
+
     /**
      * Проверка, раздается ли сеть Wi-Fi видеорегистратором.
      * @param name имя сети

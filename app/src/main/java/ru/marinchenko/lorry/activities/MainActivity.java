@@ -21,6 +21,8 @@ import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+
 import ru.marinchenko.lorry.R;
 import ru.marinchenko.lorry.Settings;
 import ru.marinchenko.lorry.dialogs.LoginDialog;
@@ -29,14 +31,24 @@ import ru.marinchenko.lorry.services.ScanManager;
 import ru.marinchenko.lorry.services.WifiAgent;
 import ru.marinchenko.lorry.util.UpdateFormatter;
 
+import static ru.marinchenko.lorry.services.WifiAgent.AUTH;
+import static ru.marinchenko.lorry.services.WifiAgent.AUTO_CONNECT;
+import static ru.marinchenko.lorry.services.WifiAgent.CONFIGURE;
+
 public class MainActivity extends Activity {
 
     /**
      * Указатели для приема сообщений, рассылаемых сервисом {@link WifiAgent}.
      */
+    public final static String APPLICATION_ON_PAUSE = "applicationOnPause";
+    public final static String APPLICATION_ON_RESUME = "applicationOnResume";
     public final static String TO_NET = "toNet";
     public final static String UPDATE_NETS = "updateNets";
-    public final static String WIFI_INFO = "wifiInfo";
+    public final static String NET_INFO = "netInfo";
+    public final static String NET_INFO_IP = "netInfoIp";
+    public final static String NET_INFO_PASSWORD = "netInfoPassword";
+    public final static String NET_INFO_SSID = "netInfoSsid";
+    public final static String NET_INFO_NUM = "netInfoNum";
 
     private Settings settings = new Settings();
     private int updateTime = 10;
@@ -65,8 +77,12 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onResume() {
+        Intent onResume = new Intent(this, WifiAgent.class);
+        onResume.setAction(APPLICATION_ON_RESUME);
+        startService(onResume);
+
+        if(scanManagerBound) scanManager.startTimer(updateTime);
         registerActionReceiver();
-        if(scanManagerBound) scanManager.startTimer();
         super.onResume();
     }
 
@@ -74,9 +90,9 @@ public class MainActivity extends Activity {
     protected void onPause() {
         if(scanManagerBound) scanManager.resetTimers();
 
-        Intent restoreWifiState = new Intent(this, WifiAgent.class);
-        restoreWifiState.setAction(WifiAgent.RESTORE_WIFI);
-        startService(restoreWifiState);
+        Intent wifiOn = new Intent(this, WifiAgent.class);
+        wifiOn.setAction(APPLICATION_ON_PAUSE);
+        startService(wifiOn);
 
         LocalBroadcastManager.getInstance(getApplicationContext())
                 .unregisterReceiver(actionReceiver);
@@ -101,8 +117,8 @@ public class MainActivity extends Activity {
      */
     public void setAutoConnect(View view){
         Intent autoConnection = new Intent(this, WifiAgent.class);
-        autoConnection.setAction(WifiAgent.AUTO_CONNECT);
-        autoConnection.putExtra("flag", ((CheckBox) view).isChecked());
+        autoConnection.setAction(AUTO_CONNECT);
+        autoConnection.putExtra(AUTO_CONNECT, ((CheckBox) view).isChecked());
         startService(autoConnection);
     }
 
@@ -114,8 +130,8 @@ public class MainActivity extends Activity {
     public void toNet(String net){
         currNet = net;
         Intent config = new Intent(this, WifiAgent.class);
-        config.setAction(WifiAgent.CONFIGURE);
-        config.putExtra("id", currNet);
+        config.setAction(CONFIGURE);
+        config.putExtra(NET_INFO_SSID, currNet);
         startService(config);
 
         LoginDialog dialog = new LoginDialog();
@@ -134,7 +150,7 @@ public class MainActivity extends Activity {
      * Вызывается при нажатии кнопки "ОБНОВИТЬ".
      * @param view кнопка
      */
-    public void updateNets(View view){ scanManager.scan(); }
+    public void updateNets(View view){ scanManager.startTimer(updateTime); }
 
 
     /**
@@ -151,8 +167,8 @@ public class MainActivity extends Activity {
      */
     public void authenticate(String password){
         Intent auth = new Intent(this, WifiAgent.class);
-        auth.setAction(WifiAgent.AUTH);
-        auth.putExtra("password", password);
+        auth.setAction(AUTH);
+        auth.putExtra(NET_INFO_PASSWORD, password);
         startService(auth);
     }
 
@@ -190,7 +206,7 @@ public class MainActivity extends Activity {
     private void registerActionReceiver(){
         IntentFilter intFilter = new IntentFilter(TO_NET);
         intFilter.addAction(UPDATE_NETS);
-        intFilter.addAction(WIFI_INFO);
+        intFilter.addAction(NET_INFO);
         LocalBroadcastManager.getInstance(getApplicationContext())
                 .registerReceiver(actionReceiver, intFilter);
     }
@@ -223,12 +239,12 @@ public class MainActivity extends Activity {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void toVideoStream(){
         Intent info = new Intent(this, WifiAgent.class);
-        info.setAction(WifiAgent.RETURN_INFO);
+        info.setAction(WifiAgent.RETURN_CURRENT_NET_INFO);
         startService(info);
 
         if(currNet != null && presentSSID.equals(String.format("\"%s\"", currNet))){
             Intent in = new Intent(this, VideoStreamActivity.class);
-            in.putExtra("IP", presentIP);
+            in.putExtra(NET_INFO_IP, presentIP);
             currNet = null;
             startActivityAsChild(in);
         }
@@ -246,18 +262,32 @@ public class MainActivity extends Activity {
         public void onReceive(Context context, Intent intent) {
             switch (intent.getAction()){
                 case TO_NET:
+                    //TODO уведомление
                     toVideoStream();
                     break;
 
                 case UPDATE_NETS:
-                    netListAdapter.updateNets(intent.getStringArrayListExtra("ids"));
-                    netListAdapter.notifyDataSetChanged();
-                    if(scanManagerBound && scanManager.isOnTimer()) animateTimerTask();
+                    ArrayList<String> arr = intent.getStringArrayListExtra(NET_INFO_SSID);
+                    boolean empty = arr.isEmpty();
+
+                    for(String s : arr){
+                        if(s == null || s.equals("")) {
+                            empty = true;
+                            break;
+                        }
+                    }
+
+                    if(!empty){
+                        netListAdapter.updateNets(intent.getStringArrayListExtra(NET_INFO_SSID));
+                        netListAdapter.notifyDataSetChanged();
+                        if(scanManagerBound && scanManager.isOnTimer()) animateTimerTask();
+                    }
+
                     break;
 
-                case WIFI_INFO:
-                    presentIP = intent.getIntExtra("IP", 0);
-                    presentSSID = intent.getStringExtra("SSID");
+                case NET_INFO:
+                    presentIP = intent.getIntExtra(NET_INFO_IP, 0);
+                    presentSSID = intent.getStringExtra(NET_INFO_SSID);
                     break;
             }
         }

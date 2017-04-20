@@ -17,8 +17,7 @@ public class ScanManager extends IntentService{
 
     private final IBinder mBinder = new LocalBinder();
 
-    private final static int TURN_TIME = 5000;
-    private int updateTime = 10;
+    private final static int TURN_TIME = 5;
     private boolean onTimer = false;
 
     private Timer timerMain;
@@ -53,13 +52,11 @@ public class ScanManager extends IntentService{
      * @param sec время обновления списка в секундах
      */
     public void startTimer(int sec) {
-        updateTime = sec;
-
         resetTimers();
 
         Intent autoUpdate = new Intent(this, WifiAgent.class);
         autoUpdate.setAction(WifiAgent.AUTO_UPDATE);
-        autoUpdate.putExtra("flag", sec == 0);
+        autoUpdate.putExtra(WifiAgent.AUTO_UPDATE, sec == 0);
         startService(autoUpdate);
 
         if (sec != 0 && sec <= 900) {
@@ -69,31 +66,26 @@ public class ScanManager extends IntentService{
             timerPrepare.schedule(prepareTask, 0, sec*1000);
 
             timerMain = new Timer();
-            timerMain.schedule(updateTask, TURN_TIME, sec*1000);
+            timerMain.schedule(updateTask, TURN_TIME*1000, sec*1000);
         }
-    }
-
-    /**
-     * Запуск таймера по предыдущим параметрам.
-     */
-    public void startTimer(){
-        startTimer(updateTime);
     }
 
     /**
      * Остановка таймеров.
      */
     public void resetTimers(){
-        if(timerMain != null) {
-            timerMain.cancel();
-            timerMain = null;
-        }
-
-        if(timerPrepare != null) {
+        if(timerPrepare != null){
             timerPrepare.cancel();
             timerPrepare = null;
         }
 
+        if(timerMain != null){
+            timerMain.cancel();
+            timerMain = null;
+        }
+
+        prepareTask = new PrepareTimerTask();
+        updateTask = new UpdateTimerTask();
         onTimer = false;
     }
 
@@ -102,16 +94,6 @@ public class ScanManager extends IntentService{
      * @return {@code true} если обновление происходит по таймеру
      */
     public boolean isOnTimer(){ return onTimer; }
-
-    /**
-     * Выполнение задачи таймера вне расписания.
-     */
-    public void scan(){
-        prepareTask.run();
-        Timer onButton = new Timer();
-        UpdateTimerTask onButtonUpdateTask = new UpdateTimerTask();
-        onButton.schedule(onButtonUpdateTask, TURN_TIME);
-    }
 
 
     public class LocalBinder extends Binder {

@@ -13,13 +13,17 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import ru.marinchenko.lorry.activities.MainActivity;
+import ru.marinchenko.lorry.util.NetConfig;
 import ru.marinchenko.lorry.util.WifiConfigurator;
 import ru.marinchenko.lorry.util.WifiStateAgent;
+
+import static ru.marinchenko.lorry.activities.MainActivity.*;
 
 /**
  * Сервис для работы с Wi-Fi.
@@ -32,15 +36,15 @@ public class WifiAgent extends Service {
     public final static String CONFIGURE = "configure";
     public final static String DISCONNECT = "disconnect";
     public final static String PREPARE_RETURN_NETS = "prepareReturnNets";
-    public final static String RESTORE_WIFI = "restoreWifi";
-    public final static String RETURN_INFO = "returnInfo";
+    public final static String RETURN_CURRENT_NET_INFO = "returnCurrentNetInfo";
     public final static String RETURN_NETS = "returnNets";
 
     private final IBinder mBinder = new LocalBinder();
 
+    private boolean onPause = false;
     private boolean autoUpdate = false;
     private boolean autoConnect = false;
-    boolean scanResultsReturned = false;
+    private boolean scanResultsReturned = false;
     private int lastId;
 
     private WifiConfigurator wifiConf;
@@ -49,6 +53,7 @@ public class WifiAgent extends Service {
     private WifiStateAgent wifiStateAgent;
 
     private List<ScanResult> scanResults = new ArrayList<>();
+    private List<ScanResult> recs = new ArrayList<>();
 
 
     @Override
@@ -64,55 +69,64 @@ public class WifiAgent extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent.getAction() != null) {
             switch (intent.getAction()){
+                case APPLICATION_ON_PAUSE:
+                    onPause = true;
+                    wifiStateAgent.wifiOn();
+                    //TODO не работает принудительное включение Wi-Fi
+                    break;
+
+                case APPLICATION_ON_RESUME:
+                    onPause = false;
+                    wifiStateAgent.save();
+                    break;
+
                 case AUTH:
-                    wifiStateAgent.saveAndPrepare();
-                    authenticate(intent.getStringExtra("password"));
+                    wifiStateAgent.wifiOn();
+                    authenticate(intent.getStringExtra(NET_INFO_PASSWORD));
                     break;
 
                 case AUTO_CONNECT:
-                    autoConnect = intent.getBooleanExtra("flag", false);
+                    autoConnect = intent.getBooleanExtra(AUTO_CONNECT, false);
                     break;
 
                 case AUTO_UPDATE:
                     //TODO предупреждение о включении Wi-Fi
-                    autoUpdate = intent.getBooleanExtra("flag", false);
-                    if(autoUpdate) wifiStateAgent.saveAndPrepare();
-                    else wifiStateAgent.restore(false);
+                    autoUpdate = intent.getBooleanExtra(AUTO_UPDATE, false);
+                    if(autoUpdate) wifiStateAgent.wifiOn();
+                    else wifiStateAgent.restore();
                     break;
 
                 case CONFIGURE:
-                    configure(intent.getStringExtra("id"));
+                    configure(intent.getStringExtra(NET_INFO_SSID));
                     break;
 
                 case DISCONNECT:
                     disconnect();
                     disableNetwork();
-                    wifiStateAgent.restore(true);
+                    wifiStateAgent.restore();
                     break;
 
                 case PREPARE_RETURN_NETS:
                     if(wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED){
+                        wrapToNetInfo();
                         scanResultsReturned = sendLocalBroadcastMessage(wrapScanResults());
                     } else {
-                        wifiStateAgent.saveAndPrepare();
+                        wifiStateAgent.wifiOn();
                         scanResultsReturned = false;
                     }
                     break;
 
-                case RESTORE_WIFI:
-                    wifiStateAgent.restore(false);
-                    break;
-
-                case RETURN_INFO:
-                    sendLocalBroadcastMessage(wrapNetInfo());
+                case RETURN_CURRENT_NET_INFO:
+                    sendLocalBroadcastMessage(wrapCurrentNetInfo());
                     break;
 
                 case RETURN_NETS:
                     if(wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED &&
                             !scanResultsReturned){
+                        wrapToNetInfo();
                         sendLocalBroadcastMessage(wrapScanResults());
                         scanResultsReturned = false;
-                        wifiStateAgent.restore(false);
+                        wifiStateAgent.restore();
                     }
                     break;
             }
@@ -123,7 +137,7 @@ public class WifiAgent extends Service {
     @Override
     public void onDestroy() {
         unregisterReceiver(wifiReceiver);
-        wifiStateAgent.restore(true);
+        wifiStateAgent.restore();
         super.onDestroy();
     }
 
@@ -185,12 +199,32 @@ public class WifiAgent extends Service {
         wifiReceiver = new WifiReceiver();
         wifiConf = new WifiConfigurator();
         wifiStateAgent = new WifiStateAgent(wifiManager);
-        wifiStateAgent.saveAndPrepare();
 
         IntentFilter wifiFilter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         wifiFilter.addAction(WifiManager.ACTION_PICK_WIFI_NETWORK);
         wifiFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
         registerReceiver(wifiReceiver, wifiFilter);
+    }
+
+    /**
+     * Сканирование доступных Wi-Fi сетей.
+     * @return количество сетей видеорегистраторов.
+     */
+    public int scanRec(){
+        wifiManager.startScan();
+        scanResults = wifiManager.getScanResults();
+
+        recs.clear();
+        int num = 0;
+
+        for(ScanResult s : scanResults) {
+            if (NetConfig.ifRec(s.SSID)) {
+                recs.add(s);
+                num++;
+            }
+        }
+
+        return num;
     }
 
     /**
@@ -205,11 +239,11 @@ public class WifiAgent extends Service {
      * Упаковать SSID и IP адрес текущей сети в {@link Intent}.
      * @return {@link Intent} с данными
      */
-    public Intent wrapNetInfo(){
+    public Intent wrapCurrentNetInfo(){
         Intent info = new Intent(this, MainActivity.class);
-        info.setAction(MainActivity.WIFI_INFO);
-        info.putExtra("IP", getPresentIP());
-        info.putExtra("SSID", getPresentSSID());
+        info.setAction(MainActivity.NET_INFO);
+        info.putExtra(NET_INFO_IP, getPresentIP());
+        info.putExtra(NET_INFO_SSID, getPresentSSID());
         return info;
     }
 
@@ -218,9 +252,6 @@ public class WifiAgent extends Service {
      * @return {@link Intent} с данными
      */
     public Intent wrapScanResults(){
-        wifiManager.startScan();
-        scanResults = wifiManager.getScanResults();
-
         Intent updateNets = new Intent(this, MainActivity.class);
         updateNets.setAction(MainActivity.UPDATE_NETS);
 
@@ -228,10 +259,26 @@ public class WifiAgent extends Service {
         for(ScanResult s : scanResults)
             stringList.add(s.SSID);
 
-        updateNets.putStringArrayListExtra("ids", stringList);
+        updateNets.putStringArrayListExtra(NET_INFO_SSID, stringList);
         return updateNets;
     }
 
+    public void wrapToNetInfo(){
+        int num = scanRec();
+        if(num > 0) {
+            wifiStateAgent.wifiOn();
+            Intent toNet = new Intent(WifiAgent.this, MainActivity.class);
+            toNet.setAction(MainActivity.TO_NET);
+            toNet.putExtra(AUTO_CONNECT, autoConnect);
+            toNet.putExtra(NET_INFO_NUM, num);
+
+            ArrayList<String> stringList = new ArrayList<>();
+            for(ScanResult r : recs) stringList.add(r.SSID);
+            toNet.putStringArrayListExtra(NET_INFO_SSID, stringList);
+
+            sendLocalBroadcastMessage(toNet);
+        }
+    }
 
     public class LocalBinder extends Binder {
         public WifiAgent getService() { return WifiAgent.this; }
@@ -243,15 +290,20 @@ public class WifiAgent extends Service {
     private class WifiReceiver extends BroadcastReceiver {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         public void onReceive(Context c, Intent intent) {
-            switch (intent.getAction()){
-                case WifiManager.ACTION_PICK_WIFI_NETWORK:
-                    Intent toNet = new Intent(WifiAgent.this, MainActivity.class);
-                    toNet.setAction(MainActivity.TO_NET);
-                    sendLocalBroadcastMessage(toNet);
-                    break;
+            if(autoUpdate) {
+                wrapToNetInfo();
+                sendLocalBroadcastMessage(wrapScanResults());
             }
 
-            if(autoUpdate) sendLocalBroadcastMessage(wrapScanResults());
+            if(onPause) {
+                if(wifiManager.getWifiState() != WifiManager.WIFI_STATE_ENABLED)
+                    wifiStateAgent.wifiOn();
+
+                int num = scanRec();
+                if(num > 0) {
+                    //TODO уведомление
+                }
+            }
         }
     }
 }

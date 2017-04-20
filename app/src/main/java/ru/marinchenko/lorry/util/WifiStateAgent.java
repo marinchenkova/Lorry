@@ -10,41 +10,46 @@ public class WifiStateAgent {
 
     private WifiManager wifiManager;
 
+    private String  wasConnectedSSID = "<unknown>";
     private int wasConnectedId = -2;
     private boolean wasEnabled = false;
     private boolean saved = false;
-    private boolean restored = true;
+
 
     public WifiStateAgent(WifiManager wm){ wifiManager = wm; }
 
     /**
-     * Сохранение состояния и включение Wi-Fi.
+     * Сохранение состояния Wi-Fi.
      */
-    public void saveAndPrepare(){
-        if(restored){
-            wasEnabled = wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED;
-            wasConnectedId = -2;
-            if(wasEnabled) wasConnectedId = wifiManager.getConnectionInfo().getNetworkId();
-            else wifiManager.setWifiEnabled(true);
+    public void save(){
+        wasEnabled = wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED;
+
+        if(wasEnabled) {
+            wasConnectedSSID = wifiManager.getConnectionInfo().getSSID();
+            wasConnectedId = wifiManager.getConnectionInfo().getNetworkId();
         }
 
         saved = true;
     }
 
     /**
-     * Восстановление состояния
-     * @param reconnect {@code true} если нужно переподключиться
+     * Включение Wi-Fi, если он был выключен.
      */
-    public void restore(boolean reconnect){
+    public void wifiOn(){
+        if(!wasEnabled) wifiManager.setWifiEnabled(true);
+    }
+
+    /**
+     * Восстановление сохраненного состояния Wi-Fi.
+     */
+    public void restore(){
         if(saved){
             if(!wasEnabled) wifiManager.setWifiEnabled(false);
-            else if(wasConnectedId != -1 && reconnect) {
+            else if(!wifiManager.getConnectionInfo().getSSID().equals(wasConnectedSSID)) {
                 wifiManager.disconnect();
                 wifiManager.enableNetwork(wasConnectedId, true);
                 wifiManager.reconnect();
             }
         }
-
-        restored = true;
     }
 }
