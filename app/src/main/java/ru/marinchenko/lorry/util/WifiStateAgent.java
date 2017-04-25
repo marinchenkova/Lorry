@@ -35,9 +35,7 @@ public class WifiStateAgent {
     /**
      * Включение Wi-Fi, если он был выключен.
      */
-    public void wifiOn(){
-        if(!wasEnabled) wifiManager.setWifiEnabled(true);
-    }
+    public void wifiOn(){ if(!wasEnabled) wifiManager.setWifiEnabled(true); }
 
     /**
      * Восстановление сохраненного состояния Wi-Fi.

@@ -71,8 +71,6 @@ public class WifiAgent extends Service {
             switch (intent.getAction()){
                 case APPLICATION_ON_PAUSE:
                     onPause = true;
-                    wifiStateAgent.wifiOn();
-                    //TODO не работает принудительное включение Wi-Fi
                     break;
 
                 case APPLICATION_ON_RESUME:
@@ -296,9 +294,6 @@ public class WifiAgent extends Service {
             }
 
             if(onPause) {
-                if(wifiManager.getWifiState() != WifiManager.WIFI_STATE_ENABLED)
-                    wifiStateAgent.wifiOn();
-
                 int num = scanRec();
                 if(num > 0) {
                     //TODO уведомление

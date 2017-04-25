@@ -19,27 +19,29 @@
         android:permission=""
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <service android:name=".services.WifiAgent"
-            android:exported="false">
+        <service
+            android:name=".services.WifiAgent"
+            android:exported="false" />
+        <service
+            android:name=".services.ScanManager"
+            android:exported="false" />
 
-        </service>
-        <service android:name=".services.ScanManager"
-            android:exported="false">
-
-        </service>
         <activity android:name=".activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.VideoStreamActivity"
+        <activity
+            android:name=".activities.VideoStreamActivity"
             android:parentActivityName=".activities.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activities.MainActivity" />
         </activity>
+        <activity android:name=".activities.SettingsActivity"></activity>
     </application>
 
 </manifest>
