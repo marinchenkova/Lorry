@@ -30,13 +30,13 @@ import static ru.marinchenko.lorry.activities.MainActivity.*;
  */
 public class WifiAgent extends Service {
 
-    public final static String AUTH = "auth";
+    public final static String AUTHENTICATE = "auth";
     public final static String AUTO_UPDATE = "autoUpdate";
     public final static String AUTO_CONNECT = "autoConnect";
     public final static String CONFIGURE = "configure";
+    public final static String CONNECTED = "connected";
     public final static String DISCONNECT = "disconnect";
     public final static String PREPARE_RETURN_NETS = "prepareReturnNets";
-    public final static String RETURN_CURRENT_NET_INFO = "returnCurrentNetInfo";
     public final static String RETURN_NETS = "returnNets";
 
     private final IBinder mBinder = new LocalBinder();
@@ -45,6 +45,7 @@ public class WifiAgent extends Service {
     private boolean autoUpdate = false;
     private boolean autoConnect = false;
     private boolean scanResultsReturned = false;
+    private boolean authenticating = false;
     private int lastId;
 
     private WifiConfigurator wifiConf;
@@ -78,8 +79,7 @@ public class WifiAgent extends Service {
                     wifiStateAgent.save();
                     break;
 
-                case AUTH:
-                    wifiStateAgent.wifiOn();
+                case AUTHENTICATE:
                     authenticate(intent.getStringExtra(NET_INFO_PASSWORD));
                     break;
 
@@ -95,7 +95,12 @@ public class WifiAgent extends Service {
                     break;
 
                 case CONFIGURE:
+                    wifiStateAgent.wifiOn();
                     configure(intent.getStringExtra(NET_INFO_SSID));
+                    break;
+
+                case CONNECTED:
+                    authenticating = false;
                     break;
 
                 case DISCONNECT:
@@ -106,7 +111,6 @@ public class WifiAgent extends Service {
 
                 case PREPARE_RETURN_NETS:
                     if(wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED){
-                        wrapToNetInfo();
                         scanResultsReturned = sendLocalBroadcastMessage(wrapScanResults());
                     } else {
                         wifiStateAgent.wifiOn();
@@ -114,14 +118,9 @@ public class WifiAgent extends Service {
                     }
                     break;
 
-                case RETURN_CURRENT_NET_INFO:
-                    sendLocalBroadcastMessage(wrapCurrentNetInfo());
-                    break;
-
                 case RETURN_NETS:
                     if(wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED &&
                             !scanResultsReturned){
-                        wrapToNetInfo();
                         sendLocalBroadcastMessage(wrapScanResults());
                         scanResultsReturned = false;
                         wifiStateAgent.restore();
@@ -145,6 +144,7 @@ public class WifiAgent extends Service {
      * @param password пароль
      */
     public void authenticate(String password){
+        authenticating = true;
         wifiConf.setPassword(password);
 
         lastId = wifiManager.addNetwork(wifiConf.getConfiguredNet());
@@ -202,6 +202,8 @@ public class WifiAgent extends Service {
         wifiFilter.addAction(WifiManager.ACTION_PICK_WIFI_NETWORK);
         wifiFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
         registerReceiver(wifiReceiver, wifiFilter);
+
+        sendLocalBroadcastMessage(wrapScanResults());
     }
 
     /**
@@ -233,6 +235,22 @@ public class WifiAgent extends Service {
         return LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
     }
 
+    public void sendToNetInfo(){
+        int num = scanRec();
+        //if(num > 0) {
+            wifiStateAgent.wifiOn();
+            Intent toNet = new Intent(WifiAgent.this, MainActivity.class);
+            toNet.setAction(MainActivity.TO_NET);
+            toNet.putExtra(NET_INFO_NUM, num);
+
+            ArrayList<String> stringList = new ArrayList<>();
+            for(ScanResult r : recs) stringList.add(r.SSID);
+            toNet.putStringArrayListExtra(NET_INFO_SSID, stringList);
+
+            sendLocalBroadcastMessage(toNet);
+        //}
+    }
+
     /**
      * Упаковать SSID и IP адрес текущей сети в {@link Intent}.
      * @return {@link Intent} с данными
@@ -250,6 +268,8 @@ public class WifiAgent extends Service {
      * @return {@link Intent} с данными
      */
     public Intent wrapScanResults(){
+        scanRec();
+
         Intent updateNets = new Intent(this, MainActivity.class);
         updateNets.setAction(MainActivity.UPDATE_NETS);
 
@@ -261,22 +281,6 @@ public class WifiAgent extends Service {
         return updateNets;
     }
 
-    public void wrapToNetInfo(){
-        int num = scanRec();
-        if(num > 0) {
-            wifiStateAgent.wifiOn();
-            Intent toNet = new Intent(WifiAgent.this, MainActivity.class);
-            toNet.setAction(MainActivity.TO_NET);
-            toNet.putExtra(AUTO_CONNECT, autoConnect);
-            toNet.putExtra(NET_INFO_NUM, num);
-
-            ArrayList<String> stringList = new ArrayList<>();
-            for(ScanResult r : recs) stringList.add(r.SSID);
-            toNet.putStringArrayListExtra(NET_INFO_SSID, stringList);
-
-            sendLocalBroadcastMessage(toNet);
-        }
-    }
 
     public class LocalBinder extends Binder {
         public WifiAgent getService() { return WifiAgent.this; }
@@ -288,8 +292,12 @@ public class WifiAgent extends Service {
     private class WifiReceiver extends BroadcastReceiver {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         public void onReceive(Context c, Intent intent) {
+            if(authenticating) {
+                sendLocalBroadcastMessage(wrapCurrentNetInfo());
+                sendToNetInfo();
+            }
+
             if(autoUpdate) {
-                wrapToNetInfo();
                 sendLocalBroadcastMessage(wrapScanResults());
             }
 

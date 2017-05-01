@@ -8,20 +8,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.net.wifi.ScanResult;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
-import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
-
-import java.util.ArrayList;
+import android.widget.Toast;
 
 import ru.marinchenko.lorry.R;
 import ru.marinchenko.lorry.Settings;
@@ -31,9 +31,9 @@ import ru.marinchenko.lorry.services.ScanManager;
 import ru.marinchenko.lorry.services.WifiAgent;
 import ru.marinchenko.lorry.util.UpdateFormatter;
 
-import static ru.marinchenko.lorry.services.WifiAgent.AUTH;
-import static ru.marinchenko.lorry.services.WifiAgent.AUTO_CONNECT;
+import static ru.marinchenko.lorry.services.WifiAgent.AUTHENTICATE;
 import static ru.marinchenko.lorry.services.WifiAgent.CONFIGURE;
+import static ru.marinchenko.lorry.services.WifiAgent.CONNECTED;
 
 public class MainActivity extends Activity {
 
@@ -51,7 +51,7 @@ public class MainActivity extends Activity {
     public final static String NET_INFO_NUM = "netInfoNum";
 
     private Settings settings = new Settings();
-    private int updateTime = 10;
+    private int updateTime = 0;
 
     private String presentSSID;
     private int presentIP;
@@ -68,8 +68,6 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        setAutoConnect(findViewById(R.id.autoconnect_checkbox));
-
         registerActionReceiver();
         initWifiAgent();
         initNetList();
@@ -83,6 +81,15 @@ public class MainActivity extends Activity {
 
         if(scanManagerBound) scanManager.startTimer(updateTime);
         registerActionReceiver();
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        Boolean auto = sharedPref.getBoolean(SettingsActivity.PREF_AUTOUPDATE, false);
+        Boolean timer = sharedPref.getBoolean(SettingsActivity.PREF_TIMERUPDATE, false);
+
+        int timerVal = sharedPref.getInt(SettingsActivity.PREF_TIMERUPDATE_VAL, 10);
+        updateTime = timer ? UpdateFormatter.formatTime(timerVal) : auto ? 0 : 1000;
+        setUpdateTime(updateTime);
+
         super.onResume();
     }
 
@@ -112,17 +119,6 @@ public class MainActivity extends Activity {
 
 
     /**
-     * Вызывается при переключении флажка "Подключаться автоматически".
-     * @param view флажок
-     */
-    public void setAutoConnect(View view){
-        Intent autoConnection = new Intent(this, WifiAgent.class);
-        autoConnection.setAction(AUTO_CONNECT);
-        autoConnection.putExtra(AUTO_CONNECT, ((CheckBox) view).isChecked());
-        startService(autoConnection);
-    }
-
-    /**
      * Вызывается при нажатии на сеть из списка доступных сетей. Если сеть раздается
      * видеорегистратором, приложение перейдет к просмотру его камеры.
      * @param net объект {@link ScanResult}, соответствующий пункту в списке доступных сетей
@@ -142,8 +138,10 @@ public class MainActivity extends Activity {
      * Вызывается при нажатии кнопки "Настройки".
      * @param view кнопка
      */
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void toSettings(View view){
-        //TODO toSettings()
+        Intent settings = new Intent(this, SettingsActivity.class);
+        startActivityAsChild(settings);
     }
 
     /**
@@ -167,7 +165,7 @@ public class MainActivity extends Activity {
      */
     public void authenticate(String password){
         Intent auth = new Intent(this, WifiAgent.class);
-        auth.setAction(AUTH);
+        auth.setAction(AUTHENTICATE);
         auth.putExtra(NET_INFO_PASSWORD, password);
         startService(auth);
     }
@@ -219,7 +217,7 @@ public class MainActivity extends Activity {
         updateTime = sec;
         if(scanManagerBound) scanManager.startTimer(sec);
         ((TextView) findViewById(R.id.textview_update))
-                .setText(UpdateFormatter.format(updateTime));
+                .setText(UpdateFormatter.formatString(updateTime));
     }
 
     /**
@@ -238,11 +236,11 @@ public class MainActivity extends Activity {
      */
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void toVideoStream(){
-        Intent info = new Intent(this, WifiAgent.class);
-        info.setAction(WifiAgent.RETURN_CURRENT_NET_INFO);
-        startService(info);
-
         if(currNet != null && presentSSID.equals(String.format("\"%s\"", currNet))){
+            Intent success = new Intent(this, WifiAgent.class);
+            success.setAction(CONNECTED);
+            startService(success);
+
             Intent in = new Intent(this, VideoStreamActivity.class);
             in.putExtra(NET_INFO_IP, presentIP);
             currNet = null;
@@ -267,22 +265,9 @@ public class MainActivity extends Activity {
                     break;
 
                 case UPDATE_NETS:
-                    ArrayList<String> arr = intent.getStringArrayListExtra(NET_INFO_SSID);
-                    boolean empty = arr.isEmpty();
-
-                    for(String s : arr){
-                        if(s == null || s.equals("")) {
-                            empty = true;
-                            break;
-                        }
-                    }
-
-                    if(!empty){
-                        netListAdapter.updateNets(intent.getStringArrayListExtra(NET_INFO_SSID));
-                        netListAdapter.notifyDataSetChanged();
-                        if(scanManagerBound && scanManager.isOnTimer()) animateTimerTask();
-                    }
-
+                    netListAdapter.updateNets(intent.getStringArrayListExtra(NET_INFO_SSID));
+                    netListAdapter.notifyDataSetChanged();
+                    if(updateTime > 0) animateTimerTask();
                     break;
 
                 case NET_INFO:

@@ -17,7 +17,7 @@ public class ScanManager extends IntentService{
 
     private final IBinder mBinder = new LocalBinder();
 
-    private final static int TURN_TIME = 5;
+    private final static long TURN_TIME = 5000;
     private boolean onTimer = false;
 
     private Timer timerMain;
@@ -60,13 +60,24 @@ public class ScanManager extends IntentService{
         startService(autoUpdate);
 
         if (sec != 0 && sec <= 900) {
-            onTimer = true;
+            if (sec <= 900) {
+                onTimer = true;
 
-            timerPrepare = new Timer();
-            timerPrepare.schedule(prepareTask, 0, sec*1000);
+                timerPrepare = new Timer();
+                timerPrepare.schedule(prepareTask, 0, sec * 1000);
 
-            timerMain = new Timer();
-            timerMain.schedule(updateTask, TURN_TIME*1000, sec*1000);
+                timerMain = new Timer();
+                timerMain.schedule(updateTask, TURN_TIME, sec * 1000);
+
+            } else {
+                onTimer = false;
+
+                timerPrepare = new Timer();
+                timerPrepare.schedule(prepareTask, 0);
+
+                timerMain = new Timer();
+                timerMain.schedule(updateTask, TURN_TIME);
+            }
         }
     }
 
