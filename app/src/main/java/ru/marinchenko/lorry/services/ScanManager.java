@@ -60,25 +60,24 @@ public class ScanManager extends IntentService{
         startService(autoUpdate);
 
         if (sec != 0 && sec <= 900) {
-            if (sec <= 900) {
-                onTimer = true;
+            onTimer = true;
 
-                timerPrepare = new Timer();
-                timerPrepare.schedule(prepareTask, 0, sec * 1000);
+            timerPrepare = new Timer();
+            timerPrepare.schedule(prepareTask, 0, sec * 1000);
 
-                timerMain = new Timer();
-                timerMain.schedule(updateTask, TURN_TIME, sec * 1000);
+            timerMain = new Timer();
+            timerMain.schedule(updateTask, TURN_TIME, sec * 1000);
 
-            } else {
-                onTimer = false;
+        } else {
+            onTimer = false;
 
-                timerPrepare = new Timer();
-                timerPrepare.schedule(prepareTask, 0);
+            timerPrepare = new Timer();
+            timerPrepare.schedule(prepareTask, 0);
 
-                timerMain = new Timer();
-                timerMain.schedule(updateTask, TURN_TIME);
-            }
+            timerMain = new Timer();
+            timerMain.schedule(updateTask, TURN_TIME);
         }
+
     }
 
     /**

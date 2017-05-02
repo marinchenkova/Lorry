@@ -113,7 +113,7 @@ public class WifiAgent extends Service {
                     if(wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED){
                         scanResultsReturned = sendLocalBroadcastMessage(wrapScanResults());
                     } else {
-                        wifiStateAgent.wifiOn();
+                        if(!autoUpdate) wifiStateAgent.wifiOn();
                         scanResultsReturned = false;
                     }
                     break;
@@ -123,7 +123,7 @@ public class WifiAgent extends Service {
                             !scanResultsReturned){
                         sendLocalBroadcastMessage(wrapScanResults());
                         scanResultsReturned = false;
-                        wifiStateAgent.restore();
+                        if(!autoUpdate) wifiStateAgent.restore();
                     }
                     break;
             }
@@ -298,7 +298,9 @@ public class WifiAgent extends Service {
             }
 
             if(autoUpdate) {
-                sendLocalBroadcastMessage(wrapScanResults());
+                Intent autoUpdate = wrapScanResults();
+                autoUpdate.putExtra(AUTO_UPDATE, true);
+                sendLocalBroadcastMessage(autoUpdate);
             }
 
             if(onPause) {

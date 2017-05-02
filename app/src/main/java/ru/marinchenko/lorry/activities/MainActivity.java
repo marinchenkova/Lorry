@@ -24,7 +24,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import ru.marinchenko.lorry.R;
-import ru.marinchenko.lorry.Settings;
 import ru.marinchenko.lorry.dialogs.LoginDialog;
 import ru.marinchenko.lorry.util.NetListAdapter;
 import ru.marinchenko.lorry.services.ScanManager;
@@ -32,6 +31,7 @@ import ru.marinchenko.lorry.services.WifiAgent;
 import ru.marinchenko.lorry.util.UpdateFormatter;
 
 import static ru.marinchenko.lorry.services.WifiAgent.AUTHENTICATE;
+import static ru.marinchenko.lorry.services.WifiAgent.AUTO_UPDATE;
 import static ru.marinchenko.lorry.services.WifiAgent.CONFIGURE;
 import static ru.marinchenko.lorry.services.WifiAgent.CONNECTED;
 
@@ -50,8 +50,7 @@ public class MainActivity extends Activity {
     public final static String NET_INFO_SSID = "netInfoSsid";
     public final static String NET_INFO_NUM = "netInfoNum";
 
-    private Settings settings = new Settings();
-    private int updateTime = 0;
+    private int updateTime = 1000;
 
     private String presentSSID;
     private int presentIP;
@@ -86,7 +85,8 @@ public class MainActivity extends Activity {
         Boolean auto = sharedPref.getBoolean(SettingsActivity.PREF_AUTOUPDATE, false);
         Boolean timer = sharedPref.getBoolean(SettingsActivity.PREF_TIMERUPDATE, false);
 
-        int timerVal = sharedPref.getInt(SettingsActivity.PREF_TIMERUPDATE_VAL, 10);
+        int timerVal = sharedPref.getInt(SettingsActivity.PREF_TIMERUPDATE_VAL, 0);
+        Toast.makeText(this, String.valueOf(timerVal), Toast.LENGTH_SHORT).show();
         updateTime = timer ? UpdateFormatter.formatTime(timerVal) : auto ? 0 : 1000;
         setUpdateTime(updateTime);
 
@@ -267,7 +267,9 @@ public class MainActivity extends Activity {
                 case UPDATE_NETS:
                     netListAdapter.updateNets(intent.getStringArrayListExtra(NET_INFO_SSID));
                     netListAdapter.notifyDataSetChanged();
-                    if(updateTime > 0) animateTimerTask();
+                    if(updateTime > 0 || !intent.getBooleanExtra(AUTO_UPDATE, false)) {
+                        animateTimerTask();
+                    }
                     break;
 
                 case NET_INFO:

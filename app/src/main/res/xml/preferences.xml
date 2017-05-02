@@ -35,7 +35,7 @@
             android:summary="@string/pref_category_autoupdate_mode_timer_val_summ"
             android:title="@string/pref_category_autoupdate_mode_timer_val"
             android:layout="@layout/update_mode_pref"
-            android:defaultValue="0"/>
+            android:defaultValue="0" />
 
     </PreferenceCategory>
 
