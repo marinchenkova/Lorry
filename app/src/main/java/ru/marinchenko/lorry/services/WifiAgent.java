@@ -211,14 +211,16 @@ public class WifiAgent extends Service {
      * @return количество сетей видеорегистраторов.
      */
     public int scanRec(){
+        scanResults.clear();
+        recs.clear();
+
         wifiManager.startScan();
         scanResults = wifiManager.getScanResults();
 
-        recs.clear();
         int num = 0;
-
         for(ScanResult s : scanResults) {
-            if (NetConfig.ifRec(s.SSID)) {
+            if(s.level < -90) scanResults.remove(s);
+            else if (NetConfig.ifRec(s.SSID)) {
                 recs.add(s);
                 num++;
             }

@@ -1,6 +1,7 @@
 package ru.marinchenko.lorry.services;
 
 import android.app.IntentService;
+import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
@@ -13,19 +14,20 @@ import java.util.TimerTask;
  * {@link ru.marinchenko.lorry.activities.MainActivity}. Обновление может производиться по кнопке,
  * по таймеру или автоматически.
  */
-public class ScanManager extends IntentService{
+public class ScanManager extends Service {
 
-    private final IBinder mBinder = new LocalBinder();
+    public final static String START = "start";
+    public final static String START_TIME = "startTime";
+    public final static String RESET = "reset";
 
     private final static long TURN_TIME = 5000;
-    private boolean onTimer = false;
+    private final IBinder mBinder = new LocalBinder();
 
     private Timer timerMain;
     private Timer timerPrepare;
     private UpdateTimerTask updateTask;
     private PrepareTimerTask prepareTask;
 
-    public ScanManager(){ super("ScanManager"); }
 
     @Override
     public void onCreate(){
@@ -34,8 +36,19 @@ public class ScanManager extends IntentService{
         prepareTask = new PrepareTimerTask();
     }
 
-    @Override
-    protected void onHandleIntent(Intent intent) {}
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent.getAction() != null) {
+            switch (intent.getAction()){
+                case START:
+                    startTimer(intent.getIntExtra(START_TIME, 10));
+                    break;
+                case RESET:
+                    resetTimers();
+                    break;
+            }
+        }
+        return super.onStartCommand(intent, flags, startId);
+    }
 
     @Override
     public void onDestroy() {
@@ -60,8 +73,6 @@ public class ScanManager extends IntentService{
         startService(autoUpdate);
 
         if (sec != 0 && sec <= 900) {
-            onTimer = true;
-
             timerPrepare = new Timer();
             timerPrepare.schedule(prepareTask, 0, sec * 1000);
 
@@ -69,15 +80,12 @@ public class ScanManager extends IntentService{
             timerMain.schedule(updateTask, TURN_TIME, sec * 1000);
 
         } else {
-            onTimer = false;
-
             timerPrepare = new Timer();
             timerPrepare.schedule(prepareTask, 0);
 
             timerMain = new Timer();
             timerMain.schedule(updateTask, TURN_TIME);
         }
-
     }
 
     /**
@@ -96,14 +104,7 @@ public class ScanManager extends IntentService{
 
         prepareTask = new PrepareTimerTask();
         updateTask = new UpdateTimerTask();
-        onTimer = false;
     }
-
-    /**
-     * Проверка, работает ли обновление списка сетей по таймеру.
-     * @return {@code true} если обновление происходит по таймеру
-     */
-    public boolean isOnTimer(){ return onTimer; }
 
 
     public class LocalBinder extends Binder {

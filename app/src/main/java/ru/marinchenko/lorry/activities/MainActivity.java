@@ -3,16 +3,13 @@ package ru.marinchenko.lorry.activities;
 import android.app.Activity;
 import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.wifi.ScanResult;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
@@ -30,6 +27,8 @@ import ru.marinchenko.lorry.services.ScanManager;
 import ru.marinchenko.lorry.services.WifiAgent;
 import ru.marinchenko.lorry.util.UpdateFormatter;
 
+import static ru.marinchenko.lorry.services.ScanManager.START;
+import static ru.marinchenko.lorry.services.ScanManager.START_TIME;
 import static ru.marinchenko.lorry.services.WifiAgent.AUTHENTICATE;
 import static ru.marinchenko.lorry.services.WifiAgent.AUTO_UPDATE;
 import static ru.marinchenko.lorry.services.WifiAgent.CONFIGURE;
@@ -55,9 +54,6 @@ public class MainActivity extends Activity {
     private String presentSSID;
     private int presentIP;
 
-    private ScanManager scanManager;
-    private boolean scanManagerBound = false;
-
     private NetListAdapter netListAdapter;
     private String currNet;
 
@@ -68,7 +64,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         registerActionReceiver();
-        initWifiAgent();
+        startWifiAgent();
         initNetList();
     }
 
@@ -78,16 +74,16 @@ public class MainActivity extends Activity {
         onResume.setAction(APPLICATION_ON_RESUME);
         startService(onResume);
 
-        if(scanManagerBound) scanManager.startTimer(updateTime);
+        startScanManager();
+
         registerActionReceiver();
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        Boolean auto = sharedPref.getBoolean(SettingsActivity.PREF_AUTOUPDATE, false);
-        Boolean timer = sharedPref.getBoolean(SettingsActivity.PREF_TIMERUPDATE, false);
+        Boolean onAuto = sharedPref.getBoolean(SettingsActivity.PREF_AUTOUPDATE, false);
+        Boolean onTimer = sharedPref.getBoolean(SettingsActivity.PREF_TIMERUPDATE, false);
 
         int timerVal = sharedPref.getInt(SettingsActivity.PREF_TIMERUPDATE_VAL, 0);
-        Toast.makeText(this, String.valueOf(timerVal), Toast.LENGTH_SHORT).show();
-        updateTime = timer ? UpdateFormatter.formatTime(timerVal) : auto ? 0 : 1000;
+        updateTime = onTimer ? UpdateFormatter.formatTime(timerVal) : onAuto ? 0 : 1000;
         setUpdateTime(updateTime);
 
         super.onResume();
@@ -95,8 +91,6 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onPause() {
-        if(scanManagerBound) scanManager.resetTimers();
-
         Intent wifiOn = new Intent(this, WifiAgent.class);
         wifiOn.setAction(APPLICATION_ON_PAUSE);
         startService(wifiOn);
@@ -109,10 +103,11 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        if (scanManagerConnection != null) unbindService(scanManagerConnection);
-
         Intent stopWifiAgency = new Intent(this, WifiAgent.class);
         stopService(stopWifiAgency);
+
+        Intent stopScanManaging = new Intent(this, ScanManager.class);
+        stopService(stopScanManaging);
 
         super.onDestroy();
     }
@@ -148,7 +143,9 @@ public class MainActivity extends Activity {
      * Вызывается при нажатии кнопки "ОБНОВИТЬ".
      * @param view кнопка
      */
-    public void updateNets(View view){ scanManager.startTimer(updateTime); }
+    public void updateNets(View view){
+        startScanManager();
+    }
 
 
     /**
@@ -174,8 +171,7 @@ public class MainActivity extends Activity {
      * Инициализация списка доступных Wi-Fi сетей.
      */
     private void initNetList(){
-        Intent scanManage = new Intent(this, ScanManager.class);
-        bindService(scanManage, scanManagerConnection, Context.BIND_AUTO_CREATE);
+        startScanManager();
 
         netListAdapter = new NetListAdapter(this);
 
@@ -188,14 +184,6 @@ public class MainActivity extends Activity {
                 toNet((String) netListAdapter.getItem(position));
             }
         });
-    }
-
-    /**
-     * Инициализация сервиса {@link WifiAgent}.
-     */
-    private void initWifiAgent(){
-        Intent wifiAgency = new Intent(this, WifiAgent.class);
-        startService(wifiAgency);
     }
 
     /**
@@ -215,7 +203,8 @@ public class MainActivity extends Activity {
      */
     public void setUpdateTime(int sec){
         updateTime = sec;
-        if(scanManagerBound) scanManager.startTimer(sec);
+        startScanManager();
+
         ((TextView) findViewById(R.id.textview_update))
                 .setText(UpdateFormatter.formatString(updateTime));
     }
@@ -229,6 +218,24 @@ public class MainActivity extends Activity {
     private void startActivityAsChild(Intent next){
         TaskStackBuilder.create(this).addNextIntentWithParentStack(this.getIntent());
         startActivity(next);
+    }
+
+    /**
+     * Инициализация сервиса {@link ScanManager}.
+     */
+    private void startScanManager(){
+        Intent timer = new Intent(this, ScanManager.class);
+        timer.setAction(START);
+        timer.putExtra(START_TIME, updateTime);
+        startService(timer);
+    }
+
+    /**
+     * Инициализация сервиса {@link WifiAgent}.
+     */
+    private void startWifiAgent(){
+        Intent wifiAgency = new Intent(this, WifiAgent.class);
+        startService(wifiAgency);
     }
 
     /**
@@ -278,21 +285,5 @@ public class MainActivity extends Activity {
                     break;
             }
         }
-    };
-
-    /**
-     * Соединение {@link MainActivity} с сервисом {@link ScanManager}.
-     */
-    private ServiceConnection scanManagerConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-            ScanManager.LocalBinder binder = (ScanManager.LocalBinder) service;
-            scanManager = binder.getService();
-            scanManagerBound = true;
-            setUpdateTime(updateTime);
-        }
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) { scanManagerBound = false; }
     };
 }
