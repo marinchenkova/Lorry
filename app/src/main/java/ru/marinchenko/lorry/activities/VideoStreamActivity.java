@@ -47,7 +47,9 @@ public class VideoStreamActivity extends Activity {
         */
         //rtspUrl = "rtsp://192.168.4.85:8554/rec";
 
-        rtspUrl = "rtsp://v4.cache1.c.youtube.com/CiILENy73wIaGQmC00ZlwwIDOxMYESARFEgGUgZ2aWRlb3MM/0/0/0/video.3gp";
+        //rtspUrl = "rtsp://v4.cache1.c.youtube.com/CiILENy73wIaGQmC00ZlwwIDOxMYESARFEgGUgZ2aWRlb3MM/0/0/0/video.3gp";
+
+        rtspUrl = "http://www.androidbegin.com/tutorial/AndroidCommercial.3gp";
 
         videoView.setVideoURI(Uri.parse(rtspUrl));
 
