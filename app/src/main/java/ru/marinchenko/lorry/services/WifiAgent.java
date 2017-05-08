@@ -13,7 +13,6 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -217,16 +216,20 @@ public class WifiAgent extends Service {
         wifiManager.startScan();
         scanResults = wifiManager.getScanResults();
 
-        int num = 0;
-        for(ScanResult s : scanResults) {
-            if(s.level < -90) scanResults.remove(s);
-            else if (NetConfig.ifRec(s.SSID)) {
-                recs.add(s);
-                num++;
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                for(ScanResult s : scanResults) {
+                    if(s.level < -90) scanResults.remove(s);
+                    else if (NetConfig.ifRec(s.SSID)) {
+                        recs.add(s);
+                    }
+                }
             }
-        }
+        };
+        r.run();
 
-        return num;
+        return recs.size();
     }
 
     /**
