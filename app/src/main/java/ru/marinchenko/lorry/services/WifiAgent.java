@@ -207,9 +207,8 @@ public class WifiAgent extends Service {
 
     /**
      * Сканирование доступных Wi-Fi сетей.
-     * @return количество сетей видеорегистраторов.
      */
-    public int scanRec(){
+    public void scanNets(){
         scanResults.clear();
         recs.clear();
 
@@ -228,8 +227,6 @@ public class WifiAgent extends Service {
             }
         };
         r.run();
-
-        return recs.size();
     }
 
     /**
@@ -241,7 +238,7 @@ public class WifiAgent extends Service {
     }
 
     public void sendToNetInfo(){
-        int num = scanRec();
+        int num = recs.size();
         //if(num > 0) {
             wifiStateAgent.wifiOn();
             Intent toNet = new Intent(WifiAgent.this, MainActivity.class);
@@ -273,7 +270,7 @@ public class WifiAgent extends Service {
      * @return {@link Intent} с данными
      */
     public Intent wrapScanResults(){
-        scanRec();
+        scanNets();
 
         Intent updateNets = new Intent(this, MainActivity.class);
         updateNets.setAction(MainActivity.UPDATE_NETS);
@@ -309,8 +306,8 @@ public class WifiAgent extends Service {
             }
 
             if(onPause) {
-                int num = scanRec();
-                if(num > 0) {
+                scanNets();
+                if(recs.size() > 0) {
                     //TODO уведомление
                 }
             }
