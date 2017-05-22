@@ -1,21 +1,16 @@
 package ru.marinchenko.lorry.activities;
 
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import android.view.View;
-import android.widget.CheckBox;
-import android.widget.SeekBar;
-import android.widget.TextView;
 
 import ru.marinchenko.lorry.R;
 import ru.marinchenko.lorry.services.WifiAgent;
 
-import static ru.marinchenko.lorry.R.styleable.View;
 import static ru.marinchenko.lorry.services.WifiAgent.AUTO_CONNECT;
 import static ru.marinchenko.lorry.services.WifiAgent.AUTO_UPDATE;
 
@@ -32,73 +27,75 @@ public class SettingsActivity extends Activity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FragmentManager fm = getFragmentManager();
+        refresh();
+    }
 
-        getFragmentManager().beginTransaction()
+    @Override
+    public void onResume() {
+        super.onResume();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        prefs.registerOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        prefs.unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    private void refresh() {
+        FragmentManager fm = getFragmentManager();
+        fm.beginTransaction()
                 .replace(android.R.id.content, new SettingsFragment())
                 .commit();
-        /*
-        bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                SharedPreferences.Editor editor =
-                        PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this).edit();
-                editor.putInt(PREF_TIMERUPDATE_VAL, progress);
-                editor.apply();
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });*/
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        //SharedPreferences.Editor editor = sharedPreferences.edit();
-
         if (key.equals(PREF_AUTOCONNECT)) {
             Intent autoConnection = new Intent(this, WifiAgent.class);
             autoConnection.setAction(AUTO_CONNECT);
             autoConnection.putExtra(AUTO_CONNECT, sharedPreferences.getBoolean(key, false));
             startService(autoConnection);
-        }
-        if (key.equals(PREF_AUTOUPDATE)) {
-            Boolean on = sharedPreferences.getBoolean(key, false);
 
-            Intent autoConnection = new Intent(this, WifiAgent.class);
-            autoConnection.setAction(AUTO_UPDATE);
-            autoConnection.putExtra(AUTO_UPDATE, on);
-            startService(autoConnection);
-            /*
-            editor.putBoolean(PREF_MANUPDATE, false);
-            editor.putBoolean(PREF_TIMERUPDATE, false);
-            editor.apply();*/
-        }
-        if (key.equals(PREF_MANUPDATE)) {
-            Intent autoConnection = new Intent(this, WifiAgent.class);
-            autoConnection.setAction(AUTO_UPDATE);
-            autoConnection.putExtra(AUTO_UPDATE, false);
-            startService(autoConnection);
-            /*
-            editor.putBoolean(PREF_MANUPDATE, false);
-            editor.putBoolean(PREF_TIMERUPDATE, false);
-            editor.apply();*/
-        }
-        if (key.equals(PREF_TIMERUPDATE)) {
-            Intent autoConnection = new Intent(this, WifiAgent.class);
-            autoConnection.setAction(AUTO_UPDATE);
-            autoConnection.putExtra(AUTO_UPDATE, false);
-            startService(autoConnection);
-            /*
-            editor.putBoolean(PREF_MANUPDATE, false);
-            editor.putBoolean(PREF_TIMERUPDATE, false);
-            editor.apply();*/
+        } else {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            Intent autoUpdating = new Intent(this, WifiAgent.class);
+            autoUpdating.setAction(AUTO_UPDATE);
+
+            if(sharedPreferences.getBoolean(key, false)) {
+                if (key.equals(PREF_AUTOUPDATE)) {
+                    autoUpdating.putExtra(AUTO_UPDATE, true);
+
+                    editor.putBoolean(PREF_MANUPDATE, false);
+                    editor.putBoolean(PREF_TIMERUPDATE, false);
+                }
+
+                if (key.equals(PREF_MANUPDATE)) {
+                    autoUpdating.putExtra(AUTO_UPDATE, false);
+
+                    editor.putBoolean(PREF_AUTOUPDATE, false);
+                    editor.putBoolean(PREF_TIMERUPDATE, false);
+                }
+
+                if (key.equals(PREF_TIMERUPDATE)) {
+                    autoUpdating.putExtra(AUTO_UPDATE, false);
+
+                    editor.putBoolean(PREF_AUTOUPDATE, false);
+                    editor.putBoolean(PREF_MANUPDATE, false);
+                }
+
+            } else if(!sharedPreferences.getBoolean(PREF_AUTOUPDATE, false) &&
+                    !sharedPreferences.getBoolean(PREF_MANUPDATE, false) &&
+                    !sharedPreferences.getBoolean(PREF_TIMERUPDATE, false)) {
+                editor.putBoolean(key, true);
+            }
+
+            refresh();
+            editor.apply();
+            startService(autoUpdating);
         }
     }
 

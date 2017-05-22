@@ -94,8 +94,8 @@ public class WifiTest {
 
 
     private ScanResult randomScanResult(ScanResult scan){
-        scan.SSID = NetConfig.generateSSID();
-        scan.BSSID = NetConfig.generateBSSID();
+        scan.SSID = NetConfig.generateRandomSSID();
+        scan.BSSID = NetConfig.generateRandomBSSID();
         scan.level = (int) (-60 + Math.random() * 20);
         scan.capabilities = "[OPEN]";
         return scan;

@@ -25,12 +25,12 @@ public class NetConfig {
      * десятичные цифры.
      * @return имя сети
      */
-    public static String generateSSID(){
+    public static String generateRandomSSID(){
         int id = (int) (10000000 + Math.random() * 89999999);
         return "LV-" + String.valueOf(id);
     }
 
-    public static String generateBSSID(){
+    public static String generateRandomBSSID(){
         int n;
         String s = "";
         for(int i = 0; i < 6; i++){

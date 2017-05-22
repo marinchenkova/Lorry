@@ -39,5 +39,4 @@ public class UpdateFormatter {
         }
         return 10;
     }
-
 }

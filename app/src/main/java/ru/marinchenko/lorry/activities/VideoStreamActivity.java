@@ -25,7 +25,6 @@ public class VideoStreamActivity extends Activity {
 
     private String rtspUrl;
 
-
     private MediaPlayer mediaPlayer;
     private VideoView videoView;
 

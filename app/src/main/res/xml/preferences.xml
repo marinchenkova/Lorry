@@ -12,6 +12,7 @@
         android:key="pref_update">
 
         <SwitchPreference
+            android:id="@+id/pref_autoupdate"
             android:key="pref_autoupdate"
             android:summary="@string/pref_category_autoupdate_mode_auto_summ"
             android:title="@string/pref_category_autoupdate_mode_auto"
@@ -19,16 +20,18 @@
             android:onClick="setAutoUpdate"/>
 
         <SwitchPreference
+            android:id="@+id/pref_manupdate"
             android:key="pref_manupdate"
             android:summary="@string/pref_category_autoupdate_mode_man_summ"
             android:title="@string/pref_category_autoupdate_mode_man"
-            android:defaultValue="true"/>
+            android:defaultValue="false"/>
 
         <SwitchPreference
+            android:id="@+id/pref_timerupdate"
             android:key="pref_timerupdate"
             android:summary="@string/pref_category_autoupdate_mode_timer_summ"
             android:title="@string/pref_category_autoupdate_mode_timer"
-            android:defaultValue="false"/>
+            android:defaultValue="true"/>
 
         <Preference
             android:key="pref_timerupdate_val"
@@ -38,14 +41,5 @@
             android:defaultValue="0" />
 
     </PreferenceCategory>
-
-
-
-
-
-
-
-
-
 
 </PreferenceScreen>
