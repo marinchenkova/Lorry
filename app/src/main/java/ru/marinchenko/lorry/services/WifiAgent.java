@@ -54,7 +54,6 @@ public class WifiAgent extends Service {
 
     private List<ScanResult> scanResults = new ArrayList<>();
     private List<ScanResult> recs = new ArrayList<>();
-    private final String sync = "S";
 
     @Override
     public void onCreate(){
@@ -215,14 +214,14 @@ public class WifiAgent extends Service {
         wifiManager.startScan();
         scanResults = wifiManager.getScanResults();
 
-        synchronized (sync) {
-            for(ScanResult s : scanResults) {
-                if(s.level < -90) scanResults.remove(s);
-                else if (NetConfig.ifRec(s.SSID)) {
-                    recs.add(s);
-                }
+        ArrayList<ScanResult> toRemove = new ArrayList<>();
+        for(ScanResult s : scanResults) {
+            if(s.level < -90) toRemove.add(s);
+            else if (NetConfig.ifRec(s.SSID)) {
+                recs.add(s);
             }
         }
+        scanResults.removeAll(toRemove);
     }
 
     /**
