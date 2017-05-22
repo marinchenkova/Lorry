@@ -15,7 +15,10 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import ru.marinchenko.lorry.activities.MainActivity;
 import ru.marinchenko.lorry.util.NetConfig;
@@ -54,7 +57,7 @@ public class WifiAgent extends Service {
 
     private List<ScanResult> scanResults = new ArrayList<>();
     private List<ScanResult> recs = new ArrayList<>();
-
+    private final String sync = "S";
 
     @Override
     public void onCreate(){
@@ -215,18 +218,14 @@ public class WifiAgent extends Service {
         wifiManager.startScan();
         scanResults = wifiManager.getScanResults();
 
-        Runnable r = new Runnable() {
-            @Override
-            public void run() {
-                for(ScanResult s : scanResults) {
-                    if(s.level < -90) scanResults.remove(s);
-                    else if (NetConfig.ifRec(s.SSID)) {
-                        recs.add(s);
-                    }
+        synchronized (sync) {
+            for(ScanResult s : scanResults) {
+                if(s.level < -90) scanResults.remove(s);
+                else if (NetConfig.ifRec(s.SSID)) {
+                    recs.add(s);
                 }
             }
-        };
-        r.run();
+        }
     }
 
     /**
