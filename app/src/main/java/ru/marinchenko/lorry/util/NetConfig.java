@@ -9,6 +9,10 @@ import java.util.regex.Pattern;
  */
 public class NetConfig {
 
+    public static void main(String[] args) {
+        System.out.println(generatePass("LV_12345678"));
+    }
+
     /**
      * Проверка, раздается ли сеть Wi-Fi видеорегистратором.
      * @param name имя сети

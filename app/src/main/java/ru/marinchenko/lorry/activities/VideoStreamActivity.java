@@ -24,6 +24,8 @@ import ru.marinchenko.lorry.services.WifiAgent;
 public class VideoStreamActivity extends Activity {
 
     private String rtspUrl;
+    private String user;
+    private String password;
 
     private MediaPlayer mediaPlayer;
     private VideoView videoView;
@@ -40,25 +42,27 @@ public class VideoStreamActivity extends Activity {
     public void initVideo(){
         videoView = (VideoView) findViewById(R.id.videoView);
 
-        /*
+        user = "admin";
+        password = ""; // gChaZXUQLFo
+        String path;
+
         rtspUrl = Formatter.formatIpAddress(getIntent().getIntExtra("IP", 0));
-        rtspUrl = "rtsp://".concat(rtspUrl).concat(":8554/rec");
-        */
-        //rtspUrl = "rtsp://192.168.4.85:8554/rec";
+        rtspUrl = "rtsp://".concat(rtspUrl).concat(":554/");
 
-        //rtspUrl = "rtsp://v4.cache1.c.youtube.com/CiILENy73wIaGQmC00ZlwwIDOxMYESARFEgGUgZ2aWRlb3MM/0/0/0/video.3gp";
+        path = "user=" + user + "&password=" + password +
+                "&channel=1&stream=0.sdp?";
 
-        rtspUrl = "http://www.androidbegin.com/tutorial/AndroidCommercial.3gp";
+        rtspUrl = rtspUrl.concat(path);
+
+        //rtspUrl = "http://www.androidbegin.com/tutorial/AndroidCommercial.3gp";
 
         videoView.setVideoURI(Uri.parse(rtspUrl));
-
         videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
                 videoView.start();
             }
         });
-
         videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {

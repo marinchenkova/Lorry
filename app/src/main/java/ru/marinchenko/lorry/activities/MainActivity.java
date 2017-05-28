@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import ru.marinchenko.lorry.R;
 import ru.marinchenko.lorry.dialogs.LoginDialog;
+import ru.marinchenko.lorry.util.NetConfig;
 import ru.marinchenko.lorry.util.NetListAdapter;
 import ru.marinchenko.lorry.services.ScanManager;
 import ru.marinchenko.lorry.services.WifiAgent;
@@ -75,16 +76,22 @@ public class MainActivity extends Activity {
         startService(onResume);
 
         startScanManager();
-
         registerActionReceiver();
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
         Boolean onAuto = sharedPref.getBoolean(SettingsActivity.PREF_AUTOUPDATE, false);
         Boolean onTimer = sharedPref.getBoolean(SettingsActivity.PREF_TIMERUPDATE, false);
+        Boolean autoConnect = sharedPref.getBoolean(SettingsActivity.PREF_AUTOCONNECT, false);
 
         int timerVal = sharedPref.getInt(SettingsActivity.PREF_TIMERUPDATE_VAL, 0);
         updateTime = onTimer ? UpdateFormatter.formatTime(timerVal) : onAuto ? 0 : 1000;
         setUpdateTime(updateTime);
+
+        Intent autoCon = new Intent(this, WifiAgent.class);
+        autoCon.setAction(WifiAgent.AUTO_CONNECT);
+        autoCon.putExtra(WifiAgent.AUTO_CONNECT, autoConnect);
+        startService(autoCon);
 
         super.onResume();
     }
@@ -125,8 +132,12 @@ public class MainActivity extends Activity {
         config.putExtra(NET_INFO_SSID, currNet);
         startService(config);
 
+        authenticate(NetConfig.generatePass(currNet));
+
+        /* // Ручной ввод пароля
         LoginDialog dialog = new LoginDialog();
         dialog.show(getFragmentManager(), "login");
+        */
     }
 
     /**

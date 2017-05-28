@@ -2,11 +2,16 @@ package ru.marinchenko.lorry.activities;
 
 import android.app.Activity;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.SeekBar;
+import android.widget.Toast;
 
 import ru.marinchenko.lorry.R;
 import ru.marinchenko.lorry.services.WifiAgent;
@@ -27,8 +32,41 @@ public class SettingsActivity extends Activity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FragmentManager fm = getFragmentManager();
+        initTimer();
         refresh();
+    }
+
+    private void initTimer() {
+        LayoutInflater inf = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View view = inf.inflate(R.layout.update_mode_pref, null);
+        SeekBar bar = (SeekBar) view.findViewById(R.id.seekbar_update);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+        bar.setProgress(prefs.getInt(PREF_TIMERUPDATE_VAL, 0));
+        bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                updateTimer(progress);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+    }
+
+    private void updateTimer(int val){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt(PREF_TIMERUPDATE_VAL, val);
+        editor.apply();
+
     }
 
     @Override

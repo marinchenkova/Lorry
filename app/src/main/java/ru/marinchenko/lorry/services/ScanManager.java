@@ -1,6 +1,5 @@
 package ru.marinchenko.lorry.services;
 
-import android.app.IntentService;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -88,6 +87,7 @@ public class ScanManager extends Service {
         }
     }
 
+
     /**
      * Остановка таймеров.
      */
@@ -119,7 +119,7 @@ public class ScanManager extends Service {
         @Override
         public void run() {
             Intent update = new Intent(ScanManager.this, WifiAgent.class);
-            update.setAction(WifiAgent.PREPARE_RETURN_NETS);
+            update.setAction(WifiAgent.PREPARE);
             startService(update);
         }
     }
@@ -131,7 +131,7 @@ public class ScanManager extends Service {
         @Override
         public void run() {
             Intent update = new Intent(ScanManager.this, WifiAgent.class);
-            update.setAction(WifiAgent.RETURN_NETS);
+            update.setAction(WifiAgent.RETURN);
             startService(update);
         }
     }

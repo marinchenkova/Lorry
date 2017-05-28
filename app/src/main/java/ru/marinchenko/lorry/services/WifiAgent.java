@@ -16,6 +16,8 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import ru.marinchenko.lorry.activities.MainActivity;
 import ru.marinchenko.lorry.util.NetConfig;
@@ -35,17 +37,19 @@ public class WifiAgent extends Service {
     public final static String CONFIGURE = "configure";
     public final static String CONNECTED = "connected";
     public final static String DISCONNECT = "disconnect";
-    public final static String PREPARE_RETURN_NETS = "prepareReturnNets";
-    public final static String RETURN_NETS = "returnNets";
+    public final static String PREPARE = "prepareReturnNets";
+    public final static String RETURN = "returnNets";
 
     private final IBinder mBinder = new LocalBinder();
 
     private boolean onPause = false;
     private boolean autoUpdate = false;
     private boolean autoConnect = false;
+    private boolean allowCon = false;
     private boolean scanResultsReturned = false;
     private boolean authenticating = false;
     private int lastId;
+    private String pass;
 
     private WifiConfigurator wifiConf;
     private WifiManager wifiManager;
@@ -73,12 +77,13 @@ public class WifiAgent extends Service {
                     break;
 
                 case APPLICATION_ON_RESUME:
+                    allowCon = true;
                     onPause = false;
                     wifiStateAgent.save();
                     break;
 
                 case AUTHENTICATE:
-                    authenticate(intent.getStringExtra(NET_INFO_PASSWORD));
+                    authTask(intent.getStringExtra(NET_INFO_PASSWORD));
                     break;
 
                 case AUTO_CONNECT:
@@ -86,19 +91,18 @@ public class WifiAgent extends Service {
                     break;
 
                 case AUTO_UPDATE:
-                    //TODO предупреждение о включении Wi-Fi
                     autoUpdate = intent.getBooleanExtra(AUTO_UPDATE, false);
                     if(autoUpdate) wifiStateAgent.wifiOn();
                     else wifiStateAgent.restore();
                     break;
 
                 case CONFIGURE:
-                    wifiStateAgent.wifiOn();
                     configure(intent.getStringExtra(NET_INFO_SSID));
                     break;
 
                 case CONNECTED:
                     authenticating = false;
+                    allowCon = false;
                     break;
 
                 case DISCONNECT:
@@ -107,7 +111,7 @@ public class WifiAgent extends Service {
                     wifiStateAgent.restore();
                     break;
 
-                case PREPARE_RETURN_NETS:
+                case PREPARE:
                     if(wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED){
                         scanResultsReturned = sendLocalBroadcastMessage(wrapScanResults());
                     } else {
@@ -116,7 +120,7 @@ public class WifiAgent extends Service {
                     }
                     break;
 
-                case RETURN_NETS:
+                case RETURN:
                     if(wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED &&
                             !scanResultsReturned){
                         sendLocalBroadcastMessage(wrapScanResults());
@@ -143,6 +147,7 @@ public class WifiAgent extends Service {
      */
     public void authenticate(String password){
         authenticating = true;
+
         wifiConf.setPassword(password);
 
         lastId = wifiManager.addNetwork(wifiConf.getConfiguredNet());
@@ -153,11 +158,24 @@ public class WifiAgent extends Service {
         wifiManager.reconnect();
     }
 
+
+    public void authTask(String password){
+        pass = password;
+        if(wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED){
+            authenticate(pass);
+        } else {
+            Timer auth = new Timer();
+            AuthTimerTask task = new AuthTimerTask();
+            auth.schedule(task, 5000);
+        }
+    }
+
     /**
      * Конфигурировать выбранную сеть.
      * @param SSID имя сети
      */
     public void configure(String SSID){
+        wifiStateAgent.wifiOn();
         for(ScanResult s : scanResults)
             if(s.SSID.equals(SSID)) {
                 wifiConf.configure(s);
@@ -234,7 +252,7 @@ public class WifiAgent extends Service {
 
     public void sendToNetInfo(){
         int num = recs.size();
-        //if(num > 0) {
+        if(num > 0) {
             wifiStateAgent.wifiOn();
             Intent toNet = new Intent(WifiAgent.this, MainActivity.class);
             toNet.setAction(MainActivity.TO_NET);
@@ -245,7 +263,7 @@ public class WifiAgent extends Service {
             toNet.putStringArrayListExtra(NET_INFO_SSID, stringList);
 
             sendLocalBroadcastMessage(toNet);
-        //}
+        }
     }
 
     /**
@@ -271,7 +289,7 @@ public class WifiAgent extends Service {
         updateNets.setAction(MainActivity.UPDATE_NETS);
 
         ArrayList<String> stringList = new ArrayList<>();
-        for(ScanResult s : scanResults)
+        for(ScanResult s : recs)
             stringList.add(s.SSID);
 
         updateNets.putStringArrayListExtra(NET_INFO_SSID, stringList);
@@ -283,28 +301,47 @@ public class WifiAgent extends Service {
         public WifiAgent getService() { return WifiAgent.this; }
     }
 
+    private class AuthTimerTask extends TimerTask {
+        @Override
+        public void run() { authenticate(pass); }
+    }
+
     /**
      * Получатель сообщений для объекта {@link WifiManager}.
      */
     private class WifiReceiver extends BroadcastReceiver {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         public void onReceive(Context c, Intent intent) {
-            if(authenticating) {
+            if (onPause) {
+                scanNets();
+                if (recs.size() > 0) {
+                    //TODO уведомление
+                }
+            }
+
+            if (authenticating) {
                 sendLocalBroadcastMessage(wrapCurrentNetInfo());
                 sendToNetInfo();
             }
 
-            if(autoUpdate) {
+            if (allowCon && autoConnect) {
+                int num = recs.size();
+                if(num > 0) {
+                    for(ScanResult r : recs) {
+                        configure(r.SSID);
+                    }
+                    authTask(NetConfig.generatePass(recs.get(0).SSID));
+                    if(num != 1) {
+                        //TODO предоставить список всех видеорег.
+                    }
+                    allowCon = false;
+                }
+            }
+
+            if (autoUpdate) {
                 Intent autoUpdate = wrapScanResults();
                 autoUpdate.putExtra(AUTO_UPDATE, true);
                 sendLocalBroadcastMessage(autoUpdate);
-            }
-
-            if(onPause) {
-                scanNets();
-                if(recs.size() > 0) {
-                    //TODO уведомление
-                }
             }
         }
     }
