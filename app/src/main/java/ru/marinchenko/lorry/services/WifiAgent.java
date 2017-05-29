@@ -37,15 +37,15 @@ public class WifiAgent extends Service {
     public final static String CONFIGURE = "configure";
     public final static String CONNECTED = "connected";
     public final static String DISCONNECT = "disconnect";
-    public final static String PREPARE = "prepareReturnNets";
-    public final static String RETURN = "returnNets";
+    public final static String PREPARE_RETURN_NETS = "prepareReturnNets";
+    public final static String RETURN_NETS = "returnNets";
 
     private final IBinder mBinder = new LocalBinder();
 
     private boolean onPause = false;
     private boolean autoUpdate = false;
     private boolean autoConnect = false;
-    private boolean allowCon = false;
+    private boolean allowAuth = false;
     private boolean scanResultsReturned = false;
     private boolean authenticating = false;
     private int lastId;
@@ -77,7 +77,7 @@ public class WifiAgent extends Service {
                     break;
 
                 case APPLICATION_ON_RESUME:
-                    allowCon = true;
+                    allowAuth = true;
                     onPause = false;
                     wifiStateAgent.save();
                     break;
@@ -102,7 +102,7 @@ public class WifiAgent extends Service {
 
                 case CONNECTED:
                     authenticating = false;
-                    allowCon = false;
+                    allowAuth = false;
                     break;
 
                 case DISCONNECT:
@@ -111,7 +111,7 @@ public class WifiAgent extends Service {
                     wifiStateAgent.restore();
                     break;
 
-                case PREPARE:
+                case PREPARE_RETURN_NETS:
                     if(wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED){
                         scanResultsReturned = sendLocalBroadcastMessage(wrapScanResults());
                     } else {
@@ -120,7 +120,7 @@ public class WifiAgent extends Service {
                     }
                     break;
 
-                case RETURN:
+                case RETURN_NETS:
                     if(wifiManager.getWifiState() == WifiManager.WIFI_STATE_ENABLED &&
                             !scanResultsReturned){
                         sendLocalBroadcastMessage(wrapScanResults());
@@ -154,7 +154,7 @@ public class WifiAgent extends Service {
         wifiManager.saveConfiguration();
 
         wifiManager.disconnect();
-        wifiManager.enableNetwork(lastId, true);
+        allowAuth = !wifiManager.enableNetwork(lastId, true);
         wifiManager.reconnect();
     }
 
@@ -324,17 +324,15 @@ public class WifiAgent extends Service {
                 sendToNetInfo();
             }
 
-            if (allowCon && autoConnect) {
+            if (allowAuth && autoConnect) {
+                allowAuth = false;
                 int num = recs.size();
                 if(num > 0) {
-                    for(ScanResult r : recs) {
-                        configure(r.SSID);
-                    }
+                    configure(recs.get(0).SSID);
                     authTask(NetConfig.generatePass(recs.get(0).SSID));
-                    if(num != 1) {
+                    if(num > 1) {
                         //TODO предоставить список всех видеорег.
                     }
-                    allowCon = false;
                 }
             }
 

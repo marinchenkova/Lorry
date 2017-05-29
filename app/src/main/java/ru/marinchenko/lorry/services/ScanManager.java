@@ -119,7 +119,7 @@ public class ScanManager extends Service {
         @Override
         public void run() {
             Intent update = new Intent(ScanManager.this, WifiAgent.class);
-            update.setAction(WifiAgent.PREPARE);
+            update.setAction(WifiAgent.PREPARE_RETURN_NETS);
             startService(update);
         }
     }
@@ -131,7 +131,7 @@ public class ScanManager extends Service {
         @Override
         public void run() {
             Intent update = new Intent(ScanManager.this, WifiAgent.class);
-            update.setAction(WifiAgent.RETURN);
+            update.setAction(WifiAgent.RETURN_NETS);
             startService(update);
         }
     }

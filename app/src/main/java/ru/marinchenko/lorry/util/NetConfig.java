@@ -9,10 +9,6 @@ import java.util.regex.Pattern;
  */
 public class NetConfig {
 
-    public static void main(String[] args) {
-        System.out.println(generatePass("LV_12345678"));
-    }
-
     /**
      * Проверка, раздается ли сеть Wi-Fi видеорегистратором.
      * @param name имя сети
@@ -32,17 +28,6 @@ public class NetConfig {
     public static String generateRandomSSID(){
         int id = (int) (10000000 + Math.random() * 89999999);
         return "LV-" + String.valueOf(id);
-    }
-
-    public static String generateRandomBSSID(){
-        int n;
-        String s = "";
-        for(int i = 0; i < 6; i++){
-            n = (int) (Math.random() * 99);
-            if(n < 10) s += "0";
-            s += n + ":";
-        }
-        return s.substring(0, s.length() - 1);
     }
 
     /**

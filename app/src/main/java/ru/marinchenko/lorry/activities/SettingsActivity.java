@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
@@ -37,16 +38,16 @@ public class SettingsActivity extends Activity
     }
 
     private void initTimer() {
-        LayoutInflater inf = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = inf.inflate(R.layout.update_mode_pref, null);
-        SeekBar bar = (SeekBar) view.findViewById(R.id.seekbar_update);
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        /*SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
+        
+
+        Toast.makeText(this, bar.getProgress(), Toast.LENGTH_LONG).show();
         bar.setProgress(prefs.getInt(PREF_TIMERUPDATE_VAL, 0));
         bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                updateTimer(progress);
+                //updateTimer(progress);
             }
 
             @Override
@@ -58,7 +59,7 @@ public class SettingsActivity extends Activity
             public void onStopTrackingTouch(SeekBar seekBar) {
 
             }
-        });
+        });*/
     }
 
     private void updateTimer(int val){
