@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.text.format.Formatter;
 import android.util.Base64;
 import android.view.SurfaceHolder;
@@ -14,9 +15,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 import android.widget.VideoView;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import ru.marinchenko.lorry.R;
 import ru.marinchenko.lorry.services.WifiAgent;
@@ -42,17 +40,18 @@ public class VideoStreamActivity extends Activity {
     public void initVideo(){
         videoView = (VideoView) findViewById(R.id.videoView);
 
-        user = "admin";
-        password = ""; // gChaZXUQLFo
-        String path;
+        //user = "admin";
+        //password = ""; // gChaZXUQLFo
 
-        rtspUrl = Formatter.formatIpAddress(getIntent().getIntExtra("IP", 0));
-        rtspUrl = "rtsp://".concat(rtspUrl).concat(":554/");
+        int ip = 0;
+        while (ip == 0) {
+            ip = ((WifiManager) getSystemService(WIFI_SERVICE)).getConnectionInfo().getIpAddress();
+        }
+        String ipAddress = Formatter.formatIpAddress(ip);
 
-        path = "user=" + user + "&password=" + password +
-                "&channel=1&stream=0.sdp?";
+        rtspUrl = "http://" + ipAddress + "/cgi-bin/Config.cgi?action=play&property=";
 
-        rtspUrl = rtspUrl.concat(path);
+        Toast.makeText(getApplicationContext(), rtspUrl, Toast.LENGTH_LONG).show();
 
         //rtspUrl = "http://www.androidbegin.com/tutorial/AndroidCommercial.3gp";
 
@@ -71,6 +70,7 @@ public class VideoStreamActivity extends Activity {
             }
         });
 
+        videoView.start();
     }
 
 

@@ -13,6 +13,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -197,13 +198,11 @@ public class WifiAgent extends Service {
      * Возвращение имени сети, к которой подключено устройство.
      * @return имя сети (SSID)
      */
-    public String getPresentSSID(){ return wifiManager.getConnectionInfo().getSSID(); }
-
-    /**
-     * Возвращение IP адреса сети, к которой подключено устройство.
-     * @return IP адрес
-     */
-    public int getPresentIP(){ return wifiManager.getConnectionInfo().getIpAddress(); }
+    public String getPresentSSID(){
+       // String ssid = wifiManager.getConnectionInfo().getSSID();
+        //Toast.makeText(getApplicationContext(), ssid, Toast.LENGTH_SHORT).show();
+        return wifiManager.getConnectionInfo().getSSID();
+    }
 
     /**
      * Инициализация работы с Wi-Fi сервисом.
@@ -234,7 +233,7 @@ public class WifiAgent extends Service {
 
         ArrayList<ScanResult> toRemove = new ArrayList<>();
         for(ScanResult s : scanResults) {
-            if(s.level < -90) toRemove.add(s);
+            if(s.level < -100) toRemove.add(s);
             else if (NetConfig.ifRec(s.SSID)) {
                 recs.add(s);
             }
@@ -252,7 +251,7 @@ public class WifiAgent extends Service {
 
     public void sendToNetInfo(){
         int num = recs.size();
-        if(num > 0) {
+        //if(num > 0) {
             wifiStateAgent.wifiOn();
             Intent toNet = new Intent(WifiAgent.this, MainActivity.class);
             toNet.setAction(MainActivity.TO_NET);
@@ -263,7 +262,7 @@ public class WifiAgent extends Service {
             toNet.putStringArrayListExtra(NET_INFO_SSID, stringList);
 
             sendLocalBroadcastMessage(toNet);
-        }
+        //}
     }
 
     /**
@@ -273,7 +272,6 @@ public class WifiAgent extends Service {
     public Intent wrapCurrentNetInfo(){
         Intent info = new Intent(this, MainActivity.class);
         info.setAction(MainActivity.NET_INFO);
-        info.putExtra(NET_INFO_IP, getPresentIP());
         info.putExtra(NET_INFO_SSID, getPresentSSID());
         return info;
     }
@@ -289,7 +287,7 @@ public class WifiAgent extends Service {
         updateNets.setAction(MainActivity.UPDATE_NETS);
 
         ArrayList<String> stringList = new ArrayList<>();
-        for(ScanResult s : recs)
+        for(ScanResult s : scanResults)
             stringList.add(s.SSID);
 
         updateNets.putStringArrayListExtra(NET_INFO_SSID, stringList);

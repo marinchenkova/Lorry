@@ -45,15 +45,13 @@ public class MainActivity extends Activity {
     public final static String TO_NET = "toNet";
     public final static String UPDATE_NETS = "updateNets";
     public final static String NET_INFO = "netInfo";
-    public final static String NET_INFO_IP = "netInfoIp";
     public final static String NET_INFO_PASSWORD = "netInfoPassword";
     public final static String NET_INFO_SSID = "netInfoSsid";
     public final static String NET_INFO_NUM = "netInfoNum";
 
     private int updateTime = 1000;
 
-    private String presentSSID;
-    private int presentIP;
+    private String presentSSID = "";
 
     private NetListAdapter netListAdapter;
     private String currNet;
@@ -132,12 +130,12 @@ public class MainActivity extends Activity {
         config.putExtra(NET_INFO_SSID, currNet);
         startService(config);
 
-        authenticate(NetConfig.generatePass(currNet));
+        //authenticate(NetConfig.generatePass(currNet));
 
-        /* // Ручной ввод пароля
+        // Ручной ввод пароля
         LoginDialog dialog = new LoginDialog();
         dialog.show(getFragmentManager(), "login");
-        */
+
     }
 
     /**
@@ -260,7 +258,6 @@ public class MainActivity extends Activity {
             startService(success);
 
             Intent in = new Intent(this, VideoStreamActivity.class);
-            in.putExtra(NET_INFO_IP, presentIP);
             currNet = null;
             startActivityAsChild(in);
         }
@@ -291,7 +288,6 @@ public class MainActivity extends Activity {
                     break;
 
                 case NET_INFO:
-                    presentIP = intent.getIntExtra(NET_INFO_IP, 0);
                     presentSSID = intent.getStringExtra(NET_INFO_SSID);
                     break;
             }
