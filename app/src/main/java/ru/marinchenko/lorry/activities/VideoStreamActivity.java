@@ -1,16 +1,11 @@
 package ru.marinchenko.lorry.activities;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.text.format.Formatter;
-import android.util.Base64;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -21,7 +16,7 @@ import ru.marinchenko.lorry.services.WifiAgent;
 
 public class VideoStreamActivity extends Activity {
 
-    private String rtspUrl;
+    private String url;
     private String user;
     private String password;
 
@@ -43,19 +38,31 @@ public class VideoStreamActivity extends Activity {
         //user = "admin";
         //password = ""; // gChaZXUQLFo
 
+        // Ожидание IP
         int ip = 0;
         while (ip == 0) {
             ip = ((WifiManager) getSystemService(WIFI_SERVICE)).getConnectionInfo().getIpAddress();
         }
         String ipAddress = Formatter.formatIpAddress(ip);
 
-        rtspUrl = "http://" + ipAddress + "/cgi-bin/Config.cgi?action=play&property=";
+        // Wifi DVR :: CameraCommand.commandPlayfilestreamingUrl
+        //String urlPlay = "http://" + ipAddress + "/cgi-bin/Config.cgi";
 
-        Toast.makeText(getApplicationContext(), rtspUrl, Toast.LENGTH_LONG).show();
+        // Wifi DVR :: CameraCommand.commandCameraRecordUrl
+        String urlRec =
+                "http://" + ipAddress + "/cgi-bin/Config.cgi?action=set&property=Video&value=record";
 
-        //rtspUrl = "http://www.androidbegin.com/tutorial/AndroidCommercial.3gp";
+        // Wifi DVR :: MjpegPlayerFragment.onCreate
+        String urlLive = "http://" + ipAddress + "/cgi-bin/liveMJPEG";
 
-        videoView.setVideoURI(Uri.parse(rtspUrl));
+        // Wifi DVR :: CameraCommand.commandQueryCameraPreview
+        String urlPreview = "http://" + ipAddress + "/cgi-bin/Config.cgi?action=get&property=Camera.Preview";
+
+
+        url = urlPreview;
+        Toast.makeText(getApplicationContext(), url, Toast.LENGTH_LONG).show();
+
+        videoView.setVideoURI(Uri.parse(url));
         videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
@@ -70,7 +77,6 @@ public class VideoStreamActivity extends Activity {
             }
         });
 
-        videoView.start();
     }
 
 
