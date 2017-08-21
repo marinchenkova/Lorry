@@ -20,15 +20,16 @@
         android:contentDescription="@string/button_settings"
         android:onClick="toSettings" />
 
-    <TextView
-        android:id="@+id/textview_update"
+    <CheckBox
+        android:id="@+id/autoconnect_checkbox"
         android:layout_gravity="fill_horizontal"
-        android:layout_height="40dp"
+        android:layout_height="60dp"
         android:layout_column="0"
         android:layout_columnSpan="2"
-        android:text="@string/textview_updateinfo"
-        android:textAlignment="center"
-        android:textSize="14sp" />
+        android:text="@string/checkbox_autoconnect"
+        android:textSize="22sp"
+        android:onClick="setAutoConnect"
+        android:layout_width="267dp" />
 
     <Button
         android:id="@+id/button_update"

@@ -22,9 +22,6 @@
         <service
             android:name=".services.WifiAgent"
             android:exported="false" />
-        <service
-            android:name=".services.ScanManager"
-            android:exported="false" />
 
         <activity android:name=".activities.MainActivity">
             <intent-filter>

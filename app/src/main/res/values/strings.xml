@@ -1,10 +1,8 @@
 <resources>
-    <string name="app_name">Lorry Vision</string>
+    <string name="app_name">LorryVision</string>
     <string name="button_settings">Настройки</string>
     <string name="checkbox_autoconnect">Подключаться автоматически</string>
-    <string name="textview_updateinfo">Обновлять список через</string>
     <string name="textview_updateinfo_auto">Список обновляется автоматически</string>
-    <string name="textview_updateinfo_sec">сек.</string>
     <string name="button_find">Обновить</string>
     <string name="listview_noNets">Нет сетей</string>
     <string name="textview_password">Введите пароль:</string>

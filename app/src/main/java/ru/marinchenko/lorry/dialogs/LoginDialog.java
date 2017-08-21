@@ -39,7 +39,7 @@ public class LoginDialog extends DialogFragment implements
         MainActivity mainActivity = (MainActivity) getActivity();
         EditText passwordBox = (EditText) form.findViewById(R.id.edittext_password);
 
-        mainActivity.authenticate(passwordBox.getText().toString());
+        mainActivity.setPassword(passwordBox.getText().toString());
     }
 
     @Override

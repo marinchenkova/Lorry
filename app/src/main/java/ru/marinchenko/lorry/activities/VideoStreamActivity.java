@@ -8,8 +8,11 @@ import android.net.wifi.WifiManager;
 import android.text.format.Formatter;
 import android.os.Bundle;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.Toast;
 import android.widget.VideoView;
+
+import java.util.concurrent.TimeUnit;
 
 import ru.marinchenko.lorry.R;
 import ru.marinchenko.lorry.services.WifiAgent;
@@ -23,16 +26,20 @@ public class VideoStreamActivity extends Activity {
     private MediaPlayer mediaPlayer;
     private VideoView videoView;
 
+    private WebView mWebView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_stream);
 
-        initVideo();
+        //initVideo();
+        initWeb();
     }
 
     public void initVideo(){
+        /*
         videoView = (VideoView) findViewById(R.id.videoView);
 
         //user = "admin";
@@ -58,11 +65,15 @@ public class VideoStreamActivity extends Activity {
         // Wifi DVR :: CameraCommand.commandQueryCameraPreview
         String urlPreview = "http://" + ipAddress + "/cgi-bin/Config.cgi?action=get&property=Camera.Preview";
 
+        // Raspberry Pi
+        String urlPi = "http://" + "192.168.1.139" + ":8081";
 
-        url = urlPreview;
+        url = urlPi;
         Toast.makeText(getApplicationContext(), url, Toast.LENGTH_LONG).show();
 
         videoView.setVideoURI(Uri.parse(url));
+        videoView.start();
+        /*
         videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
@@ -76,7 +87,30 @@ public class VideoStreamActivity extends Activity {
                 return false;
             }
         });
+        */
+    }
 
+    private void initWeb(){
+        // Ожидание IP
+        int ip = 0;
+        while (ip == 0) {
+            ip = ((WifiManager) getSystemService(WIFI_SERVICE)).getDhcpInfo().serverAddress;
+        }
+        String ipAddress = Formatter.formatIpAddress(ip);
+
+        // Raspberry Pi
+        String urlPi = "http://" + ipAddress + ":8081";
+
+        // Wifi DVR :: MjpegPlayerFragment.onCreate
+        String urlLive = "http://" + ipAddress + "/cgi-bin/liveMJPEG";
+
+        mWebView = (WebView) findViewById(R.id.webView);
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        mWebView.loadUrl(urlPi);
     }
 
 
@@ -86,11 +120,5 @@ public class VideoStreamActivity extends Activity {
         startService(disconnection);
 
         onBackPressed();
-    }
-
-    public void testDisconnect(View view) {
-        Intent disconnection = new Intent(this, WifiAgent.class);
-        disconnection.setAction(WifiAgent.DISCONNECT);
-        startService(disconnection);
     }
 }

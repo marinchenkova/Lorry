@@ -3,18 +3,21 @@ package ru.marinchenko.lorry.util;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiConfiguration;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Класс предназначен для формирования конфигурации сети {@link WifiConfiguration} по параметрам
  * объекта {@link ScanResult}.
  */
 
-public class WifiConfigurator {
+public class WifiConfig {
 
     private WifiConfiguration config = new WifiConfiguration();
     private int type = 0;
 
     /**
-     * Задание основных полей конфигурации сети.
+     * Конфигурировать сеть {@link ScanResult}.
      * @param s сеть Wi-Fi
      */
     public void configure(ScanResult s){
@@ -65,6 +68,19 @@ public class WifiConfigurator {
             config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
             config.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
         }
+    }
+
+    /**
+     * Конфигурировать сеть из списка {@link ScanResult}.
+     * @param ssid имя нужной сети
+     * @param scanResults список сетей
+     */
+    public void configure(String ssid, List<ScanResult> scanResults){
+        for(ScanResult s : scanResults)
+            if(s.SSID.equals(ssid)) {
+                configure(s);
+                break;
+            }
     }
 
     public void setPassword(String password){

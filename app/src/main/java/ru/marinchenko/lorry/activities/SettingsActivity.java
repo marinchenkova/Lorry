@@ -18,7 +18,6 @@ import ru.marinchenko.lorry.R;
 import ru.marinchenko.lorry.services.WifiAgent;
 
 import static ru.marinchenko.lorry.services.WifiAgent.AUTO_CONNECT;
-import static ru.marinchenko.lorry.services.WifiAgent.AUTO_UPDATE;
 
 public class SettingsActivity extends Activity
         implements SharedPreferences.OnSharedPreferenceChangeListener {
@@ -102,39 +101,7 @@ public class SettingsActivity extends Activity
         } else {
             SharedPreferences.Editor editor = sharedPreferences.edit();
             Intent autoUpdating = new Intent(this, WifiAgent.class);
-            autoUpdating.setAction(AUTO_UPDATE);
 
-            if(sharedPreferences.getBoolean(key, false)) {
-                if (key.equals(PREF_AUTOUPDATE)) {
-                    autoUpdating.putExtra(AUTO_UPDATE, true);
-
-                    editor.putBoolean(PREF_MANUPDATE, false);
-                    editor.putBoolean(PREF_TIMERUPDATE, false);
-                }
-
-                if (key.equals(PREF_MANUPDATE)) {
-                    autoUpdating.putExtra(AUTO_UPDATE, false);
-
-                    editor.putBoolean(PREF_AUTOUPDATE, false);
-                    editor.putBoolean(PREF_TIMERUPDATE, false);
-                }
-
-                if (key.equals(PREF_TIMERUPDATE)) {
-                    autoUpdating.putExtra(AUTO_UPDATE, false);
-
-                    editor.putBoolean(PREF_AUTOUPDATE, false);
-                    editor.putBoolean(PREF_MANUPDATE, false);
-                }
-
-            } else if(!sharedPreferences.getBoolean(PREF_AUTOUPDATE, false) &&
-                    !sharedPreferences.getBoolean(PREF_MANUPDATE, false) &&
-                    !sharedPreferences.getBoolean(PREF_TIMERUPDATE, false)) {
-                editor.putBoolean(key, true);
-            }
-
-            refresh();
-            editor.apply();
-            startService(autoUpdating);
         }
     }
 

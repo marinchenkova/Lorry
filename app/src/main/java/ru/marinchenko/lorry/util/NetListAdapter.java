@@ -17,8 +17,8 @@ import ru.marinchenko.lorry.R;
 public class NetListAdapter extends BaseAdapter{
 
     private LayoutInflater layoutInf;
-    private ArrayList<String> recs = new ArrayList<>();
-    private ArrayList<String> nets = new ArrayList<>();
+    private ArrayList<Net> recs = new ArrayList<>();
+    private ArrayList<Net> nets = new ArrayList<>();
 
     public NetListAdapter(Context ctx) {
         layoutInf = (LayoutInflater) ctx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -41,8 +41,20 @@ public class NetListAdapter extends BaseAdapter{
     public View getView(final int position, View convertView, ViewGroup parent) {
         int recIcon = R.drawable.button_net_rec;
         int wifiIcon = R.drawable.button_net_wifi;
+        int wifiIcon3 = R.drawable.button_net_wifi_3;
+        int wifiIcon2 = R.drawable.button_net_wifi_2;
+        int wifiIcon1 = R.drawable.button_net_wifi_1;
+        int wifiIcon0 = R.drawable.button_net_wifi_0;
+        int signalIcon;
 
-        String net = nets.get(position);
+        String net = nets.get(position).getSsid();
+        int level = nets.get(position).getLevel();
+
+        signalIcon = wifiIcon3;
+        if(level < -65) signalIcon = wifiIcon2;
+        else if(level < -90) signalIcon = wifiIcon1;
+        else if(level < -100) signalIcon = wifiIcon0;
+
         View view = convertView;
 
         if (view == null) {
@@ -52,6 +64,7 @@ public class NetListAdapter extends BaseAdapter{
         ((TextView) view.findViewById(R.id.netList_item_name)).setText(net);
         ((ImageView) view.findViewById(R.id.netList_item_image)).setImageResource(
                 NetConfig.ifRec(net) ? recIcon : wifiIcon);
+        ((ImageView) view.findViewById(R.id.netList_item_signal)).setImageResource(signalIcon);
 
         return view;
     }
@@ -60,14 +73,15 @@ public class NetListAdapter extends BaseAdapter{
      * Обновление списка сетей {@link NetListAdapter#recs}.
      * @param newNets новый список сетей
      */
-    public void updateNets(ArrayList<String> newNets){
-        List<String> wifi = new ArrayList<>();
+    public void updateNets(ArrayList<String> newNets, ArrayList<Integer> signals){
+        List<Net> wifi = new ArrayList<>();
         nets.clear();
         recs.clear();
 
-        for(String s: newNets){
-            if(NetConfig.ifRec(s)) recs.add(s);
-            else wifi.add(s);
+        for(int i = 0; i < newNets.size(); i++){
+            Net net = new Net(newNets.get(i), signals.get(i));
+            if(NetConfig.ifRec(newNets.get(i))) recs.add(net);
+            else wifi.add(net);
         }
 
         nets.addAll(recs);

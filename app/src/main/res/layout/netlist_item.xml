@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<GridLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="64dp"
@@ -7,21 +7,28 @@
 
     <ImageView
         android:id="@+id/netList_item_image"
-        android:layout_gravity="fill"
+        android:layout_gravity="start"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_width="64dp"
         android:src="@drawable/button_net_wifi" />
 
     <TextView
         android:id="@+id/netList_item_name"
         android:gravity="center_vertical"
+        android:layout_weight="10"
         android:text="@string/listview_noNets"
         android:textSize="26sp"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
         android:layout_gravity="fill" />
 
-    <TextView
-        android:id="@+id/netList_item_space"
-        android:gravity="center_vertical"
-        android:text="                                                    "
-        android:textSize="26sp"
-        android:layout_gravity="fill" />
+    <ImageView
+        android:id="@+id/netList_item_signal"
+        android:layout_gravity="end"
+        android:layout_weight="1"
+        android:layout_height="match_parent"
+        android:layout_width="64dp"
+        android:src="@drawable/button_net_wifi" />
 
-</GridLayout>
+</LinearLayout>

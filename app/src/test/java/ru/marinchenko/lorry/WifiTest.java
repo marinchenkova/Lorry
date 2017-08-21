@@ -23,7 +23,7 @@ import java.util.List;
 
 import ru.marinchenko.lorry.util.NetConfig;
 import ru.marinchenko.lorry.services.WifiAgent;
-import ru.marinchenko.lorry.util.WifiConfigurator;
+import ru.marinchenko.lorry.util.WifiConfig;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
@@ -103,7 +103,7 @@ public class WifiTest {
 
 
     private WifiConfiguration configure(ScanResult s){
-        WifiConfigurator wifiConf = new WifiConfigurator();
+        WifiConfig wifiConf = new WifiConfig();
         wifiConf.configure(s);
         return wifiConf.getConfiguredNet();
     }
