@@ -264,7 +264,9 @@ public class WifiAgent extends Service {
     private class WifiReceiver extends BroadcastReceiver {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         public void onReceive(Context c, Intent intent) {
-            if(wifiManager.getConnectionInfo().getSupplicantState() == SupplicantState.COMPLETED) {
+            SupplicantState state = wifiManager.getConnectionInfo().getSupplicantState();
+            if(state == SupplicantState.COMPLETED && authenticating) {
+                authenticating = false;
                 sendToVideoInfo();
             }
         }

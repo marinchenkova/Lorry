@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.format.Formatter;
@@ -13,6 +14,8 @@ import android.webkit.WebView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import ru.marinchenko.lorry.R;
@@ -108,6 +111,7 @@ public class VideoStreamActivity extends Activity {
 
     private void initWeb(){
         WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+        SupplicantState state = wifiManager.getConnectionInfo().getSupplicantState();
 
         // Ожидание IP
         int ip = 0;
@@ -122,9 +126,20 @@ public class VideoStreamActivity extends Activity {
         // Wifi DVR :: MjpegPlayerFragment.onCreate
         String urlLive = "http://" + ipAddress + "/cgi-bin/liveMJPEG";
 
+        Toast.makeText(getApplicationContext(), state.toString(), Toast.LENGTH_SHORT).show();
+
         mWebView = (WebView) findViewById(R.id.webView);
         mWebView.loadUrl(urlPi);
+
+        try {
+            TimeUnit.SECONDS.sleep(3);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        mWebView.reload();
     }
+
 
 
     public void exit(View view) {

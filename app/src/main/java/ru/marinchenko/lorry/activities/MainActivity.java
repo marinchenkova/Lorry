@@ -225,12 +225,6 @@ public class MainActivity extends Activity {
             Intent in = new Intent(this, VideoStreamActivity.class);
             currNet = null;
 
-            try {
-                TimeUnit.SECONDS.sleep(2);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
             startActivityAsChild(in);
         }
     }
