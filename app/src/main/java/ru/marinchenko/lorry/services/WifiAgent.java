@@ -10,13 +10,14 @@ import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
-import android.support.annotation.IntegerRes;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import ru.marinchenko.lorry.activities.MainActivity;
 import ru.marinchenko.lorry.util.NetConfig;
@@ -39,7 +40,7 @@ public class WifiAgent extends Service {
 
     private boolean onPause = false;
     private boolean autoConnect = false;
-    private boolean allowConnect = true;
+    private boolean allowAutoConnect = true;
     private boolean authenticating = false;
     private int lastId;
 
@@ -53,7 +54,8 @@ public class WifiAgent extends Service {
     @Override
     public void onCreate(){
         super.onCreate();
-        init();
+        initWifi();
+        initTimer();
     }
 
     @Nullable
@@ -61,6 +63,8 @@ public class WifiAgent extends Service {
     public IBinder onBind(Intent intent) { return mBinder; }
 
     public int onStartCommand(Intent intent, int flags, int startId) {
+        wifiManager.setWifiEnabled(true);
+
         if (intent.getAction() != null) {
             switch (intent.getAction()){
                 case AUTHENTICATE:
@@ -75,11 +79,10 @@ public class WifiAgent extends Service {
 
                 case CONNECTED:
                     authenticating = false;
-                    allowConnect = false;
+                    allowAutoConnect = false;
                     break;
 
                 case DISCONNECT:
-                    allowConnect = true;
                     disconnect();
                     disableNetwork();
                     break;
@@ -118,7 +121,7 @@ public class WifiAgent extends Service {
     }
 
     public void autoConnection(){
-        if(!authenticating && allowConnect) {
+        if(!authenticating) {
             String ssid = recs.get(0).SSID;
             String pass = NetConfig.generatePass(ssid);
             authenticate(ssid, pass);
@@ -149,12 +152,10 @@ public class WifiAgent extends Service {
     /**
      * Инициализация работы с Wi-Fi сервисом.
      */
-    private void init(){
+    private void initWifi(){
         wifiManager = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
         wifiReceiver = new WifiReceiver();
         wifiConfig = new WifiConfig();
-
-        wifiManager.setWifiEnabled(true);
 
         IntentFilter wifiFilter = new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION);
         wifiFilter.addAction(WifiManager.ACTION_PICK_WIFI_NETWORK);
@@ -165,6 +166,12 @@ public class WifiAgent extends Service {
         wifiFilter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION);
 
         registerReceiver(wifiReceiver, wifiFilter);
+    }
+
+    private void initTimer(){
+        Timer updateTimer = new Timer();
+        TimerTask updateTask = new UpdateTimerTask();
+        updateTimer.schedule(updateTask, 0, 1000);
     }
 
     /**
@@ -184,11 +191,11 @@ public class WifiAgent extends Service {
                 recs.add(s);
             }
         }
-        /*
+
         if(recs.size() > 0){
-          if(autoConnect && allowConnect) autoConnection();
-        } else  = true;
-        */
+          if(autoConnect && allowAutoConnect) autoConnection();
+        } else  allowAutoConnect = true;
+
         scanResults.removeAll(toRemove);
     }
 
@@ -244,14 +251,19 @@ public class WifiAgent extends Service {
         public WifiAgent getService() { return WifiAgent.this; }
     }
 
+    private class UpdateTimerTask extends TimerTask {
+        @Override
+        public void run() {
+            sendScanResults();
+        }
+    }
+
     /**
      * Получатель сообщений для объекта {@link WifiManager}.
      */
     private class WifiReceiver extends BroadcastReceiver {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         public void onReceive(Context c, Intent intent) {
-            sendScanResults();
-
             if(authenticating) sendToVideoInfo();
         }
     }

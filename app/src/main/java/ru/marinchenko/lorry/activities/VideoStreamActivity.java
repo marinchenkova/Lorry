@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.format.Formatter;
 import android.os.Bundle;
 import android.view.View;
@@ -36,6 +37,21 @@ public class VideoStreamActivity extends Activity {
 
         //initVideo();
         initWeb();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     public void initVideo(){
@@ -91,10 +107,12 @@ public class VideoStreamActivity extends Activity {
     }
 
     private void initWeb(){
+        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+
         // Ожидание IP
         int ip = 0;
         while (ip == 0) {
-            ip = ((WifiManager) getSystemService(WIFI_SERVICE)).getDhcpInfo().serverAddress;
+            ip = wifiManager.getDhcpInfo().serverAddress;
         }
         String ipAddress = Formatter.formatIpAddress(ip);
 
@@ -104,12 +122,15 @@ public class VideoStreamActivity extends Activity {
         // Wifi DVR :: MjpegPlayerFragment.onCreate
         String urlLive = "http://" + ipAddress + "/cgi-bin/liveMJPEG";
 
-        mWebView = (WebView) findViewById(R.id.webView);
+
         try {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.SECONDS.sleep(2);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+
+        mWebView = (WebView) findViewById(R.id.webView);
         mWebView.loadUrl(urlPi);
     }
 

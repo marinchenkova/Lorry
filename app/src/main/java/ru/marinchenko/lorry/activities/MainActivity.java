@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -45,6 +46,7 @@ public class MainActivity extends Activity {
 
     private String presentSSID = "";
     private boolean autoConnect = false;
+    private boolean inVideo = false;
 
     private SharedPreferences sharedPref;
     private NetListAdapter netListAdapter;
@@ -65,6 +67,8 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onResume() {
+        inVideo = false;
+
         Intent onResume = new Intent(this, WifiAgent.class);
         onResume.setAction(APP_RESUME);
         startService(onResume);
@@ -211,6 +215,8 @@ public class MainActivity extends Activity {
     public void toVideoStream(){
         if(currNet != null && presentSSID.equals(String.format("\"%s\"", currNet)) ||
                 autoConnect && !presentSSID.equals("<unknown ssid>")){
+            inVideo = true;
+
             Intent connected = new Intent(this, WifiAgent.class);
             connected.setAction(CONNECTED);
             startService(connected);
@@ -249,7 +255,7 @@ public class MainActivity extends Activity {
                     ArrayList<String> recs = intent.getStringArrayListExtra(NET_ARR_SSID);
                     int num = intent.getIntExtra(NET_NUM, 1);
 
-                    toVideoStream();
+                    if(!inVideo) toVideoStream();
                     break;
 
                 case UPDATE_NETS:
