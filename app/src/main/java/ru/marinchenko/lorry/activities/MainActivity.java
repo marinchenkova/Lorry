@@ -19,6 +19,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 import ru.marinchenko.lorry.R;
 import ru.marinchenko.lorry.dialogs.LoginDialog;
@@ -223,6 +224,13 @@ public class MainActivity extends Activity {
 
             Intent in = new Intent(this, VideoStreamActivity.class);
             currNet = null;
+
+            try {
+                TimeUnit.SECONDS.sleep(2);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             startActivityAsChild(in);
         }
     }

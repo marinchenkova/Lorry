@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
+import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
@@ -118,6 +119,7 @@ public class WifiAgent extends Service {
         wifiManager.disconnect();
         wifiManager.enableNetwork(lastId, true);
         wifiManager.reconnect();
+
     }
 
     public void autoConnection(){
@@ -157,12 +159,11 @@ public class WifiAgent extends Service {
         wifiReceiver = new WifiReceiver();
         wifiConfig = new WifiConfig();
 
-        IntentFilter wifiFilter = new IntentFilter(WifiManager.WIFI_STATE_CHANGED_ACTION);
-        wifiFilter.addAction(WifiManager.ACTION_PICK_WIFI_NETWORK);
-        wifiFilter.addAction(WifiManager.RSSI_CHANGED_ACTION);
-        wifiFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-        wifiFilter.addAction(WifiManager.NETWORK_IDS_CHANGED_ACTION);
-        wifiFilter.addAction(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
+        IntentFilter wifiFilter = new IntentFilter(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
+        //wifiFilter.addAction(WifiManager.ACTION_PICK_WIFI_NETWORK);
+        //wifiFilter.addAction(WifiManager.RSSI_CHANGED_ACTION);
+        //wifiFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        //wifiFilter.addAction(WifiManager.NETWORK_IDS_CHANGED_ACTION);
         wifiFilter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION);
 
         registerReceiver(wifiReceiver, wifiFilter);
@@ -208,8 +209,7 @@ public class WifiAgent extends Service {
     }
 
     /**
-     * Упаковать результаты сканирования в {@link Intent}.
-     * @return {@link Intent} с данными
+     *
      */
     public void sendScanResults(){
         scanNets();
@@ -264,7 +264,9 @@ public class WifiAgent extends Service {
     private class WifiReceiver extends BroadcastReceiver {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         public void onReceive(Context c, Intent intent) {
-            if(authenticating) sendToVideoInfo();
+            if(wifiManager.getConnectionInfo().getSupplicantState() == SupplicantState.COMPLETED) {
+                sendToVideoInfo();
+            }
         }
     }
 }

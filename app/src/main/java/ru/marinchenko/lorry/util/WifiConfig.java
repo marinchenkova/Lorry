@@ -77,7 +77,7 @@ public class WifiConfig {
      */
     public void configure(String ssid, List<ScanResult> scanResults){
         for(ScanResult s : scanResults)
-            if(s.SSID.equals(ssid)) {
+            if(s.SSID.equals(ssid) && s.level >= -70) {
                 configure(s);
                 break;
             }

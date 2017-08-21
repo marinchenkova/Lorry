@@ -50,10 +50,10 @@ public class NetListAdapter extends BaseAdapter{
         String net = nets.get(position).getSsid();
         int level = nets.get(position).getLevel();
 
-        signalIcon = wifiIcon3;
-        if(level < -65) signalIcon = wifiIcon2;
-        else if(level < -90) signalIcon = wifiIcon1;
-        else if(level < -100) signalIcon = wifiIcon0;
+        signalIcon = wifiIcon0;
+        if(level > -80) signalIcon = wifiIcon1;
+        if(level > -65) signalIcon = wifiIcon2;
+        if(level > -55) signalIcon = wifiIcon3;
 
         View view = convertView;
 

@@ -122,14 +122,6 @@ public class VideoStreamActivity extends Activity {
         // Wifi DVR :: MjpegPlayerFragment.onCreate
         String urlLive = "http://" + ipAddress + "/cgi-bin/liveMJPEG";
 
-
-        try {
-            TimeUnit.SECONDS.sleep(2);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-
         mWebView = (WebView) findViewById(R.id.webView);
         mWebView.loadUrl(urlPi);
     }
