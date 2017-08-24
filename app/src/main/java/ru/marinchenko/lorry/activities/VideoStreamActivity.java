@@ -111,22 +111,23 @@ public class VideoStreamActivity extends Activity {
 
     private void initWeb(){
         WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
-        SupplicantState state = wifiManager.getConnectionInfo().getSupplicantState();
 
         // Ожидание IP
-        int ip = 0;
-        while (ip == 0) {
-            ip = wifiManager.getDhcpInfo().serverAddress;
+        int ipInt = 0;
+        int count = 0;
+        while (ipInt == 0 || count < 50) {
+            ipInt = wifiManager.getDhcpInfo().serverAddress;
+            count++;
         }
-        String ipAddress = Formatter.formatIpAddress(ip);
+        String ipString = Formatter.formatIpAddress(ipInt);
+
+        Toast.makeText(getApplicationContext(), count + " : " + ipString, Toast.LENGTH_LONG).show();
 
         // Raspberry Pi
-        String urlPi = "http://" + ipAddress + ":8081";
+        String urlPi = "http://" + ipString + ":8081";
 
         // Wifi DVR :: MjpegPlayerFragment.onCreate
-        String urlLive = "http://" + ipAddress + "/cgi-bin/liveMJPEG";
-
-        Toast.makeText(getApplicationContext(), state.toString(), Toast.LENGTH_SHORT).show();
+        String urlLive = "http://" + ipString + "/cgi-bin/liveMJPEG";
 
         mWebView = (WebView) findViewById(R.id.webView);
         mWebView.loadUrl(urlPi);

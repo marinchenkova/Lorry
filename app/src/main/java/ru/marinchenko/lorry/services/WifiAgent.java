@@ -14,6 +14,7 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -116,6 +117,7 @@ public class WifiAgent extends Service {
 
         lastId = wifiManager.addNetwork(wifiConfig.getConfiguredNet());
 
+        wifiManager.saveConfiguration();
         wifiManager.disconnect();
         wifiManager.enableNetwork(lastId, true);
         wifiManager.reconnect();
