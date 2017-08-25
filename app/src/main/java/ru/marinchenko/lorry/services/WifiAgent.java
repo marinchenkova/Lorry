@@ -10,19 +10,23 @@ import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
-import android.support.v4.content.LocalBroadcastManager;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import ru.marinchenko.lorry.activities.MainActivity;
+import ru.marinchenko.lorry.util.Net;
 import ru.marinchenko.lorry.util.NetConfig;
+import ru.marinchenko.lorry.util.NetList;
 import ru.marinchenko.lorry.util.WifiConfig;
 
 import static ru.marinchenko.lorry.activities.MainActivity.*;
@@ -46,6 +50,8 @@ public class WifiAgent extends Service {
     private boolean authenticating = false;
     private int lastId;
 
+    private Messenger messenger;
+
     private WifiConfig wifiConfig;
     private WifiManager wifiManager;
     private WifiReceiver wifiReceiver;
@@ -67,7 +73,7 @@ public class WifiAgent extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         wifiManager.setWifiEnabled(true);
 
-        if (intent.getAction() != null) {
+        if (intent != null && intent.getAction() != null) {
             switch (intent.getAction()){
                 case AUTHENTICATE:
                     String ssid = intent.getStringExtra(NET_SSID);
@@ -89,8 +95,13 @@ public class WifiAgent extends Service {
                     disableNetwork();
                     break;
 
+                case MESSENGER:
+                    Bundle extras = intent.getExtras();
+                    messenger = (Messenger) extras.get(MESSENGER);
+                    break;
+
                 case RETURN_NETS:
-                    sendScanResults();
+                    sendMessage(UPDATE_NETS);
                     break;
             }
         }
@@ -202,50 +213,36 @@ public class WifiAgent extends Service {
         scanResults.removeAll(toRemove);
     }
 
-    /**
-     * Отправка сообщений внутри приложения.
-     * @param intent сообщение
-     */
-    private boolean sendLocalBroadcastMessage(Intent intent){
-        return LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
-    }
-
-    /**
-     *
-     */
-    public void sendScanResults(){
+    public void sendMessage(int what) {
         scanNets();
 
-        Intent updateNets = new Intent(this, MainActivity.class);
-        updateNets.setAction(MainActivity.UPDATE_NETS);
+        ArrayList<Net> nets = new ArrayList<>();
+        List<ScanResult> target = new ArrayList<>();
+        NetList list;
 
-        ArrayList<String> stringList = new ArrayList<>();
-        ArrayList<Integer> intList = new ArrayList<>();
-        for(ScanResult s : scanResults){
-            stringList.add(s.SSID);
-            intList.add(s.level);
+        switch (what) {
+            case TO_VIDEO:
+                target = scanResults;
+                break;
+
+            case UPDATE_NETS:
+                target = recs;
         }
 
-        updateNets.putStringArrayListExtra(NET_ARR_SSID, stringList);
-        updateNets.putIntegerArrayListExtra(NET_ARR_SIGNAL, intList);
-        sendLocalBroadcastMessage(updateNets);
-    }
+        for(ScanResult s : target){
+            nets.add(new Net(s.SSID, s.level));
+        }
 
-    public void sendToVideoInfo(){
-        int num = recs.size();
-        //if(num > 0) {
-        Intent toNet = new Intent(WifiAgent.this, MainActivity.class);
-        toNet.setAction(MainActivity.TO_VIDEO);
+        list = new NetList(nets);
+        list.setPresent(getPresentSSID());
 
-        toNet.putExtra(NET_NUM, num);
-        toNet.putExtra(NET_SSID, getPresentSSID());
+        Message message = Message.obtain(messageHandler, what, list);
 
-        ArrayList<String> stringList = new ArrayList<>();
-        for(ScanResult r : recs) stringList.add(r.SSID);
-        toNet.putStringArrayListExtra(NET_ARR_SSID, stringList);
-
-        sendLocalBroadcastMessage(toNet);
-        //}
+        try {
+            messenger.send(message);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -256,7 +253,7 @@ public class WifiAgent extends Service {
     private class UpdateTimerTask extends TimerTask {
         @Override
         public void run() {
-            sendScanResults();
+            sendMessage(UPDATE_NETS);
         }
     }
 
@@ -269,7 +266,7 @@ public class WifiAgent extends Service {
             SupplicantState state = wifiManager.getConnectionInfo().getSupplicantState();
             if(state == SupplicantState.COMPLETED && authenticating) {
                 authenticating = false;
-                sendToVideoInfo();
+                sendMessage(TO_VIDEO);
             }
         }
     }

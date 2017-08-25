@@ -2,29 +2,30 @@ package ru.marinchenko.lorry.activities;
 
 import android.app.Activity;
 import android.app.TaskStackBuilder;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.wifi.ScanResult;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.os.Messenger;
 import android.support.annotation.RequiresApi;
-import android.support.v4.content.LocalBroadcastManager;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 import ru.marinchenko.lorry.R;
 import ru.marinchenko.lorry.dialogs.LoginDialog;
 import ru.marinchenko.lorry.util.Net;
 import ru.marinchenko.lorry.util.NetConfig;
+import ru.marinchenko.lorry.util.NetList;
 import ru.marinchenko.lorry.util.NetListAdapter;
 import ru.marinchenko.lorry.services.WifiAgent;
 
@@ -37,13 +38,15 @@ public class MainActivity extends Activity {
      */
     public final static String APP_PAUSE = "appPause";
     public final static String APP_RESUME = "appResume";
-    public final static String TO_VIDEO = "toVideo";
-    public final static String UPDATE_NETS = "updateNets";
+    public final static String MESSENGER = "messenger";
     public final static String NET_SSID = "netSsid";
     public final static String NET_ARR_SSID = "netArrSsid";
     public final static String NET_ARR_SIGNAL = "netArrSignal";
     public final static String NET_PASSWORD = "netPassword";
     public final static String NET_NUM = "netNum";
+
+    public final static int TO_VIDEO = 100;
+    public final static int UPDATE_NETS = 200;
 
     private String presentSSID = "";
     private boolean autoConnect = false;
@@ -53,6 +56,7 @@ public class MainActivity extends Activity {
     private NetListAdapter netListAdapter;
     private String currNet;
     private String password;
+    public static Handler messageHandler;
 
 
     @Override
@@ -60,9 +64,10 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        messageHandler = new MessageHandler(this);
         startWifiAgent();
         initNetList();
-        initPref();
+        initPreferences();
     }
 
 
@@ -74,7 +79,7 @@ public class MainActivity extends Activity {
         onResume.setAction(APP_RESUME);
         startService(onResume);
 
-        registerActionReceiver();
+        //registerActionReceiver();
         setAutoConnect(findViewById(R.id.autoconnect_checkbox));
 
         super.onResume();
@@ -85,10 +90,10 @@ public class MainActivity extends Activity {
         Intent wifiOn = new Intent(this, WifiAgent.class);
         wifiOn.setAction(APP_PAUSE);
         startService(wifiOn);
-
+/*
         LocalBroadcastManager.getInstance(getApplicationContext())
                 .unregisterReceiver(actionReceiver);
-
+*/
         super.onPause();
     }
 
@@ -99,7 +104,6 @@ public class MainActivity extends Activity {
 
         super.onDestroy();
     }
-
 
     /**
      * Инициализация списка доступных Wi-Fi сетей.
@@ -118,7 +122,7 @@ public class MainActivity extends Activity {
         });
     }
 
-    private void initPref() {
+    private void initPreferences() {
         sharedPref = getPreferences(Context.MODE_PRIVATE);
         ((CheckBox) findViewById(R.id.autoconnect_checkbox)).
                 setChecked(sharedPref.getBoolean(AUTO_CONNECT, true));
@@ -127,13 +131,14 @@ public class MainActivity extends Activity {
     /**
      * Регистрация получателя сообщений для действия.
      */
+    /*
     private void registerActionReceiver(){
         IntentFilter intFilter = new IntentFilter(TO_VIDEO);
         intFilter.addAction(UPDATE_NETS);
         LocalBroadcastManager.getInstance(getApplicationContext())
                 .registerReceiver(actionReceiver, intFilter);
     }
-
+    */
 
     public void setAutoConnect(View view) {
         autoConnect = ((CheckBox) view).isChecked();
@@ -163,6 +168,8 @@ public class MainActivity extends Activity {
      */
     private void startWifiAgent(){
         Intent wifiAgency = new Intent(this, WifiAgent.class);
+        wifiAgency.setAction(MESSENGER);
+        wifiAgency.putExtra(MESSENGER, new Messenger(messageHandler));
         startService(wifiAgency);
     }
 
@@ -244,6 +251,7 @@ public class MainActivity extends Activity {
      * списке доступных сетей, соответствует сети, к которой подключено устройство, совершается
      * переход к {@link VideoStreamActivity}.
      */
+    /*
     private BroadcastReceiver actionReceiver = new BroadcastReceiver() {
         @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
         @Override
@@ -268,4 +276,43 @@ public class MainActivity extends Activity {
             }
         }
     };
+*/
+
+
+    public static class MessageHandler extends Handler {
+        private final WeakReference<MainActivity> reference;
+        MessageHandler(MainActivity mainActivity) {
+            reference = new WeakReference<>(mainActivity);
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+        @Override
+        public void handleMessage(Message msg) {
+            MainActivity activity = reference.get();
+            if(activity != null){
+                int state = msg.what;
+                NetList list = (NetList) msg.obj;
+
+                Toast.makeText(activity, String.valueOf(list.getSize()), Toast.LENGTH_LONG).show();
+
+                switch (state) {
+                    case TO_VIDEO:
+                        //TODO уведомление
+                        //TODO количество сетей
+
+                        activity.presentSSID = list.getPresent();
+                        ArrayList<String> recs = list.getStringList();
+                        int num = list.getSize();
+
+                        if(!activity.inVideo) activity.toVideoStream();
+                        break;
+
+                    case UPDATE_NETS:
+                        activity.netListAdapter.updateNets(list.getList());
+                        activity.netListAdapter.notifyDataSetChanged();
+                        break;
+                }
+            }
+        }
+    }
 }

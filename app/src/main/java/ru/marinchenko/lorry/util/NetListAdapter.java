@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,15 +74,14 @@ public class NetListAdapter extends BaseAdapter{
      * Обновление списка сетей {@link NetListAdapter#recs}.
      * @param newNets новый список сетей
      */
-    public void updateNets(ArrayList<String> newNets, ArrayList<Integer> signals){
+    public void updateNets(ArrayList<Net> newNets){
         List<Net> wifi = new ArrayList<>();
         nets.clear();
         recs.clear();
 
-        for(int i = 0; i < newNets.size(); i++){
-            Net net = new Net(newNets.get(i), signals.get(i));
-            if(NetConfig.ifRec(newNets.get(i))) recs.add(net);
-            else wifi.add(net);
+        for(Net n : newNets){
+            if(NetConfig.ifRec(n.getSsid())) recs.add(n);
+            else wifi.add(n);
         }
 
         nets.addAll(recs);
