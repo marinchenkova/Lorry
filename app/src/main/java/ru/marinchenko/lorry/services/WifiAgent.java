@@ -50,7 +50,7 @@ public class WifiAgent extends Service {
     private boolean authenticating = false;
     private int lastId;
 
-    private Messenger messenger;
+    private Messenger messenger = null;
 
     private WifiConfig wifiConfig;
     private WifiManager wifiManager;
@@ -217,26 +217,26 @@ public class WifiAgent extends Service {
         scanNets();
 
         ArrayList<Net> nets = new ArrayList<>();
-        List<ScanResult> target = new ArrayList<>();
         NetList list;
 
         switch (what) {
             case TO_VIDEO:
-                target = scanResults;
+                for(ScanResult s : recs){
+                    nets.add(new Net(s.SSID, s.level));
+                }
                 break;
 
             case UPDATE_NETS:
-                target = recs;
-        }
-
-        for(ScanResult s : target){
-            nets.add(new Net(s.SSID, s.level));
+                for(ScanResult s : scanResults){
+                    nets.add(new Net(s.SSID, s.level));
+                }
+                break;
         }
 
         list = new NetList(nets);
         list.setPresent(getPresentSSID());
 
-        Message message = Message.obtain(messageHandler, what, list);
+        Message message = Message.obtain(null, what, list);
 
         try {
             messenger.send(message);

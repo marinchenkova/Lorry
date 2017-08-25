@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.net.wifi.ScanResult;
 import android.os.Build;
@@ -276,8 +277,7 @@ public class MainActivity extends Activity {
             }
         }
     };
-*/
-
+    */
 
     public static class MessageHandler extends Handler {
         private final WeakReference<MainActivity> reference;
@@ -289,13 +289,10 @@ public class MainActivity extends Activity {
         @Override
         public void handleMessage(Message msg) {
             MainActivity activity = reference.get();
-            if(activity != null){
-                int state = msg.what;
+            if(activity != null) {
                 NetList list = (NetList) msg.obj;
 
-                Toast.makeText(activity, String.valueOf(list.getSize()), Toast.LENGTH_LONG).show();
-
-                switch (state) {
+                switch (msg.what) {
                     case TO_VIDEO:
                         //TODO уведомление
                         //TODO количество сетей
@@ -311,8 +308,12 @@ public class MainActivity extends Activity {
                         activity.netListAdapter.updateNets(list.getList());
                         activity.netListAdapter.notifyDataSetChanged();
                         break;
+
+                    default:
+                        super.handleMessage(msg);
                 }
             }
+
         }
     }
 }
