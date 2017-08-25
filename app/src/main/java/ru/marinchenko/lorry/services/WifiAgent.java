@@ -1,10 +1,13 @@
 package ru.marinchenko.lorry.services;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiManager;
@@ -18,17 +21,22 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import ru.marinchenko.lorry.R;
 import ru.marinchenko.lorry.util.Net;
 import ru.marinchenko.lorry.util.NetConfig;
 import ru.marinchenko.lorry.util.NetList;
 import ru.marinchenko.lorry.util.WifiConfig;
 
+import static junit.framework.Assert.assertNotNull;
 import static ru.marinchenko.lorry.activities.MainActivity.*;
 
 /**
@@ -63,16 +71,15 @@ public class WifiAgent extends Service {
     public void onCreate(){
         super.onCreate();
         initWifi();
-        initTimer();
+        //initTimer();
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) { return mBinder; }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     public int onStartCommand(Intent intent, int flags, int startId) {
-        wifiManager.setWifiEnabled(true);
-
         if (intent != null && intent.getAction() != null) {
             switch (intent.getAction()){
                 case AUTHENTICATE:
@@ -143,6 +150,8 @@ public class WifiAgent extends Service {
         }
     }
 
+
+
     /**
      * Отсоединиться от текущей сети Wi-Fi.
      */
@@ -178,8 +187,10 @@ public class WifiAgent extends Service {
         //wifiFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         //wifiFilter.addAction(WifiManager.NETWORK_IDS_CHANGED_ACTION);
         wifiFilter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION);
+        wifiFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
 
         registerReceiver(wifiReceiver, wifiFilter);
+        wifiManager.setWifiEnabled(true);
     }
 
     private void initTimer(){
@@ -188,9 +199,12 @@ public class WifiAgent extends Service {
         updateTimer.schedule(updateTask, 0, 1000);
     }
 
+
+
     /**
      * Сканирование доступных Wi-Fi сетей.
      */
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     public void scanNets(){
         scanResults.clear();
         recs.clear();
@@ -213,6 +227,7 @@ public class WifiAgent extends Service {
         scanResults.removeAll(toRemove);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     public void sendMessage(int what) {
         scanNets();
 
@@ -251,6 +266,7 @@ public class WifiAgent extends Service {
     }
 
     private class UpdateTimerTask extends TimerTask {
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
         @Override
         public void run() {
             sendMessage(UPDATE_NETS);
@@ -261,13 +277,19 @@ public class WifiAgent extends Service {
      * Получатель сообщений для объекта {@link WifiManager}.
      */
     private class WifiReceiver extends BroadcastReceiver {
-        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+        @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
         public void onReceive(Context c, Intent intent) {
             SupplicantState state = wifiManager.getConnectionInfo().getSupplicantState();
             if(state == SupplicantState.COMPLETED && authenticating) {
                 authenticating = false;
                 sendMessage(TO_VIDEO);
             }
+
+            /*
+            if(intent.getAction().equals(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)){
+                sendMessage(UPDATE_NETS);
+            }
+            */
         }
     }
 }
