@@ -2,6 +2,7 @@ package ru.marinchenko.lorry.activities;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
@@ -47,15 +48,12 @@ public class MainActivity extends Activity {
     public final static String APP_RESUME = "appResume";
     public final static String MESSENGER = "messenger";
     public final static String NET_SSID = "netSsid";
-    public final static String NET_ARR_SSID = "netArrSsid";
-    public final static String NET_ARR_SIGNAL = "netArrSignal";
     public final static String NET_PASSWORD = "netPassword";
-    public final static String NET_NUM = "netNum";
 
-    public final static int TO_VIDEO = 100;
-    public final static int UPDATE_NETS = 200;
-    private static final int REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 1;
-
+    public final static int AUTH_IN_PROCESS = 100;
+    public final static int TO_VIDEO = 200;
+    public final static int UPDATE_NETS = 300;
+    private static final int REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS = 400;
 
     private String presentSSID = "";
     private boolean autoConnect = false;
@@ -66,6 +64,7 @@ public class MainActivity extends Activity {
     private String currNet;
     private String password;
     public static Handler messageHandler;
+    private ProgressDialog authDialog;
 
 
     @Override
@@ -223,8 +222,8 @@ public class MainActivity extends Activity {
      */
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void toSettings(View view){
-        Intent settings = new Intent(this, SettingsActivity.class);
-        startActivityAsChild(settings);
+        /*Intent settings = new Intent(this, SettingsActivity.class);
+        startActivityAsChild(settings);*/
     }
 
     /**
@@ -242,6 +241,8 @@ public class MainActivity extends Activity {
 
             Intent in = new Intent(this, VideoStreamActivity.class);
             currNet = null;
+
+            //if(authDialog != null && authDialog.isShowing()) authDialog.dismiss();
 
             startActivityAsChild(in);
         }
@@ -276,7 +277,9 @@ public class MainActivity extends Activity {
                 // No explanation needed, we can request the permission.
 
                 ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION,
+                                Manifest.permission.CHANGE_WIFI_STATE,
+                                Manifest.permission.ACCESS_FINE_LOCATION},
                         REQUEST_CODE_ASK_MULTIPLE_PERMISSIONS);
 
                 // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
@@ -342,7 +345,7 @@ public class MainActivity extends Activity {
             }
         }
     };
-    */
+ */
 
     public static class MessageHandler extends Handler {
         private final WeakReference<MainActivity> reference;
@@ -358,10 +361,19 @@ public class MainActivity extends Activity {
                 NetList list = (NetList) msg.obj;
 
                 switch (msg.what) {
+                    case AUTH_IN_PROCESS:
+/*
+                        activity.authDialog = new ProgressDialog(activity);
+                        activity.authDialog.setTitle("Подключение...");
+                        activity.authDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+                        activity.authDialog.setIndeterminate(true);
+                        activity.authDialog.show();
+*/
+                        break;
+
                     case TO_VIDEO:
                         //TODO уведомление
                         //TODO количество сетей
-
                         activity.presentSSID = list.getPresent();
                         ArrayList<String> recs = list.getStringList();
                         int num = list.getSize();

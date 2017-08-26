@@ -57,6 +57,7 @@ public class WifiAgent extends Service {
     private boolean allowAutoConnect = true;
     private boolean authenticating = false;
     private int lastId;
+    private int auth = 0;
 
     private Messenger messenger = null;
 
@@ -71,7 +72,7 @@ public class WifiAgent extends Service {
     public void onCreate(){
         super.onCreate();
         initWifi();
-        //initTimer();
+        initTimer();
     }
 
     @Nullable
@@ -83,6 +84,7 @@ public class WifiAgent extends Service {
         if (intent != null && intent.getAction() != null) {
             switch (intent.getAction()){
                 case AUTHENTICATE:
+                    auth = 1;
                     String ssid = intent.getStringExtra(NET_SSID);
                     String pass = intent.getStringExtra(NET_PASSWORD);
                     authenticate(ssid, pass);
@@ -127,8 +129,11 @@ public class WifiAgent extends Service {
      * @param ssid имя сети
      * @param pass пароль
      */
-    public void authenticate(String ssid, String pass){
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+    public void authenticate(String ssid, String pass) {
         authenticating = true;
+
+        //sendMessage(AUTH_IN_PROCESS);
 
         wifiConfig.configure(ssid, scanResults);
         wifiConfig.setPassword(pass);
@@ -139,11 +144,12 @@ public class WifiAgent extends Service {
         wifiManager.disconnect();
         wifiManager.enableNetwork(lastId, true);
         wifiManager.reconnect();
-
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     public void autoConnection(){
         if(!authenticating) {
+            auth = 1;
             String ssid = recs.get(0).SSID;
             String pass = NetConfig.generatePass(ssid);
             authenticate(ssid, pass);
@@ -182,10 +188,10 @@ public class WifiAgent extends Service {
         wifiConfig = new WifiConfig();
 
         IntentFilter wifiFilter = new IntentFilter(WifiManager.SUPPLICANT_CONNECTION_CHANGE_ACTION);
-        //wifiFilter.addAction(WifiManager.ACTION_PICK_WIFI_NETWORK);
-        //wifiFilter.addAction(WifiManager.RSSI_CHANGED_ACTION);
-        //wifiFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-        //wifiFilter.addAction(WifiManager.NETWORK_IDS_CHANGED_ACTION);
+        wifiFilter.addAction(WifiManager.ACTION_PICK_WIFI_NETWORK);
+        wifiFilter.addAction(WifiManager.RSSI_CHANGED_ACTION);
+        wifiFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        wifiFilter.addAction(WifiManager.NETWORK_IDS_CHANGED_ACTION);
         wifiFilter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION);
         wifiFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
 
@@ -213,6 +219,7 @@ public class WifiAgent extends Service {
         scanResults = wifiManager.getScanResults();
 
         ArrayList<ScanResult> toRemove = new ArrayList<>();
+
         for(ScanResult s : scanResults) {
             if(s.level < -100) toRemove.add(s);
             else if (NetConfig.ifRec(s.SSID)) {
@@ -220,8 +227,8 @@ public class WifiAgent extends Service {
             }
         }
 
-        if(recs.size() > 0){
-          if(autoConnect && allowAutoConnect) autoConnection();
+        if(recs.size() > 0 && autoConnect){
+          if(allowAutoConnect) autoConnection();
         } else  allowAutoConnect = true;
 
         scanResults.removeAll(toRemove);

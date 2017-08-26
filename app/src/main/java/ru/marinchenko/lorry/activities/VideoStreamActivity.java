@@ -115,13 +115,11 @@ public class VideoStreamActivity extends Activity {
         // Ожидание IP
         int ipInt = 0;
         int count = 0;
-        while (ipInt == 0 || count < 50) {
+        while (ipInt == 0 && count < 1000) {
             ipInt = wifiManager.getDhcpInfo().serverAddress;
             count++;
         }
         String ipString = Formatter.formatIpAddress(ipInt);
-
-        Toast.makeText(getApplicationContext(), count + " : " + ipString, Toast.LENGTH_LONG).show();
 
         // Raspberry Pi
         String urlPi = "http://" + ipString + ":8081";

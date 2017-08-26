@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class NetList {
     private ArrayList<Net> list = new ArrayList<>();
-    private String present = "0";
+    private String present = "";
 
     public NetList(ArrayList<Net> newList){
         list = newList;
