@@ -6,4 +6,17 @@
     android:layout_height="match_parent"
     tools:context="name.marinchenko.lorryvision.activities.InstructionActivity">
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar_instruction"
+        style="@style/Toolbar" />
+
+    <TextView
+        android:id="@+id/textView_instruction"
+        app:layout_constraintTop_toBottomOf="@id/toolbar_instruction"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/MultiLineText"
+        android:text="@string/textview_instruction"
+        />
+
 </android.support.constraint.ConstraintLayout>

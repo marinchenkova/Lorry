@@ -16,4 +16,10 @@
         <!-- <item name="app:popupTheme">@style/Theme.AppCompat.Light</item> -->
     </style>
 
+    <style name="MultiLineText">
+        <item name="android:maxLines">4</item>
+        <item name="android:scrollHorizontally">false</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
 </resources>

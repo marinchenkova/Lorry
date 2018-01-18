@@ -4,17 +4,21 @@ import android.os.Bundle;
 
 import name.marinchenko.lorryvision.R;
 
-public class AboutActivity extends ToolbarActivity {
+public class SettingsActivity extends ToolbarActivity{
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_about);
+        setContentView(R.layout.activity_settings);
+        init();
+    }
 
+    private void init() {
         initToolbar(
-                R.id.toolbar_about,
-                R.string.activity_about,
+                R.id.toolbar_settings,
+                R.string.activity_settings,
                 true
         );
     }
+
 }

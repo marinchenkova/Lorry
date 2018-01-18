@@ -3,7 +3,7 @@
 
 
     <!-- MainActivity -->
-    <string name="toolbar_popup"></string>
+    <string name="toolbar_popup" />
 
     <string name="toolbar_popup_about">About</string>
     <string name="toolbar_popup_instruction">Instruction</string>
@@ -11,6 +11,23 @@
 
 
     <!-- AboutActivity -->
-    <string name="textview_about_info">Application info.\n Hello, Diman!</string>
+    <string name="activity_about">About</string>
+    <string name="textview_about_info">
+        Application info\n<!--
+        -->Hello,Diman and Vlad!\n<!--
+        -->This is Valek. I\'m coding brand new application LorryVision!
+    </string>
+
+
+    <!-- InstructionActivity -->
+    <string name="activity_instruction">Instruction</string>
+    <string name="textview_instruction">
+        Instruction\n<!--
+        -->Do nothing and enjoy!
+    </string>
+
+    <!-- SettingsActivity -->
+    <string name="activity_settings">Settings</string>
+
 
 </resources>
