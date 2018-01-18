@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="name.marinchenko.lorryvision.activities.AboutActivity">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar_about"
+        app:layout_constraintBottom_toTopOf="@+id/textView"
+        style="@style/Toolbar" />
+
+    <TextView
+        android:id="@+id/textView"
+        app:layout_constraintTop_toBottomOf="@id/toolbar_about"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minLines="2"
+        android:maxLines="2"
+        android:scrollHorizontally="false"
+        android:text="@string/textview_about_info"
+        android:textSize="16sp" />
+
+
+</android.support.constraint.ConstraintLayout>

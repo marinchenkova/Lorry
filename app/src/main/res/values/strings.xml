@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">LorryVision</string>
+
+
+    <!-- MainActivity -->
+    <string name="toolbar_popup"></string>
+
+    <string name="toolbar_popup_about">About</string>
+    <string name="toolbar_popup_instruction">Instruction</string>
+    <string name="toolbar_popup_settings">Settings</string>
+
+
+    <!-- AboutActivity -->
+    <string name="textview_about_info">Application info.\n Hello, Diman!</string>
+
+</resources>
