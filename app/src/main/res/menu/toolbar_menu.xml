@@ -4,7 +4,7 @@
 
     <item android:id="@+id/toolbar_popup"
         android:title="@string/toolbar_popup"
-        app:showAsAction="never" >
+        app:showAsAction="never">
 
         <item android:id="@+id/toolbar_popup_about"
             android:title="@string/toolbar_popup_about" />

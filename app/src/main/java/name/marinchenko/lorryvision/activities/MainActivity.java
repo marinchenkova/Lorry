@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import name.marinchenko.lorryvision.R;
 
@@ -106,6 +107,10 @@ public class MainActivity extends ToolbarActivity {
             case R.id.toolbar_popup_settings:
                 final Intent settingsIntent = new Intent(this, SettingsActivity.class);
                 startActivity(settingsIntent);
+                return true;
+
+            case android.R.id.home:
+                Toast.makeText(this, "Home sweet home", Toast.LENGTH_SHORT).show();
                 return true;
 
             default:

@@ -4,6 +4,8 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
+import name.marinchenko.lorryvision.R;
+
 public abstract class ToolbarActivity extends AppCompatActivity {
 
     protected void initToolbar(final int toolbarId,
@@ -15,5 +17,6 @@ public abstract class ToolbarActivity extends AppCompatActivity {
         ActionBar ab = getSupportActionBar();
         ab.setTitle(titleId);
         ab.setDisplayHomeAsUpEnabled(up);
+        if (!up) toolbar.setNavigationIcon(R.drawable.toolbar_menu);
     }
 }
