@@ -1,4 +1,4 @@
-package name.marinchenko.lorryvision.activities;
+package name.marinchenko.lorryvision.view.activities;
 
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
