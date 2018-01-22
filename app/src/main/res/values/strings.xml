@@ -4,12 +4,6 @@
 
 
     <!-- MainActivity -->
-    <string name="toolbar_popup" />
-
-    <string name="toolbar_popup_about">About</string>
-    <string name="toolbar_popup_instruction">Instruction</string>
-    <string name="toolbar_popup_settings">Settings</string>
-
     <!-- Drawer -->
     <string name="drawer_home">Home</string>
     <string name="drawer_about">About the app</string>
@@ -18,6 +12,18 @@
 
     <string name="drawer_open">Drawer opened</string>
     <string name="drawer_close">Drawer closed</string>
+
+    <!-- Toolbar -->
+    <string name="toolbar_popup" />
+
+    <string name="toolbar_popup_about">About</string>
+    <string name="toolbar_popup_instruction">Instruction</string>
+    <string name="toolbar_popup_settings">Settings</string>
+
+    <!-- Nets -->
+    <string name="button_updateNets">UPDATE LIST OF NETWORKS</string>
+    <string name="textview_netList">List of accessible networks:</string>
+
 
 
 

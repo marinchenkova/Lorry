@@ -1,8 +1,6 @@
 package name.marinchenko.lorryvision.view.activities;
 
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -13,8 +11,12 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
 
 import name.marinchenko.lorryvision.BuildConfig;
 import name.marinchenko.lorryvision.R;
@@ -132,10 +134,6 @@ public class MainActivity
                 startActivity(settingsIntent);
                 return true;
 
-            case android.R.id.home:
-                Toast.makeText(this, "Home sweet home", Toast.LENGTH_SHORT).show();
-                return true;
-
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -188,6 +186,7 @@ public class MainActivity
                 false
         );
         initDrawer();
+        //initNetlist();
     }
 
     /**
@@ -223,5 +222,46 @@ public class MainActivity
                 getString(R.string.version),
                 BuildConfig.VERSION_NAME
         ));
+    }
+
+    private void initNetlist(final String[] nets) {
+        final ListView netlist = findViewById(R.id.listView_netList);
+        //netlist.setAdapter(new NetlistAdapter());
+
+        // Stub
+        netlist.setAdapter(new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_list_item_1,
+                nets));
+    }
+
+
+    /*
+     * Public methods
+     */
+
+    int counter = 0;
+    final static String nets3[] = new String[]{"Net 1", "Net 2", "Net 3"};
+    final static String nets6[] = new String[]{"Net 1", "Net 2", "Net 3", "Net 4", "Net 5", "Net 6"};
+    final static String nets9[] = new String[]{"Net 1", "Net 2", "Net 3", "Net 4", "Net 5", "Net 6",
+            "Net 7", "Net 8", "Net 9"};
+    final static String nets12[] = new String[]{"Net 1", "Net 2", "Net 3", "Net 4", "Net 5", "Net 6",
+            "Net 7", "Net 8", "Net 9", "Net 10", "Net 11", "Net 12"};
+    final ArrayList<String[]> arrayList = new ArrayList<>();
+
+    /**
+     * Click update nets button
+     * @param view button
+     */
+    public void onButtonUpdateClick(final View view) {
+        Toast.makeText(this, "Updating...", Toast.LENGTH_SHORT).show();
+
+        // Stub
+        if (counter == 4) counter = 0;
+        arrayList.add(nets3);
+        arrayList.add(nets6);
+        arrayList.add(nets9);
+        arrayList.add(nets12);
+        initNetlist(arrayList.get(counter++));
     }
 }

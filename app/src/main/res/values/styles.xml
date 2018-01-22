@@ -11,10 +11,9 @@
     <style name="Toolbar">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">?attr/actionBarSize</item>
-        <item name="theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="android:theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
         <item name="popupTheme">@style/Theme.AppCompat.Light</item>
         <item name="android:background">@color/colorPrimaryLight</item>
-
     </style>
 
     <style name="MultiLineText">
