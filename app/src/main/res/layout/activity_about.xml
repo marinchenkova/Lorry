@@ -7,17 +7,16 @@
     tools:context="name.marinchenko.lorryvision.view.activities.AboutActivity">
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar_about"
+        android:id="@+id/activity_about_toolbar"
         style="@style/Toolbar" />
 
     <TextView
-        android:id="@+id/textView_about"
-        app:layout_constraintTop_toBottomOf="@id/toolbar_about"
+        android:id="@+id/activity_about_textView"
+        app:layout_constraintTop_toBottomOf="@id/activity_about_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/MultiLineText"
-        android:text="@string/textview_about_info"
-        />
+        android:text="@string/activity_about_textview" />
 
 
 </android.support.constraint.ConstraintLayout>

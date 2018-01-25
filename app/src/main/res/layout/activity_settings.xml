@@ -7,7 +7,7 @@
     tools:context="name.marinchenko.lorryvision.view.activities.SettingsActivity">
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar_settings"
+        android:id="@+id/activity_settings_toolbar"
         style="@style/Toolbar" />
 
 </android.support.constraint.ConstraintLayout>

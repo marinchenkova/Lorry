@@ -15,7 +15,7 @@ public class SettingsActivity extends ToolbarActivity{
 
     private void init() {
         initToolbar(
-                R.id.toolbar_settings,
+                R.id.activity_settings_toolbar,
                 R.string.activity_settings,
                 true
         );

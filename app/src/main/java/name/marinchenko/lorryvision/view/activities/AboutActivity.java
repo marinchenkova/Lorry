@@ -12,7 +12,7 @@ public class AboutActivity extends ToolbarActivity {
         setContentView(R.layout.activity_about);
 
         initToolbar(
-                R.id.toolbar_about,
+                R.id.activity_about_toolbar,
                 R.string.activity_about,
                 true
         );

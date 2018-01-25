@@ -10,7 +10,7 @@ import name.marinchenko.lorryvision.R;
 
 public abstract class ToolbarActivity extends AppCompatActivity {
 
-    protected void initToolbar(@IdRes final int toolbarId,
+    public void initToolbar(@IdRes final int toolbarId,
                                @StringRes final int titleId,
                                final boolean up) {
         final Toolbar toolbar = findViewById(toolbarId);

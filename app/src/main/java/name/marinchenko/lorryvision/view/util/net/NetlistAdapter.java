@@ -60,13 +60,13 @@ public class NetlistAdapter extends BaseAdapter {
                 R.drawable.ic_wifi_4
         };
 
-        ((ImageView) view.findViewById(R.id.imageView_typeOfNet)).setImageResource(
+        ((ImageView) view.findViewById(R.id.netList_imageView_typeOfNet)).setImageResource(
                 type == NetType.lorryNetwork
                         ? R.drawable.ic_type_lorry
                         : R.drawable.ic_type_wifi
         );
-        ((TextView) view.findViewById(R.id.textView_netId)).setText(netId);
-        ((ImageView) view.findViewById(R.id.imageView_signal)).setImageResource(list[signal]);
+        ((TextView) view.findViewById(R.id.netList_textView_netId)).setText(netId);
+        ((ImageView) view.findViewById(R.id.netList_imageView_signal)).setImageResource(list[signal]);
 
         return view;
     }

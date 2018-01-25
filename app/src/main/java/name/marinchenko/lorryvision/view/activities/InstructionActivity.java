@@ -12,7 +12,7 @@ public class InstructionActivity extends ToolbarActivity {
         setContentView(R.layout.activity_instruction);
 
         initToolbar(
-                R.id.toolbar_instruction,
+                R.id.activity_instruction_toolbar,
                 R.string.activity_instruction,
                 true
         );

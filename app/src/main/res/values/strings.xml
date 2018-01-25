@@ -1,17 +1,17 @@
 <resources>
     <string name="app_name">LorryVision</string>
-    <string name="version">Version</string>
+    <string name="app_version">Version</string>
 
 
     <!-- MainActivity -->
     <!-- Drawer -->
-    <string name="drawer_home">Home</string>
-    <string name="drawer_about">About the app</string>
-    <string name="drawer_instruction">User instruction</string>
-    <string name="drawer_settings">Settings</string>
+    <string name="drawer_item_home">Home</string>
+    <string name="drawer_item_about">About the app</string>
+    <string name="drawer_item_instruction">User instruction</string>
+    <string name="drawer_item_settings">Settings</string>
 
-    <string name="drawer_open">Drawer opened</string>
-    <string name="drawer_close">Drawer closed</string>
+    <string name="drawer_open">Drawer is opened</string>
+    <string name="drawer_close">Drawer is closed</string>
 
     <!-- Toolbar -->
     <string name="toolbar_popup" />
@@ -21,18 +21,16 @@
     <string name="toolbar_popup_settings">Settings</string>
 
     <!-- Nets -->
-    <string name="button_updateNets">UPDATE LIST OF NETWORKS</string>
-    <string name="textview_netList">List of accessible networks:</string>
-    <string name="netList_item_default_id">&lt;unknown network&gt;</string>
-    <string name="netList_item_type">Type of network</string>
-    <string name="netList_item_signal">Signal strength</string>
-
-
+    <string name="netList_button_updateNets">UPDATE LIST OF NETWORKS</string>
+    <string name="netList_textview">List of accessible networks:</string>
+    <string name="netList_item_textView_netId">&lt;unknown network&gt;</string>
+    <string name="netList_item_imageView_type">Type of network</string>
+    <string name="netList_item_imageView_signal">Signal strength</string>
 
 
     <!-- AboutActivity -->
     <string name="activity_about">About</string>
-    <string name="textview_about_info">
+    <string name="activity_about_textview">
         Application info here\n<!--
         -->Stub
     </string>
@@ -40,7 +38,7 @@
 
     <!-- InstructionActivity -->
     <string name="activity_instruction">Instruction</string>
-    <string name="textview_instruction">
+    <string name="activity_instruction_textview">
         Instruction here\n<!--
         -->Stub
     </string>

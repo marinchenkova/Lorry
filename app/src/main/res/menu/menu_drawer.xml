@@ -5,22 +5,22 @@
         android:checkableBehavior="single">
         <item
             android:id="@+id/drawer_item_home"
-            android:title="@string/drawer_home"
+            android:title="@string/drawer_item_home"
             android:icon="@drawable/ic_action_home" />
 
         <item
             android:id="@+id/drawer_item_about"
-            android:title="@string/drawer_about"
+            android:title="@string/drawer_item_about"
             android:icon="@drawable/ic_action_info" />
 
         <item
             android:id="@+id/drawer_item_instruction"
-            android:title="@string/drawer_instruction"
+            android:title="@string/drawer_item_instruction"
             android:icon="@drawable/ic_action_help" />
 
         <item
             android:id="@+id/drawer_item_settings"
-            android:title="@string/drawer_settings"
+            android:title="@string/drawer_item_settings"
             android:icon="@drawable/ic_action_settings" />
     </group>
 

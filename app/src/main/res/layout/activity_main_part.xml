@@ -8,36 +8,36 @@
     tools:context="name.marinchenko.lorryvision.view.activities.MainActivity">
 
     <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar_main"
+        android:id="@+id/toolbar_activity_main"
         style="@style/Toolbar" />
 
     <Button
-        android:id="@+id/button_updateNets"
+        android:id="@+id/netList_button_updateNets"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar_main"
-        android:text="@string/button_updateNets"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_activity_main"
+        android:text="@string/netList_button_updateNets"
         android:textSize="26sp"
         android:onClick="onButtonUpdateClick"/>
 
     <TextView
-        android:id="@+id/textView_netList"
+        android:id="@+id/netList_textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="@string/textview_netList"
+        android:text="@string/netList_textview"
         android:textAlignment="center"
         android:textSize="20sp"
-        app:layout_constraintTop_toBottomOf="@+id/button_updateNets" />
+        app:layout_constraintTop_toBottomOf="@+id/netList_button_updateNets" />
 
     <ListView
-        android:id="@+id/listView_netList"
+        android:id="@+id/netList_listView"
         android:layout_width="match_parent"
         android:layout_height="0dip"
         android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView_netList" />
+        app:layout_constraintTop_toBottomOf="@+id/netList_textView" />
 
 
 </android.support.constraint.ConstraintLayout>

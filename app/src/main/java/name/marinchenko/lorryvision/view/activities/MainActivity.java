@@ -6,17 +6,14 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
-import android.widget.TextView;
 
-import name.marinchenko.lorryvision.BuildConfig;
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.view.demoTest.TestBase;
+import name.marinchenko.lorryvision.view.util.ActivityInitializer;
 import name.marinchenko.lorryvision.view.util.net.NetlistAdapter;
 
 public class MainActivity
@@ -37,7 +34,7 @@ public class MainActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        init();
+        ActivityInitializer.Main.init(this);
     }
 
     /**
@@ -53,8 +50,7 @@ public class MainActivity
      */
     @Override
     protected void onResume() {
-        final DrawerLayout drawer = findViewById(R.id.activity_main);
-        drawer.closeDrawer(GravityCompat.START, false);
+        closeDrawer(false);
         super.onResume();
     }
 
@@ -92,12 +88,8 @@ public class MainActivity
 
     @Override
     public void onBackPressed() {
-        final DrawerLayout drawer = findViewById(R.id.activity_main);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
+        if (isDrawerOpen()) closeDrawer(true);
+        else super.onBackPressed();
     }
 
     /**
@@ -107,7 +99,7 @@ public class MainActivity
      */
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
-        getMenuInflater().inflate(R.menu.toolbar_menu, menu);
+        getMenuInflater().inflate(R.menu.menu_toolbar_popup, menu);
         return true;
     }
 
@@ -174,58 +166,16 @@ public class MainActivity
      * Private methods
      */
 
-    /**
-     * Initialising with onCreate()
-     */
-    private void init() {
-        initToolbar(
-                R.id.toolbar_main,
-                R.string.app_name,
-                false
-        );
-        initDrawer();
-        initNetlist();
-    }
-
-    /**
-     * Initialising sidebar
-     */
-    private void initDrawer() {
+    private boolean isDrawerOpen() {
         final DrawerLayout drawer = findViewById(R.id.activity_main);
-        final Toolbar toolbar = findViewById(R.id.toolbar_main);
-        final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this,
-                drawer,
-                toolbar,
-                R.string.drawer_open,
-                R.string.drawer_close
-        );
-
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-        final NavigationView navigationView = findViewById(R.id.drawer_nav);
-        navigationView.setNavigationItemSelectedListener(this);
-        initVersion(navigationView);
+        return drawer.isDrawerOpen(GravityCompat.START);
     }
 
-    /**
-     * Initialising sidebar version textView
-     * @param view navigation view of sidebar
-     */
-    private void initVersion(final NavigationView view) {
-        TextView version = view.getHeaderView(0).findViewById(R.id.home_header_version);
-        version.setText(String.format(
-                "%s %s",
-                getString(R.string.version),
-                BuildConfig.VERSION_NAME
-        ));
+    private void closeDrawer(final boolean animate) {
+        final DrawerLayout drawer = findViewById(R.id.activity_main);
+        drawer.closeDrawer(GravityCompat.START, animate);
     }
 
-    private void initNetlist() {
-        final ListView netlist = findViewById(R.id.listView_netList);
-        netlist.setAdapter(new NetlistAdapter(this));
-    }
 
 
     /*
@@ -237,7 +187,7 @@ public class MainActivity
      * @param view button
      */
     public void onButtonUpdateClick(final View view) {
-        final ListView netlist = findViewById(R.id.listView_netList);
+        final ListView netlist = findViewById(R.id.netList_listView);
         NetlistAdapter netlistAdapter = (NetlistAdapter) netlist.getAdapter();
         netlistAdapter.update(TestBase.getNetlistForListViewTest());
         netlistAdapter.notifyDataSetChanged();
