@@ -43,8 +43,18 @@
         -->Stub
     </string>
 
+
     <!-- SettingsActivity -->
     <string name="activity_settings">Settings</string>
+    <string name="activity_settings_textview">
+        Settings here\n<!--
+        -->Stub
+    </string>
 
+
+    <!-- SettingsActivity -->
+    <string name="activity_video">Camera translation</string>
+    <string name="activity_video_imageExample">Example</string>
+    <string name="activity_video_button_exit">EXIT</string>
 
 </resources>

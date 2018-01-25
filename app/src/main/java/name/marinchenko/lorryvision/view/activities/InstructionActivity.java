@@ -3,18 +3,15 @@ package name.marinchenko.lorryvision.view.activities;
 import android.os.Bundle;
 
 import name.marinchenko.lorryvision.R;
+import name.marinchenko.lorryvision.view.util.ActivityInitializer;
 
-public class InstructionActivity extends ToolbarActivity {
+public class InstructionActivity extends ToolbarAppCompatActivity {
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_instruction);
 
-        initToolbar(
-                R.id.activity_instruction_toolbar,
-                R.string.activity_instruction,
-                true
-        );
+        ActivityInitializer.Instruction.init(this);
     }
 }

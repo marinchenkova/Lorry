@@ -9,6 +9,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import name.marinchenko.lorryvision.R;
@@ -17,8 +18,9 @@ import name.marinchenko.lorryvision.view.util.ActivityInitializer;
 import name.marinchenko.lorryvision.view.util.net.NetlistAdapter;
 
 public class MainActivity
-        extends ToolbarActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        extends ToolbarAppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener,
+                   AdapterView.OnItemClickListener {
 
 
     /*
@@ -132,6 +134,19 @@ public class MainActivity
     }
 
     /**
+     * Listening netlist events
+     * @param adapterView parent view
+     * @param view current list element
+     * @param i number of the element in the list
+     * @param l id of the element
+     */
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        Intent videoIntent = new Intent(this, VideoActivity.class);
+        startActivity(videoIntent);
+    }
+
+    /**
      * Processing sidebar item selection
      * @param item selected item
      * @return if done
@@ -192,4 +207,6 @@ public class MainActivity
         netlistAdapter.update(TestBase.getNetlistForListViewTest());
         netlistAdapter.notifyDataSetChanged();
     }
+
+
 }

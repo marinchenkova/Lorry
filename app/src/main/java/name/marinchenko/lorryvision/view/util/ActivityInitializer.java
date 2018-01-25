@@ -4,12 +4,18 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import name.marinchenko.lorryvision.BuildConfig;
 import name.marinchenko.lorryvision.R;
+import name.marinchenko.lorryvision.view.activities.AboutActivity;
+import name.marinchenko.lorryvision.view.activities.InstructionActivity;
 import name.marinchenko.lorryvision.view.activities.MainActivity;
+import name.marinchenko.lorryvision.view.activities.SettingsActivity;
+import name.marinchenko.lorryvision.view.activities.VideoActivity;
 import name.marinchenko.lorryvision.view.util.net.NetlistAdapter;
 
 /**
@@ -22,7 +28,7 @@ public class ActivityInitializer {
 
         public static void init(final MainActivity main) {
             main.initToolbar(
-                    R.id.toolbar_activity_main,
+                    R.id.activity_main_toolbar,
                     R.string.app_name,
                     false
             );
@@ -36,7 +42,7 @@ public class ActivityInitializer {
          */
         private static void initDrawer(final MainActivity main) {
             final DrawerLayout drawer = main.findViewById(R.id.activity_main);
-            final Toolbar toolbar = main.findViewById(R.id.toolbar_activity_main);
+            final Toolbar toolbar = main.findViewById(R.id.activity_main_toolbar);
             final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                     main,
                     drawer,
@@ -75,7 +81,56 @@ public class ActivityInitializer {
         private static void initNetlist(final MainActivity main) {
             final ListView netlist = main.findViewById(R.id.netList_listView);
             netlist.setAdapter(new NetlistAdapter(main));
+            netlist.setOnItemClickListener(main);
         }
+    }
+
+    public static class Video {
+
+        public static void init(final VideoActivity video) {
+            video.initToolbar(
+                    R.id.activity_video_toolbar,
+                    R.string.activity_video,
+                    true
+            );
+        }
+
+    }
+
+    public static class About {
+
+        public static void init(final AboutActivity about) {
+            about.initToolbar(
+                    R.id.activity_about_toolbar,
+                    R.string.activity_about,
+                    true
+            );
+        }
+
+    }
+
+    public static class Instruction {
+
+        public static void init(final InstructionActivity instruction) {
+            instruction.initToolbar(
+                    R.id.activity_instruction_toolbar,
+                    R.string.activity_instruction,
+                    true
+            );
+        }
+
+    }
+
+    public static class Settings {
+
+        public static void init(final SettingsActivity settings) {
+            settings.initToolbar(
+                    R.id.activity_settings_toolbar,
+                    R.string.activity_settings,
+                    true
+            );
+        }
+
     }
 
 }
