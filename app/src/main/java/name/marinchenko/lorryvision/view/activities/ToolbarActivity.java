@@ -19,6 +19,12 @@ public abstract class ToolbarActivity extends AppCompatActivity {
         final ActionBar ab = getSupportActionBar();
         ab.setTitle(titleId);
         ab.setDisplayHomeAsUpEnabled(up);
-        if (!up) toolbar.setNavigationIcon(R.drawable.toolbar_menu);
+        ab.setDisplayShowHomeEnabled(up);
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 }

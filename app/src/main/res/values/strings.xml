@@ -23,6 +23,9 @@
     <!-- Nets -->
     <string name="button_updateNets">UPDATE LIST OF NETWORKS</string>
     <string name="textview_netList">List of accessible networks:</string>
+    <string name="netList_item_default_id">&lt;unknown network&gt;</string>
+    <string name="netList_item_type">Type of network</string>
+    <string name="netList_item_signal">Signal strength</string>
 
 
 
@@ -30,17 +33,16 @@
     <!-- AboutActivity -->
     <string name="activity_about">About</string>
     <string name="textview_about_info">
-        Application info\n<!--
-        -->Hello, Diman and Vlad!\n<!--
-        -->This is Valek. I\'m coding brand new application LorryVision!
+        Application info here\n<!--
+        -->Stub
     </string>
 
 
     <!-- InstructionActivity -->
     <string name="activity_instruction">Instruction</string>
     <string name="textview_instruction">
-        Instruction\n<!--
-        -->Do nothing and enjoy!
+        Instruction here\n<!--
+        -->Stub
     </string>
 
     <!-- SettingsActivity -->
