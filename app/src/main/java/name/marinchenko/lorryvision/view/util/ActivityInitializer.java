@@ -33,7 +33,6 @@ public class ActivityInitializer {
                     false
             );
             initDrawer(main);
-            initNetlist(main);
         }
 
         /**
@@ -78,10 +77,12 @@ public class ActivityInitializer {
          * Initialising ListView Netlist
          * @param main MainActivity
          */
-        private static void initNetlist(final MainActivity main) {
+        public static NetlistAdapter initNetlist(final MainActivity main) {
             final ListView netlist = main.findViewById(R.id.netList_listView);
-            netlist.setAdapter(new NetlistAdapter(main));
+            final NetlistAdapter netlistAdapter = new NetlistAdapter(main);
+            netlist.setAdapter(netlistAdapter);
             netlist.setOnItemClickListener(main);
+            return netlistAdapter;
         }
     }
 

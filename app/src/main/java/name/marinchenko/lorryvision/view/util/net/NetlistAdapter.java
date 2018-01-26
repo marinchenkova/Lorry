@@ -8,6 +8,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,5 +75,9 @@ public class NetlistAdapter extends BaseAdapter {
     public void update(final List<Net> newList) {
         this.nets.clear();
         this.nets.addAll(newList);
+    }
+
+    public ArrayList<Net> getNetlist() {
+        return this.nets;
     }
 }
