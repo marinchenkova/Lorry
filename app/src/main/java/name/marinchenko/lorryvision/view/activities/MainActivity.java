@@ -1,9 +1,7 @@
 package name.marinchenko.lorryvision.view.activities;
 
-import android.annotation.SuppressLint;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -13,13 +11,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ListView;
 
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.view.demoTest.TestBase;
 import name.marinchenko.lorryvision.view.util.ActivityInitializer;
-import name.marinchenko.lorryvision.view.util.RetainedFragment;
-import name.marinchenko.lorryvision.view.util.SavingBundle;
 import name.marinchenko.lorryvision.view.util.net.NetlistAdapter;
 
 public class MainActivity
@@ -27,10 +22,7 @@ public class MainActivity
         implements NavigationView.OnNavigationItemSelectedListener,
                    AdapterView.OnItemClickListener {
 
-    private final static String SAVE = "SAVE";
-    private final static String SAVE_DRAWER_STATE = "SAVE_DRAWER_STATE";
 
-    private RetainedFragment retainedFragment;
     private NetlistAdapter netlistAdapter;
 
     /*
@@ -48,8 +40,6 @@ public class MainActivity
 
         ActivityInitializer.Main.init(this);
         this.netlistAdapter = ActivityInitializer.Main.initNetlist(this);
-
-        restoreNetlist();
     }
 
     /**
@@ -65,7 +55,7 @@ public class MainActivity
      */
     @Override
     protected void onResume() {
-        changeDrawerState(false, false);
+        closeDrawer(false);
         super.onResume();
     }
 
@@ -99,12 +89,11 @@ public class MainActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        saveConfig();
     }
 
     @Override
     public void onBackPressed() {
-        if (isDrawerOpen()) changeDrawerState(false, true);
+        if (isDrawerOpen()) closeDrawer(true);
         else super.onBackPressed();
     }
 
@@ -190,6 +179,15 @@ public class MainActivity
         return true;
     }
 
+    /**
+     * Updating resources when configuration changes
+     * @param newConfig new configuration
+     */
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+    }
+
 
     /*
      * Private methods
@@ -200,42 +198,9 @@ public class MainActivity
         return drawer.isDrawerOpen(GravityCompat.START);
     }
 
-    private void changeDrawerState(final boolean open,
-                                   final boolean animate) {
+    private void closeDrawer(final boolean animate) {
         final DrawerLayout drawer = findViewById(R.id.activity_main);
-        if (open) drawer.openDrawer(GravityCompat.START, animate);
-        else drawer.closeDrawer(GravityCompat.START, animate);
-    }
-
-    private void restoreNetlist() {
-        final FragmentManager fm = getFragmentManager();
-        this.retainedFragment = (RetainedFragment) fm.findFragmentByTag(SAVE);
-
-        if (this.retainedFragment == null) {
-            this.retainedFragment = new RetainedFragment();
-
-            final FragmentTransaction transaction = fm.beginTransaction();
-            transaction.add(this.retainedFragment, SAVE).commit();
-
-            saveConfig();
-        }
-
-        final SavingBundle bundle = this.retainedFragment.getBundle();
-
-        // Netlist
-        this.netlistAdapter.update(bundle.getNetlist());
-        this.netlistAdapter.notifyDataSetChanged();
-
-        // Drawer state
-        if (bundle.isDrawerOpened()) changeDrawerState(true, false);
-    }
-
-    private void saveConfig() {
-        final SavingBundle bundle = new SavingBundle();
-        bundle.setDrawerOpened(isDrawerOpen());
-        bundle.setNetlist(this.netlistAdapter.getNetlist());
-        //TODO Drawer state: when drawer is closing?
-        this.retainedFragment.saveBundle(bundle);
+        drawer.closeDrawer(GravityCompat.START, animate);
     }
 
     /*
@@ -247,10 +212,8 @@ public class MainActivity
      * @param view button
      */
     public void onButtonUpdateClick(final View view) {
-        final ListView netlist = findViewById(R.id.netList_listView);
-        NetlistAdapter netlistAdapter = (NetlistAdapter) netlist.getAdapter();
-        netlistAdapter.update(TestBase.getNetlistForListViewTest());
-        netlistAdapter.notifyDataSetChanged();
+        this.netlistAdapter.update(TestBase.getNetlistForListViewTest());
+        this.netlistAdapter.notifyDataSetChanged();
     }
 
 
