@@ -134,10 +134,6 @@ public class MainActivity
                 startActivity(settingsIntent);
                 return true;
 
-            case R.id.toolbar_popup_website:
-                //TODO website
-                return true;
-
             default:
                 return super.onOptionsItemSelected(item);
         }

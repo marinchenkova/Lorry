@@ -15,9 +15,6 @@
         <item android:id="@+id/toolbar_popup_settings"
             android:title="@string/toolbar_popup_settings" />
 
-        <item android:id="@+id/toolbar_popup_website"
-            android:title="@string/toolbar_popup_website" />
-
     </group>
 
 
