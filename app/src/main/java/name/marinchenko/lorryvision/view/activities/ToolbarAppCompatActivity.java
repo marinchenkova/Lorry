@@ -6,8 +6,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
-import name.marinchenko.lorryvision.R;
-
 public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
 
     public void initToolbar(@IdRes final int toolbarId,

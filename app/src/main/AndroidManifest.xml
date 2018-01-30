@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".view.activities.MainActivity"
+            android:name=".view.activities.main.MainActivity"
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:label="@string/app_name">
             <intent-filter>
@@ -20,60 +20,60 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".view.activities.VideoActivity"
+            android:name=".view.activities.main.VideoActivity"
             android:label="@string/activity_video"
-            android:parentActivityName=".view.activities.MainActivity">
+            android:parentActivityName=".view.activities.main.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".view.activities.MainActivity" />
+                android:value=".view.activities.main.MainActivity" />
         </activity>
         <activity
-            android:name=".view.activities.InstructionActivity"
+            android:name=".view.activities.info.InstructionActivity"
             android:label="@string/activity_instruction"
-            android:parentActivityName=".view.activities.MainActivity">
+            android:parentActivityName=".view.activities.main.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".view.activities.MainActivity" />
+                android:value=".view.activities.main.MainActivity" />
         </activity>
         <activity
-            android:name=".view.activities.AboutActivity"
+            android:name=".view.activities.info.AboutActivity"
             android:label="@string/activity_about"
-            android:parentActivityName=".view.activities.MainActivity">
+            android:parentActivityName=".view.activities.main.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".view.activities.MainActivity" />
+                android:value=".view.activities.main.MainActivity" />
         </activity>
         <activity
-            android:name=".view.activities.LicenseActivity"
+            android:name=".view.activities.info.LicenseActivity"
             android:label="@string/activity_license"
-            android:parentActivityName=".view.activities.MainActivity">
+            android:parentActivityName=".view.activities.main.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".view.activities.MainActivity" />
+                android:value=".view.activities.main.MainActivity" />
         </activity>
         <activity
-            android:name=".view.activities.SettingsActivity"
+            android:name=".view.activities.main.SettingsActivity"
             android:label="@string/activity_settings"
-            android:parentActivityName=".view.activities.MainActivity">
+            android:parentActivityName=".view.activities.main.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".view.activities.MainActivity" />
+                android:value=".view.activities.main.MainActivity" />
         </activity>
         <activity
-            android:name=".view.activities.FeedbackActivity"
+            android:name=".view.activities.web.FeedbackActivity"
             android:label="@string/activity_feedback"
-            android:parentActivityName=".view.activities.MainActivity">
+            android:parentActivityName=".view.activities.main.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".view.activities.MainActivity" />
+                android:value=".view.activities.main.MainActivity" />
         </activity>
         <activity
-            android:name=".view.activities.BugActivity"
+            android:name=".view.activities.web.BugActivity"
             android:label="@string/activity_bug"
-            android:parentActivityName=".view.activities.MainActivity">
+            android:parentActivityName=".view.activities.main.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".view.activities.MainActivity" />
+                android:value=".view.activities.main.MainActivity" />
         </activity>
     </application>
 

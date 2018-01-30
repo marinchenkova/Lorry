@@ -1,4 +1,4 @@
-package name.marinchenko.lorryvision.view.activities;
+package name.marinchenko.lorryvision.view.activities.main;
 
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -13,6 +13,9 @@ import android.view.View;
 import android.widget.AdapterView;
 
 import name.marinchenko.lorryvision.R;
+import name.marinchenko.lorryvision.view.activities.info.*;
+import name.marinchenko.lorryvision.view.activities.web.*;
+import name.marinchenko.lorryvision.view.activities.ToolbarAppCompatActivity;
 import name.marinchenko.lorryvision.view.demoTest.TestBase;
 import name.marinchenko.lorryvision.view.util.ActivityInitializer;
 import name.marinchenko.lorryvision.view.util.net.NetlistAdapter;

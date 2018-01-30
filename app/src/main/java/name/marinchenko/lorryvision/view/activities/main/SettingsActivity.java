@@ -1,8 +1,9 @@
-package name.marinchenko.lorryvision.view.activities;
+package name.marinchenko.lorryvision.view.activities.main;
 
 import android.os.Bundle;
 
 import name.marinchenko.lorryvision.R;
+import name.marinchenko.lorryvision.view.activities.ToolbarAppCompatActivity;
 import name.marinchenko.lorryvision.view.util.ActivityInitializer;
 
 public class SettingsActivity extends ToolbarAppCompatActivity {

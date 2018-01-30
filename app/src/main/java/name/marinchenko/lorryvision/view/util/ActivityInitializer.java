@@ -4,21 +4,14 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import name.marinchenko.lorryvision.BuildConfig;
 import name.marinchenko.lorryvision.R;
-import name.marinchenko.lorryvision.view.activities.AboutActivity;
-import name.marinchenko.lorryvision.view.activities.BugActivity;
-import name.marinchenko.lorryvision.view.activities.FeedbackActivity;
-import name.marinchenko.lorryvision.view.activities.InstructionActivity;
-import name.marinchenko.lorryvision.view.activities.LicenseActivity;
-import name.marinchenko.lorryvision.view.activities.MainActivity;
-import name.marinchenko.lorryvision.view.activities.SettingsActivity;
-import name.marinchenko.lorryvision.view.activities.VideoActivity;
+import name.marinchenko.lorryvision.view.activities.web.*;
+import name.marinchenko.lorryvision.view.activities.info.*;
+import name.marinchenko.lorryvision.view.activities.main.*;
 import name.marinchenko.lorryvision.view.util.net.NetlistAdapter;
 
 /**
