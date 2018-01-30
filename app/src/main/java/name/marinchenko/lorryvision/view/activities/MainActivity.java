@@ -116,19 +116,23 @@ public class MainActivity
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.toolbar_popup_about:
-                final Intent aboutIntent = new Intent(this, AboutActivity.class);
-                startActivity(aboutIntent);
-                return true;
-
             case R.id.toolbar_popup_instruction:
                 final Intent instructionIntent = new Intent(this, InstructionActivity.class);
                 startActivity(instructionIntent);
                 return true;
 
+            case R.id.toolbar_popup_about:
+                final Intent aboutIntent = new Intent(this, AboutActivity.class);
+                startActivity(aboutIntent);
+                return true;
+
             case R.id.toolbar_popup_settings:
                 final Intent settingsIntent = new Intent(this, SettingsActivity.class);
                 startActivity(settingsIntent);
+                return true;
+
+            case R.id.toolbar_popup_website:
+                //TODO website
                 return true;
 
             default:
@@ -157,8 +161,15 @@ public class MainActivity
     @Override
     public boolean onNavigationItemSelected(@NonNull final MenuItem item) {
         switch (item.getItemId()) {
+            // Group home
             case R.id.drawer_item_home:
                 onBackPressed();
+                break;
+
+            // Group main
+            case R.id.drawer_item_instruction:
+                final Intent instructionIntent = new Intent(this, InstructionActivity.class);
+                startActivity(instructionIntent);
                 break;
 
             case R.id.drawer_item_about:
@@ -166,14 +177,29 @@ public class MainActivity
                 startActivity(aboutIntent);
                 break;
 
-            case R.id.drawer_item_instruction:
-                final Intent instructionIntent = new Intent(this, InstructionActivity.class);
-                startActivity(instructionIntent);
+            case R.id.drawer_item_license:
+                final Intent licenseIntent = new Intent(this, LicenseActivity.class);
+                startActivity(licenseIntent);
                 break;
 
             case R.id.drawer_item_settings:
                 final Intent settingsIntent = new Intent(this, SettingsActivity.class);
                 startActivity(settingsIntent);
+                break;
+
+            // Group help
+            case R.id.drawer_item_website:
+                //TODO website
+                break;
+
+            case R.id.drawer_item_feedback:
+                final Intent feedbackIntent = new Intent(this, FeedbackActivity.class);
+                startActivity(feedbackIntent);
+                break;
+
+            case R.id.drawer_item_bug:
+                final Intent bugIntent = new Intent(this, BugActivity.class);
+                startActivity(bugIntent);
                 break;
         }
         return true;

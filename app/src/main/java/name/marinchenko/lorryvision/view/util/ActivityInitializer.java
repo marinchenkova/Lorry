@@ -12,7 +12,10 @@ import android.widget.TextView;
 import name.marinchenko.lorryvision.BuildConfig;
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.view.activities.AboutActivity;
+import name.marinchenko.lorryvision.view.activities.BugActivity;
+import name.marinchenko.lorryvision.view.activities.FeedbackActivity;
 import name.marinchenko.lorryvision.view.activities.InstructionActivity;
+import name.marinchenko.lorryvision.view.activities.LicenseActivity;
 import name.marinchenko.lorryvision.view.activities.MainActivity;
 import name.marinchenko.lorryvision.view.activities.SettingsActivity;
 import name.marinchenko.lorryvision.view.activities.VideoActivity;
@@ -25,25 +28,24 @@ import name.marinchenko.lorryvision.view.util.net.NetlistAdapter;
 public class ActivityInitializer {
 
     public static class Main {
-
-        public static void init(final MainActivity main) {
-            main.initToolbar(
+        public static void init(final MainActivity mainActivity) {
+            mainActivity.initToolbar(
                     R.id.activity_main_toolbar,
                     R.string.app_name,
                     false
             );
-            initDrawer(main);
+            initDrawer(mainActivity);
         }
 
         /**
          * Initialising sidebar
-         * @param main MainActivity
+         * @param mainActivity MainActivity
          */
-        private static void initDrawer(final MainActivity main) {
-            final DrawerLayout drawer = main.findViewById(R.id.activity_main);
-            final Toolbar toolbar = main.findViewById(R.id.activity_main_toolbar);
+        private static void initDrawer(final MainActivity mainActivity) {
+            final DrawerLayout drawer = mainActivity.findViewById(R.id.activity_main);
+            final Toolbar toolbar = mainActivity.findViewById(R.id.activity_main_toolbar);
             final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                    main,
+                    mainActivity,
                     drawer,
                     toolbar,
                     R.string.drawer_open,
@@ -53,43 +55,43 @@ public class ActivityInitializer {
             drawer.addDrawerListener(toggle);
             toggle.syncState();
 
-            final NavigationView navigationView = main.findViewById(R.id.drawer_nav);
-            navigationView.setNavigationItemSelectedListener(main);
-            initVersion(main, navigationView);
+            final NavigationView navigationView = mainActivity.findViewById(R.id.drawer_nav);
+            navigationView.setNavigationItemSelectedListener(mainActivity);
+            initVersion(mainActivity, navigationView);
         }
 
         /**
          * Initialising sidebar version textView
-         * @param main MainActivity
+         * @param mainActivity MainActivity
          * @param view navigation view of sidebar
          */
-        private static void initVersion(final MainActivity main,
+        private static void initVersion(final MainActivity mainActivity,
                                         final NavigationView view) {
             TextView version = view.getHeaderView(0).findViewById(R.id.drawer_textView_version);
             version.setText(String.format(
                     "%s %s",
-                    main.getString(R.string.app_version),
+                    mainActivity.getString(R.string.app_version),
                     BuildConfig.VERSION_NAME
             ));
         }
 
         /**
          * Initialising ListView Netlist
-         * @param main MainActivity
+         * @param mainActivity MainActivity
          */
-        public static NetlistAdapter initNetlist(final MainActivity main) {
-            final ListView netlist = main.findViewById(R.id.netList_listView);
-            final NetlistAdapter netlistAdapter = new NetlistAdapter(main);
+        public static NetlistAdapter initNetlist(final MainActivity mainActivity) {
+            final ListView netlist = mainActivity.findViewById(R.id.netList_listView);
+            final NetlistAdapter netlistAdapter = new NetlistAdapter(mainActivity);
             netlist.setAdapter(netlistAdapter);
-            netlist.setOnItemClickListener(main);
+            netlist.setOnItemClickListener(mainActivity);
             return netlistAdapter;
         }
     }
 
     public static class Video {
 
-        public static void init(final VideoActivity video) {
-            video.initToolbar(
+        public static void init(final VideoActivity videoActivity) {
+            videoActivity.initToolbar(
                     R.id.activity_video_toolbar,
                     R.string.activity_video,
                     true
@@ -98,34 +100,40 @@ public class ActivityInitializer {
 
     }
 
-    public static class About {
-
-        public static void init(final AboutActivity about) {
-            about.initToolbar(
-                    R.id.activity_about_toolbar,
-                    R.string.activity_about,
-                    true
-            );
-        }
-
-    }
-
     public static class Instruction {
-
-        public static void init(final InstructionActivity instruction) {
-            instruction.initToolbar(
+        public static void init(final InstructionActivity instructionActivity) {
+            instructionActivity.initToolbar(
                     R.id.activity_instruction_toolbar,
                     R.string.activity_instruction,
                     true
             );
         }
+    }
 
+    public static class About {
+        public static void init(final AboutActivity aboutActivity) {
+            aboutActivity.initToolbar(
+                    R.id.activity_about_toolbar,
+                    R.string.activity_about,
+                    true
+            );
+        }
+    }
+
+    public static class License {
+        public static void init(final LicenseActivity licenseActivity) {
+            licenseActivity.initToolbar(
+                    R.id.activity_license_toolbar,
+                    R.string.activity_license,
+                    true
+            );
+        }
     }
 
     public static class Settings {
 
-        public static void init(final SettingsActivity settings) {
-            settings.initToolbar(
+        public static void init(final SettingsActivity settingsActivity) {
+            settingsActivity.initToolbar(
                     R.id.activity_settings_toolbar,
                     R.string.activity_settings,
                     true
@@ -134,4 +142,24 @@ public class ActivityInitializer {
 
     }
 
+    public static class Feedback {
+        public static void init(final FeedbackActivity feedbackActivity) {
+            feedbackActivity.initToolbar(
+                    R.id.activity_feedback_toolbar,
+                    R.string.activity_feedback,
+                    true
+            );
+        }
+    }
+
+    public static class Bug {
+        public static void init(final BugActivity bugActivity) {
+            bugActivity.initToolbar(
+                    R.id.activity_bug_toolbar,
+                    R.string.activity_bug,
+                    true
+            );
+        }
+
+    }
 }

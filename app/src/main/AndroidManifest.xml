@@ -20,8 +20,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".view.activities.AboutActivity"
-            android:label="@string/activity_about"
+            android:name=".view.activities.VideoActivity"
+            android:label="@string/activity_video"
             android:parentActivityName=".view.activities.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
@@ -36,6 +36,22 @@
                 android:value=".view.activities.MainActivity" />
         </activity>
         <activity
+            android:name=".view.activities.AboutActivity"
+            android:label="@string/activity_about"
+            android:parentActivityName=".view.activities.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".view.activities.MainActivity" />
+        </activity>
+        <activity
+            android:name=".view.activities.LicenseActivity"
+            android:label="@string/activity_license"
+            android:parentActivityName=".view.activities.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".view.activities.MainActivity" />
+        </activity>
+        <activity
             android:name=".view.activities.SettingsActivity"
             android:label="@string/activity_settings"
             android:parentActivityName=".view.activities.MainActivity">
@@ -44,12 +60,21 @@
                 android:value=".view.activities.MainActivity" />
         </activity>
         <activity
-            android:name=".view.activities.VideoActivity"
-            android:label="@string/activity_video"
+            android:name=".view.activities.FeedbackActivity"
+            android:label="@string/activity_feedback"
+            android:parentActivityName=".view.activities.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".view.activities.MainActivity" />
+        </activity>
+        <activity
+            android:name=".view.activities.BugActivity"
+            android:label="@string/activity_bug"
             android:parentActivityName=".view.activities.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".view.activities.MainActivity" />
         </activity>
     </application>
+
 </manifest>
