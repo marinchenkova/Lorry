@@ -67,14 +67,6 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".view.activities.main.MainActivity" />
         </activity>
-        <activity
-            android:name=".view.activities.web.BugActivity"
-            android:label="@string/activity_bug"
-            android:parentActivityName=".view.activities.main.MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".view.activities.main.MainActivity" />
-        </activity>
     </application>
 
 </manifest>

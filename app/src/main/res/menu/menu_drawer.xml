@@ -48,10 +48,5 @@
             android:title="@string/drawer_item_feedback"
             android:icon="@drawable/ic_action_feedback" />
 
-        <item
-            android:id="@+id/drawer_item_bug"
-            android:title="@string/drawer_item_bug"
-            android:icon="@drawable/ic_action_bug" />
-
     </group>
 </menu>

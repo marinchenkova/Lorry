@@ -14,7 +14,6 @@
 
     <string name="drawer_item_website">Website</string>
     <string name="drawer_item_feedback">Feedback</string>
-    <string name="drawer_item_bug">Report a bug</string>
 
     <string name="drawer_open">Drawer is opened</string>
     <string name="drawer_close">Drawer is closed</string>
@@ -75,10 +74,15 @@
 
     <!-- FeedbackActivity -->
     <string name="activity_feedback">Feedback</string>
+    <string name="activity_feedback_msg_hint">Enter your message here…</string>
 
+    <string name="activity_feedback_radioButton_idea">Idea</string>
+    <string name="activity_feedback_radioButton_bug">Bug</string>
+    <string name="activity_feedback_radioButton_question">Question</string>
 
-    <!-- BugActivity -->
-    <string name="activity_bug">Report a bug</string>
+    <string name="activity_feedback_email_hint">Enter your e-mail here…</string>
+    <string name="activity_feedback_button_send">SEND</string>
+
 
 
 </resources>

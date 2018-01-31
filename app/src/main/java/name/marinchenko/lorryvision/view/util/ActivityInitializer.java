@@ -144,15 +144,4 @@ public class ActivityInitializer {
             );
         }
     }
-
-    public static class Bug {
-        public static void init(final BugActivity bugActivity) {
-            bugActivity.initToolbar(
-                    R.id.activity_bug_toolbar,
-                    R.string.activity_bug,
-                    true
-            );
-        }
-
-    }
 }

@@ -12,6 +12,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.view.activities.info.*;
 import name.marinchenko.lorryvision.view.activities.web.*;
@@ -41,9 +44,11 @@ public class MainActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // TODO init in other thread
         ActivityInitializer.Main.init(this);
         this.netlistAdapter = ActivityInitializer.Main.initNetlist(this);
     }
+
 
     /**
      * Activity lifecycle: after onCreate() or onRestart()
@@ -194,11 +199,6 @@ public class MainActivity
             case R.id.drawer_item_feedback:
                 final Intent feedbackIntent = new Intent(this, FeedbackActivity.class);
                 startActivity(feedbackIntent);
-                break;
-
-            case R.id.drawer_item_bug:
-                final Intent bugIntent = new Intent(this, BugActivity.class);
-                startActivity(bugIntent);
                 break;
         }
         return true;
