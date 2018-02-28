@@ -1,6 +1,8 @@
 package name.marinchenko.lorryvision.view.util;
 
+import android.graphics.drawable.Drawable;
 import android.support.design.widget.NavigationView;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
@@ -16,8 +18,6 @@ import name.marinchenko.lorryvision.view.activities.info.*;
 import name.marinchenko.lorryvision.view.activities.main.*;
 import name.marinchenko.lorryvision.view.util.net.NetlistAdapter;
 
-import static name.marinchenko.lorryvision.view.activities.web.FeedbackActivity.MAX_CHARS;
-import static name.marinchenko.lorryvision.view.activities.web.FeedbackActivity.MAX_LINES;
 
 /**
  * ActivityInitializer includes static methods for activity initialising.
@@ -146,6 +146,22 @@ public class ActivityInitializer {
                     R.id.activity_feedback_toolbar,
                     R.string.activity_feedback,
                     true
+            );
+        }
+
+        public static Drawable getDisabledIcon(final FeedbackActivity feedbackActivity) {
+            return ResourcesCompat.getDrawable(
+                    feedbackActivity.getResources(),
+                    R.drawable.ic_action_send_msg_disabled,
+                    null
+            );
+        }
+
+        public static Drawable getEnabledIcon(final FeedbackActivity feedbackActivity) {
+            return ResourcesCompat.getDrawable(
+                    feedbackActivity.getResources(),
+                    R.drawable.ic_action_send_msg_enabled,
+                    null
             );
         }
     }
