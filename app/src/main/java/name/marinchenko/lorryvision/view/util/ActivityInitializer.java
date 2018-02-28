@@ -4,6 +4,8 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
+import android.text.InputFilter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -13,6 +15,9 @@ import name.marinchenko.lorryvision.view.activities.web.*;
 import name.marinchenko.lorryvision.view.activities.info.*;
 import name.marinchenko.lorryvision.view.activities.main.*;
 import name.marinchenko.lorryvision.view.util.net.NetlistAdapter;
+
+import static name.marinchenko.lorryvision.view.activities.web.FeedbackActivity.MAX_CHARS;
+import static name.marinchenko.lorryvision.view.activities.web.FeedbackActivity.MAX_LINES;
 
 /**
  * ActivityInitializer includes static methods for activity initialising.

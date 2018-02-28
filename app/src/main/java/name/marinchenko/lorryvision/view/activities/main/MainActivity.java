@@ -12,9 +12,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.view.activities.info.*;
 import name.marinchenko.lorryvision.view.activities.web.*;

@@ -74,15 +74,17 @@
 
     <!-- FeedbackActivity -->
     <string name="activity_feedback">Feedback</string>
-    <string name="activity_feedback_msg_hint">Enter your message here…</string>
+
+    <string name="activity_feedback_toolbar_send">Send</string>
+
+    <string name="activity_feedback_email_hint">Enter your e-mail here…</string>
+    <string name="activity_feedback_subject_hint">Enter message subject here…</string>
 
     <string name="activity_feedback_radioButton_idea">Idea</string>
     <string name="activity_feedback_radioButton_bug">Bug</string>
     <string name="activity_feedback_radioButton_question">Question</string>
 
-    <string name="activity_feedback_email_hint">Enter your e-mail here…</string>
-    <string name="activity_feedback_button_send">SEND</string>
-
+    <string name="activity_feedback_msg_hint">Enter your message here…</string>
 
 
 </resources>
