@@ -26,7 +26,7 @@
     <string name="toolbar_popup_settings">Settings</string>
 
     <!-- Nets -->
-    <string name="netList_checkbox_auto_sign">Auto Sign-In to net</string>
+    <string name="netList_checkbox_autoconnect">Autoconnect to net</string>
     <string name="netList_button_updateNets">UPDATE NETS LIST</string>
     <string name="netList_button_updateNets_auto">AUTO UPDATING NETS LIST</string>
     <string name="netList_item_textView_netId">&lt;unknown network&gt;</string>
@@ -66,10 +66,52 @@
 
     <!-- SettingsActivity -->
     <string name="activity_settings">Settings</string>
-    <string name="activity_settings_textview">
-        Settings here\n<!--
-        -->Stub
+    <string name="toolbar_popup_default_settings">Reset to default</string>
+
+
+    <string name="pref_group_wifi">Wi-Fi settings</string>
+
+    <string name="pref_group_wifi_autoconnect_title">Autoconnect to net</string>
+    <string name="pref_group_wifi_autoconnect_summary">
+        Connect to the detected LorryVision network automatically
     </string>
+
+    <string name="pref_group_wifi_autoupdate_title">Autoupdate networks</string>
+    <string name="pref_group_wifi_autoupdate_summary">
+        Update the networks list automatically
+    </string>
+
+    <string name="pref_group_wifi_display_general_title">Display general Wi-Fi networks</string>
+    <string name="pref_group_wifi_display_general_summary">
+        Display general Wi-Fi networks in the networks list
+    </string>
+
+
+    <string name="pref_group_notif">Notifications settings</string>
+
+    <string name="pref_group_notif_sound_title">Sound notifications</string>
+    <string name="pref_group_notif_sound_summary">
+        Enable sound notifications when LorryVision network detected
+    </string>
+
+    <string name="pref_group_notif_netfound_title">Send notification when net detected</string>
+    <string name="pref_group_notif_netfound_summary">
+        Send notification when LorryVision network detected if the app is minimized
+    </string>
+
+    <string name="pref_group_notif_jump_title">Jump to the app when net detected</string>
+    <string name="pref_group_notif_jump_summary">
+        Jump to the app when LorryVision network detected if the app is minimized
+    </string>
+
+
+    <string name="pref_group_general">General settings</string>
+
+    <string name="pref_group_general_language_title">Language</string>
+    <string name="pref_group_general_language_summary">
+
+    </string>
+
 
 
     <!-- FeedbackActivity -->

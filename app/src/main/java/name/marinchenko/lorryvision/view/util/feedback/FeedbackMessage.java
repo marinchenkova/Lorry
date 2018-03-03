@@ -1,26 +1,35 @@
 package name.marinchenko.lorryvision.view.util.feedback;
 
-import android.support.annotation.NonNull;
 
 /**
  * Feedback message to be sent.
  */
 
-public class FeedbackMessage {
+public class FeedbackMessage extends Transferable {
 
-    public final String email;
-    public final String subject;
-    public final String type;
-    public final String msg;
+    private final String emailFrom;
+    private final String subject;
+    private final String feedbackType;
+    private final String message;
 
-
-    public FeedbackMessage(@NonNull final String email,
-                           @NonNull final String subject,
-                           @NonNull final String type,
-                           @NonNull final String msg) {
-        this.email = email;
+    public FeedbackMessage(final String emailFrom,
+                           final String subject,
+                           final String feedbackType,
+                           final String message) {
+        this.emailFrom = emailFrom;
         this.subject = subject;
-        this.type = type;
-        this.msg = msg;
+        this.feedbackType = feedbackType;
+        this.message = message;
+
+        wrap();
     }
+
+    @Override
+    protected void wrap() {
+        setEmailTo(EMAIL_TO);
+        setSubject(this.feedbackType + ": " + this.subject);
+        setMessage(this.message);
+    }
+
+
 }

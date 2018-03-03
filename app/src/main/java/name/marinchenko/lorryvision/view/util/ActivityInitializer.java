@@ -1,15 +1,22 @@
 package name.marinchenko.lorryvision.view.util;
 
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
+import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.support.design.widget.NavigationView;
-import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
-import android.text.InputFilter;
-import android.widget.EditText;
+import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 import name.marinchenko.lorryvision.BuildConfig;
 import name.marinchenko.lorryvision.R;
@@ -17,6 +24,7 @@ import name.marinchenko.lorryvision.view.activities.web.*;
 import name.marinchenko.lorryvision.view.activities.info.*;
 import name.marinchenko.lorryvision.view.activities.main.*;
 import name.marinchenko.lorryvision.view.util.net.NetlistAdapter;
+import name.marinchenko.lorryvision.view.util.threading.DefaultExecutorSupplier;
 
 
 /**
@@ -24,6 +32,8 @@ import name.marinchenko.lorryvision.view.util.net.NetlistAdapter;
  */
 
 public class ActivityInitializer {
+
+
 
     public static class Main {
         public static void init(final MainActivity mainActivity) {
@@ -34,6 +44,7 @@ public class ActivityInitializer {
             );
             initDrawer(mainActivity);
         }
+
 
         /**
          * Initialising sidebar
@@ -83,6 +94,13 @@ public class ActivityInitializer {
             netlist.setAdapter(netlistAdapter);
             netlist.setOnItemClickListener(mainActivity);
             return netlistAdapter;
+        }
+
+        public static void initAutoconnectCheckbox(final MainActivity mainActivity) {
+            final SharedPreferences pref =
+                    PreferenceManager.getDefaultSharedPreferences(mainActivity);
+            ((CheckBox) mainActivity.findViewById(R.id.netList_checkbox_autoconnect)).
+                    setChecked(pref.getBoolean(SettingsFragment.PREF_KEY_AUTOCONNECT, true));
         }
     }
 
@@ -150,18 +168,16 @@ public class ActivityInitializer {
         }
 
         public static Drawable getDisabledIcon(final FeedbackActivity feedbackActivity) {
-            return ResourcesCompat.getDrawable(
-                    feedbackActivity.getResources(),
-                    R.drawable.ic_action_send_msg_disabled,
-                    null
+            return ContextCompat.getDrawable(
+                    feedbackActivity,
+                    R.drawable.ic_action_send_msg_disabled
             );
         }
 
         public static Drawable getEnabledIcon(final FeedbackActivity feedbackActivity) {
-            return ResourcesCompat.getDrawable(
-                    feedbackActivity.getResources(),
-                    R.drawable.ic_action_send_msg_enabled,
-                    null
+            return ContextCompat.getDrawable(
+                    feedbackActivity,
+                    R.drawable.ic_action_send_msg_enabled
             );
         }
     }

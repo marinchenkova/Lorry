@@ -6,7 +6,9 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
@@ -14,6 +16,8 @@ import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.view.activities.ToolbarAppCompatActivity;
 import name.marinchenko.lorryvision.view.util.ActivityInitializer;
 import name.marinchenko.lorryvision.view.util.feedback.EmailValidator;
+import name.marinchenko.lorryvision.view.util.feedback.FeedbackAgent;
+import name.marinchenko.lorryvision.view.util.feedback.FeedbackMessage;
 
 public class FeedbackActivity extends ToolbarAppCompatActivity {
 
@@ -27,6 +31,8 @@ public class FeedbackActivity extends ToolbarAppCompatActivity {
 
     private boolean msgOk = false;
     private boolean emailOk = false;
+
+    private final FeedbackAgent feedbackAgent = new FeedbackAgent();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,12 +127,32 @@ public class FeedbackActivity extends ToolbarAppCompatActivity {
     }
 
     private void saveMessage() {
+        this.editTextMsg.setText("");
+
         Toast.makeText(
                 this,
                 "Your message is saved and will be send when the Internet connection appears",
                 Toast.LENGTH_LONG
         ).show();
 
-        //TODO save feedback msg
+        final FeedbackMessage msg = createMsg();
+        this.feedbackAgent.add(this, msg);
+    }
+
+    private FeedbackMessage createMsg() {
+        return new FeedbackMessage(
+                this.editTextEmail.getText().toString(),
+                this.editTextSubject.getText().toString(),
+                selectedType(),
+                this.editTextMsg.getText().toString()
+        );
+    }
+
+    private String selectedType() {
+        final int radioButtonID = this.radioGroupType.getCheckedRadioButtonId();
+        final View radioButton = this.radioGroupType.findViewById(radioButtonID);
+        final int idx = this.radioGroupType.indexOfChild(radioButton);
+        final RadioButton r = (RadioButton) this.radioGroupType.getChildAt(idx);
+        return r.getText().toString();
     }
 }

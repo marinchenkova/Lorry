@@ -1,8 +1,10 @@
 package name.marinchenko.lorryvision.view.activities.main;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -11,6 +13,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
+import android.widget.Toast;
 
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.view.activities.info.*;
@@ -19,6 +23,7 @@ import name.marinchenko.lorryvision.view.activities.ToolbarAppCompatActivity;
 import name.marinchenko.lorryvision.view.demoTest.TestBase;
 import name.marinchenko.lorryvision.view.util.ActivityInitializer;
 import name.marinchenko.lorryvision.view.util.net.NetlistAdapter;
+import name.marinchenko.lorryvision.view.util.threading.DefaultExecutorSupplier;
 
 public class MainActivity
         extends ToolbarAppCompatActivity
@@ -62,6 +67,7 @@ public class MainActivity
     protected void onResume() {
         closeDrawer(false);
         super.onResume();
+        ActivityInitializer.Main.initAutoconnectCheckbox(this);
     }
 
     /**
@@ -229,6 +235,7 @@ public class MainActivity
      * Public methods
      */
 
+
     /**
      * Click update nets button
      * @param view button
@@ -239,4 +246,11 @@ public class MainActivity
     }
 
 
+    public void onCheckboxAutoconnectClick(View view) {
+        final SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+        final boolean autoConnect = ((CheckBox) view).isChecked();
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putBoolean(SettingsFragment.PREF_KEY_AUTOCONNECT, autoConnect);
+        editor.apply();
+    }
 }
