@@ -1,18 +1,24 @@
 package name.marinchenko.lorryvision.view.util.net;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
 import name.marinchenko.lorryvision.R;
+
+import static name.marinchenko.lorryvision.view.activities.main.SettingsFragment.PREF_KEY_DISPLAY_GENERAL;
 
 
 public class NetlistAdapter extends BaseAdapter {
@@ -78,9 +84,25 @@ public class NetlistAdapter extends BaseAdapter {
         return view;
     }
 
-    public void update(final List<Net> newList) {
+    public void update(final Activity activity,
+                       final List<Net> newList) {
         this.nets.clear();
-        this.nets.addAll(newList);
+
+        final SharedPreferences sharedPref =
+                PreferenceManager.getDefaultSharedPreferences(activity);
+
+        if (!sharedPref.getBoolean(PREF_KEY_DISPLAY_GENERAL, false)) {
+            for (Net net : newList) {
+                if (net.getType() == NetType.lorryNetwork) this.nets.add(net);
+            }
+        } else {
+            this.nets.addAll(newList);
+        }
+    }
+
+    public void update(final Activity activity) {
+        final List newList = (List) this.nets.clone();
+        update(activity, newList);
     }
 
     public ArrayList<Net> getNetlist() {

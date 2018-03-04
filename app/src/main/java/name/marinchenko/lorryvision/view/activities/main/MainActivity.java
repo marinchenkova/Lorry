@@ -69,8 +69,13 @@ public class MainActivity
     @Override
     protected void onResume() {
         closeDrawer(false);
+
         super.onResume();
+
         ActivityInitializer.Main.initAutoconnectCheckbox(this);
+
+        this.netlistAdapter.update(this);
+        this.netlistAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -259,7 +264,7 @@ public class MainActivity
      * @param view button
      */
     public void onButtonUpdateClick(final View view) {
-        this.netlistAdapter.update(TestBase.getNetlistForListViewTest());
+        this.netlistAdapter.update(this, TestBase.getNetlistForListViewTest());
         this.netlistAdapter.notifyDataSetChanged();
     }
 

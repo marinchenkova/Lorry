@@ -19,6 +19,7 @@ public class SettingsFragment
 
     public final static String PREF_KEY_LANGUAGE = "pref_key_language";
     public final static String PREF_KEY_AUTOCONNECT = "pref_key_autoconnect";
+    public final static String PREF_KEY_DISPLAY_GENERAL = "pref_key_display_general";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
