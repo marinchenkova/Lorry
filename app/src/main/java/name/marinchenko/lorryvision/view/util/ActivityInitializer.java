@@ -91,8 +91,11 @@ public class ActivityInitializer {
         public static NetlistAdapter initNetlist(final MainActivity mainActivity) {
             final ListView netlist = mainActivity.findViewById(R.id.netList_listView);
             final NetlistAdapter netlistAdapter = new NetlistAdapter(mainActivity);
+
             netlist.setAdapter(netlistAdapter);
             netlist.setOnItemClickListener(mainActivity);
+            netlist.setOnItemLongClickListener(mainActivity);
+
             return netlistAdapter;
         }
 

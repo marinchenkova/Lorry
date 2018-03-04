@@ -14,7 +14,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.view.activities.info.*;
@@ -22,13 +25,18 @@ import name.marinchenko.lorryvision.view.activities.web.*;
 import name.marinchenko.lorryvision.view.activities.ToolbarAppCompatActivity;
 import name.marinchenko.lorryvision.view.demoTest.TestBase;
 import name.marinchenko.lorryvision.view.util.ActivityInitializer;
+import name.marinchenko.lorryvision.view.util.debug.LoginDialog;
+import name.marinchenko.lorryvision.view.util.net.Net;
 import name.marinchenko.lorryvision.view.util.net.NetlistAdapter;
 import name.marinchenko.lorryvision.view.util.threading.DefaultExecutorSupplier;
+
+import static name.marinchenko.lorryvision.view.util.debug.NetStore.KEY_ID;
 
 public class MainActivity
         extends ToolbarAppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
-                   AdapterView.OnItemClickListener {
+                   AdapterView.OnItemClickListener,
+                   AdapterView.OnItemLongClickListener {
 
 
     private NetlistAdapter netlistAdapter;
@@ -160,6 +168,21 @@ public class MainActivity
         startActivity(videoIntent);
     }
 
+
+    @Override
+    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+        LoginDialog dialog = new LoginDialog();
+        final Bundle bundle = new Bundle();
+
+        final String id = ((Net) adapterView.getItemAtPosition(i)).getId();
+
+        bundle.putString(KEY_ID, id);
+        dialog.setArguments(bundle);
+        dialog.show(getFragmentManager(), "login");
+
+        return true;
+    }
+
     /**
      * Processing sidebar item selection
      * @param item selected item
@@ -253,4 +276,5 @@ public class MainActivity
         editor.putBoolean(SettingsFragment.PREF_KEY_AUTOCONNECT, autoConnect);
         editor.apply();
     }
+
 }
