@@ -17,6 +17,8 @@ import name.marinchenko.lorryvision.R;
 
 public class NetlistAdapter extends BaseAdapter {
 
+    private final static int ID_MAX_LENGTH = 21;
+
     private final ArrayList<Net> nets = new ArrayList<>();
     private final LayoutInflater inflater;
 
@@ -66,7 +68,11 @@ public class NetlistAdapter extends BaseAdapter {
                         ? R.drawable.ic_type_lorry
                         : R.drawable.ic_type_wifi
         );
-        ((TextView) view.findViewById(R.id.netList_textView_netId)).setText(netId);
+
+        TextView textView = view.findViewById(R.id.netList_textView_netId);
+        textView.setText(netId);
+        textView.setSelected(netId.length() > ID_MAX_LENGTH);
+
         ((ImageView) view.findViewById(R.id.netList_imageView_signal)).setImageResource(list[signal]);
 
         return view;

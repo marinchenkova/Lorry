@@ -1,4 +1,4 @@
-package name.marinchenko.lorryvision.view.demoTest;
+package name.marinchenko.lorryvision.view.util.debug;
 
 import java.util.ArrayList;
 
@@ -6,11 +6,15 @@ import name.marinchenko.lorryvision.view.util.net.Net;
 import name.marinchenko.lorryvision.view.util.net.NetType;
 
 /**
- * Created by Valentin on 25.01.2018.
+ * UI demonstration container.
  */
 
 public class TestBase {
 
+    /**
+     * ListView items demonstration.
+     * @return items
+     */
     public static ArrayList<Net> getNetlistForListViewTest() {
         final ArrayList<Net> list = new ArrayList<>();
 

@@ -10,12 +10,13 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import name.marinchenko.lorryvision.R;
-import name.marinchenko.lorryvision.view.activities.main.MainActivity;
 
 import static name.marinchenko.lorryvision.view.util.debug.NetStore.KEY_ID;
 
 
-
+/**
+ * Dialog window for saving network ID-Passwords pairs.
+ */
 public class LoginDialog
         extends DialogFragment
         implements DialogInterface.OnClickListener {
@@ -51,11 +52,13 @@ public class LoginDialog
         return builder.create();
     }
 
-
     @Override
     public void onClick(DialogInterface dialog, int which) {
-        final String password =
-                ((EditText) this.form.findViewById(R.id.edittext_password)).getText().toString();
+        final String password = ((EditText) this.form
+                .findViewById(R.id.edittext_password))
+                .getText()
+                .toString();
+
         NetStore.save(getActivity(), this.id, password);
     }
 

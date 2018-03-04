@@ -32,6 +32,7 @@
     <string name="netList_item_textView_netId">&lt;unknown network&gt;</string>
     <string name="netList_item_imageView_type">Type of network</string>
     <string name="netList_item_imageView_signal">Signal strength</string>
+    <string name="netList_item_imageView_was_connected">Net was connected</string>
 
 
     <!-- VideoActivity -->

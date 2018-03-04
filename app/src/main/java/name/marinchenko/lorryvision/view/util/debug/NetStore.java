@@ -3,10 +3,6 @@ package name.marinchenko.lorryvision.view.util.debug;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.widget.Toast;
-
-import java.util.HashSet;
-import java.util.Set;
 
 
 /**
@@ -38,5 +34,4 @@ public class NetStore {
         editor.clear();
         editor.apply();
     }
-
 }
