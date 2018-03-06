@@ -27,8 +27,12 @@ import name.marinchenko.lorryvision.activities.main.VideoActivity;
 import name.marinchenko.lorryvision.activities.web.FeedbackActivity;
 import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
+import name.marinchenko.lorryvision.util.net.WifiAgent;
 
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_AUTOUPDATE;
+import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_START;
+import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_STOP;
+import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCAN_START;
 
 
 /**
@@ -42,15 +46,16 @@ public class Initializer {
 
         final boolean auto = prefs.getBoolean(PREF_KEY_AUTOUPDATE, true);
         final Intent serviceIntent = new Intent(context, NetScanService.class);
+        serviceIntent.setAction(auto ? ACTION_SCAN_START : ACTION_SCAN_STOP);
 
-        if (auto) context.startService(serviceIntent);
-        else context.stopService(serviceIntent);
+        context.startService(serviceIntent);
 
         return auto;
     }
 
     public static class Main {
         public static void init(final MainActivity mainActivity) {
+            WifiAgent.enableWifi(mainActivity);
             mainActivity.initToolbar(
                     R.id.activity_main_toolbar,
                     R.string.app_name,

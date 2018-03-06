@@ -1,9 +1,16 @@
 package name.marinchenko.lorryvision.activities.main;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -14,12 +21,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
+import android.widget.Toast;
+
+import java.lang.ref.WeakReference;
 
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.activities.info.AboutActivity;
 import name.marinchenko.lorryvision.activities.info.InstructionActivity;
 import name.marinchenko.lorryvision.activities.info.LicenseActivity;
 import name.marinchenko.lorryvision.activities.web.FeedbackActivity;
+import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.Initializer;
 import name.marinchenko.lorryvision.util.debug.NetStore;
 import name.marinchenko.lorryvision.activities.ToolbarAppCompatActivity;
@@ -28,14 +39,19 @@ import name.marinchenko.lorryvision.util.debug.LoginDialog;
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
 
+import static name.marinchenko.lorryvision.services.NetScanService.MESSENGER;
+import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCANS;
+import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCAN_SINGLE;
+
 public class MainActivity
         extends ToolbarAppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
                    AdapterView.OnItemClickListener,
                    AdapterView.OnItemLongClickListener {
 
-
     private NetlistAdapter netlistAdapter;
+    private Messenger mActivityMessenger;
+    private boolean mNetScanServiceBound;
 
     /*
      * Overridden methods
@@ -53,6 +69,7 @@ public class MainActivity
         // TODO init in other thread
         Initializer.Main.init(this);
         this.netlistAdapter = Initializer.Main.initNetlist(this);
+        this.mActivityMessenger = new Messenger(new IncomingHandler(this));
     }
 
 
@@ -73,6 +90,10 @@ public class MainActivity
 
         super.onResume();
 
+        final Intent netScanServiceIntent = new Intent(this, NetScanService.class);
+        netScanServiceIntent.putExtra(MESSENGER, this.mActivityMessenger);
+        bindService(netScanServiceIntent, this.mNetScanServiceConnection, 0);
+
         Initializer.Main.initAutoconnectCheckbox(this);
         Initializer.Main.initAutoUpdate(this);
 
@@ -86,6 +107,10 @@ public class MainActivity
     @Override
     protected void onPause() {
         super.onPause();
+        if (mNetScanServiceBound) {
+            unbindService(this.mNetScanServiceConnection);
+            mNetScanServiceBound = false;
+        }
     }
 
     /**
@@ -266,10 +291,11 @@ public class MainActivity
      * @param view button
      */
     public void onButtonUpdateClick(final View view) {
+        requestScanResults();
+
         this.netlistAdapter.update(this, TestBase.getNetlistForListViewTest());
         this.netlistAdapter.notifyDataSetChanged();
     }
-
 
     public void onCheckboxAutoconnectClick(View view) {
         final SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
@@ -277,5 +303,53 @@ public class MainActivity
         SharedPreferences.Editor editor = pref.edit();
         editor.putBoolean(SettingsFragment.PREF_KEY_AUTOCONNECT, autoConnect);
         editor.apply();
+    }
+
+
+    private void requestScanResults() {
+        final Message msg = new Message();
+        msg.what = MSG_SCAN_SINGLE;
+        try {
+            mActivityMessenger.send(msg);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private ServiceConnection mNetScanServiceConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            mActivityMessenger = new Messenger(service);
+            mNetScanServiceBound = true;
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            mActivityMessenger = null;
+            mNetScanServiceBound = false;
+        }
+    };
+
+    private static class IncomingHandler extends Handler {
+        private final MainActivity mainActivity;
+
+        public IncomingHandler(MainActivity mainActivity) {
+            this.mainActivity = new WeakReference<>(mainActivity).get();
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_SCANS:
+                    Toast.makeText(
+                            mainActivity.getApplicationContext(),
+                            "Received",
+                            Toast.LENGTH_SHORT
+                    ).show();
+                    break;
+
+                default:
+                    super.handleMessage(msg);
+            }
+        }
     }
 }
