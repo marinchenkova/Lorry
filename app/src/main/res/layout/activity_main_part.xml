@@ -5,7 +5,7 @@
     android:id="@+id/activity_main_part"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="name.marinchenko.lorryvision.view.activities.main.MainActivity">
+    tools:context="name.marinchenko.lorryvision.activities.main.MainActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/activity_main_toolbar"
