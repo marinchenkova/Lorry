@@ -11,12 +11,13 @@ import android.widget.Toast;
 
 public class ToastHelper {
     public static void postToastMessage(final Context context,
-                                        final String message) {
+                                        final String message,
+                                        final int lenght) {
         final Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, message, lenght).show();
             }
         });
     }

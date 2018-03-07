@@ -36,7 +36,7 @@ public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        WifiAgent.enableWifi(this, true);
+        WifiAgent.enableWifi(this, false, true);
         final IntentFilter filter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         registerReceiver(this.wifiReceiver, filter);
     }
