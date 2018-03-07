@@ -15,6 +15,7 @@ import java.util.TimerTask;
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.ScanResultParser;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
+import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 
 /**
  * Service for scanning Wi-Fi networks.
@@ -59,11 +60,11 @@ public class NetScanService extends Service {
         final String action = intent.getAction() == null ? "" : intent.getAction();
         switch (action) {
             case ACTION_SCAN_SINGLE:
-                startScan(true, 0);
+                singleScan();
                 break;
 
             case ACTION_SCAN_START:
-                startScan(false, SCAN_PERIOD_MS);
+                startScan(SCAN_PERIOD_MS);
                 break;
 
             case ACTION_SCAN_STOP:
@@ -98,12 +99,21 @@ public class NetScanService extends Service {
         sendMessage(msg);
     }
 
-    private void startScan(final boolean once,
-                           final int period) {
+    private void singleScan() {
+        DefaultExecutorSupplier.getInstance().forLightWeightBackgroundTasks().execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        updateAndSendScanResults();
+                    }
+                }
+        );
+    }
+
+    private void startScan(final int period) {
         stopScan();
         this.scanTimer = new Timer();
-        if (once) this.scanTimer.schedule(new ScanTimerTask(), 0);
-        else this.scanTimer.schedule(new ScanTimerTask(), 0, period);
+        this.scanTimer.schedule(new ScanTimerTask(), 0, period);
     }
 
     private void stopScan() {
