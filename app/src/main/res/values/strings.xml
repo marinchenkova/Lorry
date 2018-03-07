@@ -34,6 +34,8 @@
     <string name="netList_item_imageView_signal">Signal strength</string>
     <string name="netList_item_imageView_was_connected">Net was connected</string>
 
+    <string name="toast_enabling_wifi">Enabling Wi-Fi service…</string>
+
 
     <!-- VideoActivity -->
     <string name="activity_video">Camera translation</string>

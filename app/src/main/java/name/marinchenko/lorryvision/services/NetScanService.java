@@ -103,6 +103,16 @@ public class NetScanService extends Service {
         sendMessage(msg);
     }
 
+    public void postToastMessage(final String message) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void startScan(final boolean once,
                            final int period) {
         stopScan();

@@ -41,6 +41,7 @@ import name.marinchenko.lorryvision.util.debug.TestBase;
 import name.marinchenko.lorryvision.util.debug.LoginDialog;
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
+import name.marinchenko.lorryvision.util.net.WifiAgent;
 
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_SINGLE;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_START;
@@ -85,6 +86,7 @@ public class MainActivity
     @Override
     protected void onStart() {
         super.onStart();
+        WifiAgent.enableWifi(this);
     }
 
     /**
@@ -103,7 +105,7 @@ public class MainActivity
         Initializer.Main.initAutoconnectCheckbox(this);
         Initializer.Main.initAutoUpdate(this);
 
-        onButtonUpdateClick(findViewById(R.id.netList_button_updateNets));
+        updateNetlist(this.scanResults);
     }
 
     /**

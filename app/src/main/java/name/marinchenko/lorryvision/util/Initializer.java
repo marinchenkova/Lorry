@@ -55,7 +55,6 @@ public class Initializer {
 
     public static class Main {
         public static void init(final MainActivity mainActivity) {
-            WifiAgent.enableWifi(mainActivity);
             mainActivity.initToolbar(
                     R.id.activity_main_toolbar,
                     R.string.app_name,
