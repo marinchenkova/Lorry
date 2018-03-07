@@ -1,17 +1,13 @@
 package name.marinchenko.lorryvision.activities.main;
 
-import android.content.ComponentName;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.net.wifi.ScanResult;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
-import android.os.RemoteException;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -22,7 +18,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
-import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -37,17 +32,14 @@ import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.Initializer;
 import name.marinchenko.lorryvision.util.debug.NetStore;
 import name.marinchenko.lorryvision.activities.ToolbarAppCompatActivity;
-import name.marinchenko.lorryvision.util.debug.TestBase;
 import name.marinchenko.lorryvision.util.debug.LoginDialog;
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_SINGLE;
-import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_START;
 import static name.marinchenko.lorryvision.services.NetScanService.MESSENGER;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCANS;
-import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCAN_SINGLE;
 
 public class MainActivity
         extends ToolbarAppCompatActivity
@@ -57,7 +49,7 @@ public class MainActivity
 
     private NetlistAdapter netlistAdapter;
     private Messenger mActivityMessenger;
-    private List<ScanResult> scanResults = new ArrayList<>();
+    private List<Net> nets = new ArrayList<>();
 
 
     /*
@@ -77,16 +69,10 @@ public class MainActivity
         Initializer.Main.init(this);
         this.netlistAdapter = Initializer.Main.initNetlist(this);
         this.mActivityMessenger = new Messenger(new IncomingHandler(this));
-    }
 
-
-    /**
-     * Activity lifecycle: after onCreate() or onRestart()
-     */
-    @Override
-    protected void onStart() {
-        super.onStart();
-        WifiAgent.enableWifi(this);
+        final Intent netScanServiceIntent = new Intent(this, NetScanService.class);
+        netScanServiceIntent.putExtra(MESSENGER, this.mActivityMessenger);
+        startService(netScanServiceIntent);
     }
 
     /**
@@ -98,14 +84,8 @@ public class MainActivity
 
         super.onResume();
 
-        final Intent netScanServiceIntent = new Intent(this, NetScanService.class);
-        netScanServiceIntent.putExtra(MESSENGER, this.mActivityMessenger);
-        startService(netScanServiceIntent);
-
         Initializer.Main.initAutoconnectCheckbox(this);
         Initializer.Main.initAutoUpdate(this);
-
-        updateNetlist(this.scanResults);
     }
 
     /**
@@ -204,7 +184,7 @@ public class MainActivity
         LoginDialog dialog = new LoginDialog();
         final Bundle bundle = new Bundle();
 
-        final String id = ((Net) adapterView.getItemAtPosition(i)).getId();
+        final String id = ((Net) adapterView.getItemAtPosition(i)).getSsid();
 
         bundle.putString(NetStore.KEY_ID, id);
         dialog.setArguments(bundle);
@@ -295,7 +275,7 @@ public class MainActivity
      */
     public void onButtonUpdateClick(final View view) {
         requestScanResults();
-        updateNetlist(this.scanResults);
+        updateNetlist(this.nets);
     }
 
     public void onCheckboxAutoconnectClick(View view) {
@@ -306,7 +286,7 @@ public class MainActivity
         editor.apply();
     }
 
-    private void updateNetlist(final List<ScanResult> newList) {
+    private void updateNetlist(final List<Net> newList) {
         this.netlistAdapter.update(this, newList);
         this.netlistAdapter.notifyDataSetChanged();
     }
@@ -329,7 +309,7 @@ public class MainActivity
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_SCANS:
-                    List<ScanResult> list = (List<ScanResult>) msg.obj;
+                    List<Net> list = (List<Net>) msg.obj;
                     mainActivity.updateNetlist(list);
                     break;
 

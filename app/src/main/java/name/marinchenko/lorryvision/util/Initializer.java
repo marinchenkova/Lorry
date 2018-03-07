@@ -41,16 +41,17 @@ import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCAN_STAR
 
 public class Initializer {
 
-    public static boolean initNetScanService(final Context context) {
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-
-        final boolean auto = prefs.getBoolean(PREF_KEY_AUTOUPDATE, true);
+    public static void initNetScanService(final Context context) {
         final Intent serviceIntent = new Intent(context, NetScanService.class);
+        final boolean auto = isAutoUpdate(context);
+
         serviceIntent.setAction(auto ? ACTION_SCAN_START : ACTION_SCAN_STOP);
-
         context.startService(serviceIntent);
+    }
 
-        return auto;
+    public static boolean isAutoUpdate(final Context context) {
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return prefs.getBoolean(PREF_KEY_AUTOUPDATE, true);
     }
 
     public static class Main {
@@ -61,11 +62,12 @@ public class Initializer {
                     false
             );
             initDrawer(mainActivity);
+            initNetScanService(mainActivity);
         }
 
         public static void initAutoUpdate(final MainActivity mainActivity) {
             final Button updateButton = mainActivity.findViewById(R.id.netList_button_updateNets);
-            updateButton.setEnabled(!initNetScanService(mainActivity));
+            updateButton.setEnabled(!isAutoUpdate(mainActivity));
         }
 
 

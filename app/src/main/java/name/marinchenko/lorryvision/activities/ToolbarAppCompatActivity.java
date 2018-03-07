@@ -12,6 +12,8 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
+import name.marinchenko.lorryvision.util.net.WifiAgent;
+
 public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
 
     public void initToolbar(@IdRes final int toolbarId,
@@ -24,6 +26,12 @@ public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
         ab.setTitle(titleId);
         ab.setDisplayHomeAsUpEnabled(up);
         ab.setDisplayShowHomeEnabled(up);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        WifiAgent.enableWifi(this);
     }
 
     @Override

@@ -27,7 +27,9 @@ public class TestBase {
         for (int i = 0; i < strs.length; i++) {
             list.add(new Net(
                     strs[i],
-                    i < 2 ? NetType.lorryNetwork : NetType.wifiNetwork,
+                    "",
+                    "",
+                    "",
                     Math.abs(i - 4)
             ));
         }

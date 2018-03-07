@@ -21,6 +21,8 @@ import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import name.marinchenko.lorryvision.util.net.Net;
+import name.marinchenko.lorryvision.util.net.ScanResultParser;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 
 /**
@@ -42,7 +44,7 @@ public class NetScanService extends Service {
     private final static int SCAN_PERIOD_MS = 1000;
 
 
-    private List<ScanResult> scanResults = new ArrayList<>();
+    private List<Net> nets = new ArrayList<>();
     private Timer scanTimer;
 
     private Messenger mActivityMessenger;
@@ -95,22 +97,12 @@ public class NetScanService extends Service {
     }
 
     private void updateAndSendScanResults() {
-        this.scanResults = this.wifiAgent.getScanResults();
+        this.nets = ScanResultParser.getNets(this, this.wifiAgent.getScanResults());
         Message msg = new Message();
         msg.what = MSG_SCANS;
-        msg.obj = this.scanResults;
+        msg.obj = this.nets;
 
         sendMessage(msg);
-    }
-
-    public void postToastMessage(final String message) {
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     private void startScan(final boolean once,

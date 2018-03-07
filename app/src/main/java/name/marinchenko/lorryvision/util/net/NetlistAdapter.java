@@ -56,7 +56,7 @@ public class NetlistAdapter extends BaseAdapter {
                         : convertView;
 
         final Net net = this.nets.get(i);
-        final String netId = net.getId();
+        final String netId = net.getSsid();
         final NetType type = net.getType();
         final int signal = net.getSignal();
         final boolean wasConnected = net.wasConnected();
@@ -90,19 +90,18 @@ public class NetlistAdapter extends BaseAdapter {
     }
 
     public void update(final Activity activity,
-                       final List<ScanResult> newList) {
+                       final List<Net> newList) {
         this.nets.clear();
-        final List<Net> newNets = ScanResultParser.getNets(newList);
 
         final SharedPreferences sharedPref =
                 PreferenceManager.getDefaultSharedPreferences(activity);
 
         if (!sharedPref.getBoolean(PREF_KEY_DISPLAY_GENERAL, false)) {
-            for (Net net : newNets) {
+            for (Net net : newList) {
                 if (net.getType() == NetType.lorryNetwork) this.nets.add(net);
             }
         } else {
-            this.nets.addAll(newNets);
+            this.nets.addAll(newList);
         }
     }
 }
