@@ -12,7 +12,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import name.marinchenko.lorryvision.R;
-import name.marinchenko.lorryvision.util.debug.ToastHelper;
+import name.marinchenko.lorryvision.util.threading.ToastThread;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 
 /**
@@ -88,7 +88,7 @@ public class WifiAgent {
             if (wifiManager != null && (force || !wifiManager.isWifiEnabled())) {
                 wifiManager.setWifiEnabled(true);
                 if (toast && cnt == 0) {
-                    ToastHelper.postToastMessage(
+                    ToastThread.postToastMessage(
                             context,
                             context.getString(R.string.toast_enabling_wifi),
                             Toast.LENGTH_LONG

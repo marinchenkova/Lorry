@@ -28,6 +28,7 @@ import name.marinchenko.lorryvision.activities.web.FeedbackActivity;
 import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
+import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_AUTOUPDATE;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_START;
@@ -41,11 +42,18 @@ import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_S
 public class Initializer {
 
     public static void initNetScanService(final Context context) {
-        final Intent serviceIntent = new Intent(context, NetScanService.class);
-        final boolean auto = isAutoUpdate(context);
+        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final Intent serviceIntent = new Intent(context, NetScanService.class);
+                        final boolean auto = isAutoUpdate(context);
 
-        serviceIntent.setAction(auto ? ACTION_SCAN_START : ACTION_SCAN_STOP);
-        context.startService(serviceIntent);
+                        serviceIntent.setAction(auto ? ACTION_SCAN_START : ACTION_SCAN_STOP);
+                        context.startService(serviceIntent);
+                    }
+                }
+        );
     }
 
     public static boolean isAutoUpdate(final Context context) {
@@ -76,22 +84,32 @@ public class Initializer {
          * @param mainActivity MainActivity
          */
         private static void initDrawer(final MainActivity mainActivity) {
-            final DrawerLayout drawer = mainActivity.findViewById(R.id.activity_main);
-            final Toolbar toolbar = mainActivity.findViewById(R.id.activity_main_toolbar);
-            final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                    mainActivity,
-                    drawer,
-                    toolbar,
-                    R.string.drawer_open,
-                    R.string.drawer_close
+            DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            final DrawerLayout drawer =
+                                    mainActivity.findViewById(R.id.activity_main);
+                            final Toolbar toolbar =
+                                    mainActivity.findViewById(R.id.activity_main_toolbar);
+                            final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                                    mainActivity,
+                                    drawer,
+                                    toolbar,
+                                    R.string.drawer_open,
+                                    R.string.drawer_close
+                            );
+
+                            drawer.addDrawerListener(toggle);
+                            toggle.syncState();
+
+                            final NavigationView navigationView =
+                                    mainActivity.findViewById(R.id.drawer_nav);
+                            navigationView.setNavigationItemSelectedListener(mainActivity);
+                            initVersion(mainActivity, navigationView);
+                        }
+                    }
             );
-
-            drawer.addDrawerListener(toggle);
-            toggle.syncState();
-
-            final NavigationView navigationView = mainActivity.findViewById(R.id.drawer_nav);
-            navigationView.setNavigationItemSelectedListener(mainActivity);
-            initVersion(mainActivity, navigationView);
         }
 
         /**
@@ -101,7 +119,9 @@ public class Initializer {
          */
         private static void initVersion(final MainActivity mainActivity,
                                         final NavigationView view) {
-            TextView version = view.getHeaderView(0).findViewById(R.id.drawer_textView_version);
+            TextView version = view
+                    .getHeaderView(0)
+                    .findViewById(R.id.drawer_textView_version);
             version.setText(String.format(
                     "%s %s",
                     mainActivity.getString(R.string.app_version),

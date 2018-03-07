@@ -29,7 +29,7 @@ public class ScanResultParser {
                     s.SSID,
                     s.BSSID,
                     s.capabilities,
-                    NetStore.getPassword(context, s.SSID),
+                    getPassword(context, s.SSID),
                     getSignalIcon(s.level)
             );
             nets.add(net);
@@ -37,6 +37,12 @@ public class ScanResultParser {
         Collections.sort(nets);
 
         return nets;
+    }
+
+    public static String getPassword(final Context context,
+                                     final String ssid) {
+        //TODO password generator for lorry networks
+        return NetStore.getPassword(context, ssid);
     }
 
     public static NetType getType(final String name){

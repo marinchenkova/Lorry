@@ -1,4 +1,4 @@
-package name.marinchenko.lorryvision.util.debug;
+package name.marinchenko.lorryvision.util.threading;
 
 import android.content.Context;
 import android.os.Handler;
@@ -6,10 +6,10 @@ import android.os.Looper;
 import android.widget.Toast;
 
 /**
- * Created by Valentin on 07.03.2018.
+ * Creating toast from any thread.
  */
 
-public class ToastHelper {
+public class ToastThread {
     public static void postToastMessage(final Context context,
                                         final String message,
                                         final int lenght) {
