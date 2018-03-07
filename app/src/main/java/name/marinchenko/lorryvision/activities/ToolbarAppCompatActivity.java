@@ -1,7 +1,10 @@
 package name.marinchenko.lorryvision.activities;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.graphics.Rect;
+import android.net.wifi.WifiManager;
 import android.support.annotation.IdRes;
 import android.support.annotation.StringRes;
 import android.support.v7.app.ActionBar;
@@ -15,6 +18,8 @@ import android.widget.EditText;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 
 public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
+
+    private BroadcastReceiver wifiReceiver = new WifiAgent.WifiReceiver();
 
     public void initToolbar(@IdRes final int toolbarId,
                             @StringRes final int titleId,
@@ -31,7 +36,15 @@ public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        WifiAgent.enableWifi(this);
+        WifiAgent.enableWifi(this, true);
+        final IntentFilter filter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        registerReceiver(this.wifiReceiver, filter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(this.wifiReceiver);
     }
 
     @Override

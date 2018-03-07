@@ -8,8 +8,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import name.marinchenko.lorryvision.R;
-import name.marinchenko.lorryvision.util.Initializer;
 import name.marinchenko.lorryvision.activities.ToolbarAppCompatActivity;
+import name.marinchenko.lorryvision.util.Initializer;
 
 public class SettingsActivity
         extends ToolbarAppCompatActivity {

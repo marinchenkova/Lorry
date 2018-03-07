@@ -4,8 +4,8 @@ import android.os.Bundle;
 import android.view.View;
 
 import name.marinchenko.lorryvision.R;
-import name.marinchenko.lorryvision.util.Initializer;
 import name.marinchenko.lorryvision.activities.ToolbarAppCompatActivity;
+import name.marinchenko.lorryvision.util.Initializer;
 
 public class VideoActivity extends ToolbarAppCompatActivity {
 

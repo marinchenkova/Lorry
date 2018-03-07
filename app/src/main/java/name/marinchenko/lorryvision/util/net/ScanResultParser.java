@@ -1,6 +1,5 @@
 package name.marinchenko.lorryvision.util.net;
 
-import android.app.Activity;
 import android.content.Context;
 import android.net.wifi.ScanResult;
 

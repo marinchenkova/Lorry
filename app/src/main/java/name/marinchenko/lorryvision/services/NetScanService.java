@@ -2,22 +2,13 @@ package name.marinchenko.lorryvision.services;
 
 import android.app.Service;
 import android.content.Intent;
-import android.net.wifi.ScanResult;
-import android.os.Binder;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
-import android.os.Process;
 import android.os.RemoteException;
-import android.provider.MediaStore;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -89,10 +80,12 @@ public class NetScanService extends Service {
     }
 
     private void sendMessage(final Message msg) {
-        try {
-            this.mActivityMessenger.send(msg);
-        } catch (RemoteException e) {
-            e.printStackTrace();
+        if (this.mActivityMessenger != null) {
+            try {
+                this.mActivityMessenger.send(msg);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
     }
 

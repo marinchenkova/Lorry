@@ -27,12 +27,10 @@ import name.marinchenko.lorryvision.activities.main.VideoActivity;
 import name.marinchenko.lorryvision.activities.web.FeedbackActivity;
 import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
-import name.marinchenko.lorryvision.util.net.WifiAgent;
 
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_AUTOUPDATE;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_START;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_STOP;
-import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCAN_START;
 
 
 /**

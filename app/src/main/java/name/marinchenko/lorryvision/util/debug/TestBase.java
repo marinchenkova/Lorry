@@ -3,7 +3,6 @@ package name.marinchenko.lorryvision.util.debug;
 import java.util.ArrayList;
 
 import name.marinchenko.lorryvision.util.net.Net;
-import name.marinchenko.lorryvision.util.net.NetType;
 
 /**
  * UI demonstration container.

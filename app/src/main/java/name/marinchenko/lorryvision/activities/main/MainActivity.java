@@ -3,7 +3,6 @@ package name.marinchenko.lorryvision.activities.main;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.net.wifi.ScanResult;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,18 +23,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import name.marinchenko.lorryvision.R;
+import name.marinchenko.lorryvision.activities.ToolbarAppCompatActivity;
 import name.marinchenko.lorryvision.activities.info.AboutActivity;
 import name.marinchenko.lorryvision.activities.info.InstructionActivity;
 import name.marinchenko.lorryvision.activities.info.LicenseActivity;
 import name.marinchenko.lorryvision.activities.web.FeedbackActivity;
 import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.Initializer;
-import name.marinchenko.lorryvision.util.debug.NetStore;
-import name.marinchenko.lorryvision.activities.ToolbarAppCompatActivity;
 import name.marinchenko.lorryvision.util.debug.LoginDialog;
+import name.marinchenko.lorryvision.util.debug.NetStore;
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
-import name.marinchenko.lorryvision.util.net.WifiAgent;
 
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_SINGLE;
 import static name.marinchenko.lorryvision.services.NetScanService.MESSENGER;
@@ -86,14 +84,6 @@ public class MainActivity
 
         Initializer.Main.initAutoconnectCheckbox(this);
         Initializer.Main.initAutoUpdate(this);
-    }
-
-    /**
-     * Activity lifecycle: after onResume() when another activity comes into the foreground
-     */
-    @Override
-    protected void onPause() {
-        super.onPause();
     }
 
     /**
