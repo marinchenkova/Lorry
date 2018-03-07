@@ -3,6 +3,7 @@ package name.marinchenko.lorryvision.util.net;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.wifi.ScanResult;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -58,6 +59,7 @@ public class NetlistAdapter extends BaseAdapter {
         final String netId = net.getId();
         final NetType type = net.getType();
         final int signal = net.getSignal();
+        final boolean wasConnected = net.wasConnected();
 
         final int list[] = new int[]{
                 R.drawable.ic_wifi_0,
@@ -66,6 +68,10 @@ public class NetlistAdapter extends BaseAdapter {
                 R.drawable.ic_wifi_3,
                 R.drawable.ic_wifi_4
         };
+
+        if (!wasConnected) {
+            view.findViewById(R.id.netList_imageView_was_connected).setVisibility(View.GONE);
+        }
 
         ((ImageView) view.findViewById(R.id.netList_imageView_typeOfNet)).setImageResource(
                 type == NetType.lorryNetwork
@@ -77,33 +83,26 @@ public class NetlistAdapter extends BaseAdapter {
         textView.setText(netId);
         textView.setSelected(netId.length() > ID_MAX_LENGTH);
 
-        ((ImageView) view.findViewById(R.id.netList_imageView_signal)).setImageResource(list[signal]);
+        ((ImageView) view.findViewById(R.id.netList_imageView_signal))
+                .setImageResource(list[signal]);
 
         return view;
     }
 
     public void update(final Activity activity,
-                       final List<Net> newList) {
+                       final List<ScanResult> newList) {
         this.nets.clear();
+        final List<Net> newNets = ScanResultParser.getNets(newList);
 
         final SharedPreferences sharedPref =
                 PreferenceManager.getDefaultSharedPreferences(activity);
 
         if (!sharedPref.getBoolean(PREF_KEY_DISPLAY_GENERAL, false)) {
-            for (Net net : newList) {
+            for (Net net : newNets) {
                 if (net.getType() == NetType.lorryNetwork) this.nets.add(net);
             }
         } else {
-            this.nets.addAll(newList);
+            this.nets.addAll(newNets);
         }
-    }
-
-    public void update(final Activity activity) {
-        final List newList = (List) this.nets.clone();
-        update(activity, newList);
-    }
-
-    public ArrayList<Net> getNetlist() {
-        return this.nets;
     }
 }

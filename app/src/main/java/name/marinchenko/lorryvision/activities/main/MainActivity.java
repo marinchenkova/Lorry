@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.net.wifi.ScanResult;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -24,6 +25,8 @@ import android.widget.CheckBox;
 import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.activities.info.AboutActivity;
@@ -39,6 +42,8 @@ import name.marinchenko.lorryvision.util.debug.LoginDialog;
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
 
+import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_SINGLE;
+import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_START;
 import static name.marinchenko.lorryvision.services.NetScanService.MESSENGER;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCANS;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCAN_SINGLE;
@@ -51,7 +56,8 @@ public class MainActivity
 
     private NetlistAdapter netlistAdapter;
     private Messenger mActivityMessenger;
-    private boolean mNetScanServiceBound;
+    private List<ScanResult> scanResults = new ArrayList<>();
+
 
     /*
      * Overridden methods
@@ -92,13 +98,12 @@ public class MainActivity
 
         final Intent netScanServiceIntent = new Intent(this, NetScanService.class);
         netScanServiceIntent.putExtra(MESSENGER, this.mActivityMessenger);
-        bindService(netScanServiceIntent, this.mNetScanServiceConnection, 0);
+        startService(netScanServiceIntent);
 
         Initializer.Main.initAutoconnectCheckbox(this);
         Initializer.Main.initAutoUpdate(this);
 
-        this.netlistAdapter.update(this);
-        this.netlistAdapter.notifyDataSetChanged();
+        onButtonUpdateClick(findViewById(R.id.netList_button_updateNets));
     }
 
     /**
@@ -107,10 +112,6 @@ public class MainActivity
     @Override
     protected void onPause() {
         super.onPause();
-        if (mNetScanServiceBound) {
-            unbindService(this.mNetScanServiceConnection);
-            mNetScanServiceBound = false;
-        }
     }
 
     /**
@@ -292,9 +293,7 @@ public class MainActivity
      */
     public void onButtonUpdateClick(final View view) {
         requestScanResults();
-
-        this.netlistAdapter.update(this, TestBase.getNetlistForListViewTest());
-        this.netlistAdapter.notifyDataSetChanged();
+        updateNetlist(this.scanResults);
     }
 
     public void onCheckboxAutoconnectClick(View view) {
@@ -305,29 +304,17 @@ public class MainActivity
         editor.apply();
     }
 
-
-    private void requestScanResults() {
-        final Message msg = new Message();
-        msg.what = MSG_SCAN_SINGLE;
-        try {
-            mActivityMessenger.send(msg);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
+    private void updateNetlist(final List<ScanResult> newList) {
+        this.netlistAdapter.update(this, newList);
+        this.netlistAdapter.notifyDataSetChanged();
     }
 
+    private void requestScanResults() {
+        final Intent scanRequest = new Intent(this, NetScanService.class);
+        scanRequest.setAction(ACTION_SCAN_SINGLE);
+        startService(scanRequest);
+    }
 
-    private ServiceConnection mNetScanServiceConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            mActivityMessenger = new Messenger(service);
-            mNetScanServiceBound = true;
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            mActivityMessenger = null;
-            mNetScanServiceBound = false;
-        }
-    };
 
     private static class IncomingHandler extends Handler {
         private final MainActivity mainActivity;
@@ -340,11 +327,8 @@ public class MainActivity
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_SCANS:
-                    Toast.makeText(
-                            mainActivity.getApplicationContext(),
-                            "Received",
-                            Toast.LENGTH_SHORT
-                    ).show();
+                    List<ScanResult> list = (List<ScanResult>) msg.obj;
+                    mainActivity.updateNetlist(list);
                     break;
 
                 default:
