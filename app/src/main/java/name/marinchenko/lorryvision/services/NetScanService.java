@@ -7,21 +7,20 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.RunnableFuture;
 
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.ScanResultParser;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
-import name.marinchenko.lorryvision.util.threading.ToastThread;
 
-import static name.marinchenko.lorryvision.services.NetLevelService.ACTION_DETECT_START;
+import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_LEVEL;
+import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_TIME;
+
 
 /**
  * Service for scanning Wi-Fi networks.
@@ -45,6 +44,8 @@ public class NetScanService extends Service {
 
     private Messenger mActivityMessenger;
     private WifiAgent wifiAgent;
+
+    private boolean lorriesNear = false;
 
 
     @Nullable
@@ -124,10 +125,9 @@ public class NetScanService extends Service {
     }
 
     private void startScan() {
-        if (this.scanTimer == null) {
-            this.scanTimer = new Timer();
-            this.scanTimer.schedule(new ScanTimerTask(), 0, SCAN_PERIOD_MS);
-        }
+        stopScan();
+        this.scanTimer = new Timer();
+        this.scanTimer.schedule(new ScanTimerTask(), 0, SCAN_PERIOD_MS);
     }
 
     private void stopScan() {
@@ -139,8 +139,22 @@ public class NetScanService extends Service {
 
     private void lorriesNear(final List<Net> lorries) {
         if (lorries.size() > 0) {
+            this.lorriesNear = true;
             startScan();
-        }
+            for (Net net : lorries) {
+                //TODO priority by earlier detection time
+                if (net.getLastTimeMeanLevel(STABLE_CONNECT_TIME) > STABLE_CONNECT_LEVEL) {
+                    connect(net.wrap());
+                    return;
+                }
+            }
+        } else this.lorriesNear = false;
+    }
+
+    private void connect(ArrayList<String> config) {
+        final Intent connectService = new Intent(this, ConnectService.class);
+        connectService.putStringArrayListExtra(ConnectService.KEY_CONFIG, config);
+        startService(connectService);
     }
 
 

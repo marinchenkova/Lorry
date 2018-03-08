@@ -3,6 +3,7 @@ package name.marinchenko.lorryvision.util.net;
 import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Net implementation.
@@ -32,6 +33,15 @@ public class Net implements Comparable<Net> {
         this.password = password;
         this.type = ScanResultParser.getType(ssid);
         this.level.add(signal);
+    }
+
+    public ArrayList<String> wrap() {
+        final ArrayList<String> config = new ArrayList<>();
+        config.add(this.ssid);
+        config.add(this.bssid);
+        config.add(this.caps);
+        config.add(this.password);
+        return config;
     }
 
     @Override
@@ -70,5 +80,14 @@ public class Net implements Comparable<Net> {
         this.detachMoment = this.level.size();
     }
 
-
+    public int getLastTimeMeanLevel(final int sec) {
+        if (this.level.size() < sec) return -100;
+        else {
+            int sum = 0;
+            for (int i = this.level.size() - 1; i > this.level.size() - sec - 1; i--) {
+                sum += this.level.get(i);
+            }
+            return sum / sec;
+        }
+    }
 }
