@@ -6,16 +6,20 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.RunnableFuture;
 
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.ScanResultParser;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
+import name.marinchenko.lorryvision.util.threading.ToastThread;
 
 /**
  * Service for scanning Wi-Fi networks.
@@ -23,25 +27,25 @@ import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 
 public class NetScanService extends Service {
 
-    public final static int MSG_SCAN_SINGLE = 1;
-    public final static int MSG_SCAN_START = 2;
-    public final static int MSG_SCAN_STOP = 3;
-    public final static int MSG_SCANS = 4;
+    public final static int MSG_SCANS = 0;
+    public final static int MSG_LORRIES_DETECTED = 1;
 
-    public final static String MESSENGER = "messenger";
+    public final static String MESSENGER_MAIN_ACTIVITY = "messenger_main_activity";
+
     public final static String ACTION_SCAN_SINGLE = "scan_single";
     public final static String ACTION_SCAN_START = "scan_start";
     public final static String ACTION_SCAN_STOP = "scan_stop";
 
     private final static int SCAN_PERIOD_MS = 1000;
 
-
-    private List<Net> nets = new ArrayList<>();
     private Timer scanTimer;
+    private ScanResultParser scanResultParser = new ScanResultParser();
 
     private Messenger mActivityMessenger;
     private WifiAgent wifiAgent;
 
+
+    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -54,23 +58,23 @@ public class NetScanService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (intent.getParcelableExtra(MESSENGER) != null)
-        this.mActivityMessenger = intent.getParcelableExtra(MESSENGER);
+        final Messenger activityMessenger = intent.getParcelableExtra(MESSENGER_MAIN_ACTIVITY);
+        if (activityMessenger != null) this.mActivityMessenger = activityMessenger;
 
-        final String action = intent.getAction() == null ? "" : intent.getAction();
-        switch (action) {
+        switch (intent.getAction() == null ? "" : intent.getAction()) {
             case ACTION_SCAN_SINGLE:
                 singleScan();
                 break;
 
             case ACTION_SCAN_START:
-                startScan(SCAN_PERIOD_MS);
+                startScan();
                 break;
 
             case ACTION_SCAN_STOP:
                 stopScan();
                 break;
         }
+
         return Service.START_STICKY;
     }
 
@@ -80,10 +84,12 @@ public class NetScanService extends Service {
         super.onDestroy();
     }
 
-    private void sendMessage(final Message msg) {
-        if (this.mActivityMessenger != null) {
+
+    private void sendMessage(final Messenger target,
+                             final Message msg) {
+        if (target != null) {
             try {
-                this.mActivityMessenger.send(msg);
+                target.send(msg);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -91,12 +97,17 @@ public class NetScanService extends Service {
     }
 
     private void updateAndSendScanResults() {
-        this.nets = ScanResultParser.getNets(this, this.wifiAgent.getScanResults());
-        Message msg = new Message();
-        msg.what = MSG_SCANS;
-        msg.obj = this.nets;
+        final List<Net> nets = this.scanResultParser.getNets(
+                this,
+                wifiAgent.getScanResults()
+        );
 
-        sendMessage(msg);
+        lorriesNear(this.scanResultParser.getLorries());
+
+        final Message msg = new Message();
+        msg.what = MSG_SCANS;
+        msg.obj = nets;
+        sendMessage(mActivityMessenger, msg);
     }
 
     private void singleScan() {
@@ -110,10 +121,11 @@ public class NetScanService extends Service {
         );
     }
 
-    private void startScan(final int period) {
-        stopScan();
-        this.scanTimer = new Timer();
-        this.scanTimer.schedule(new ScanTimerTask(), 0, period);
+    private void startScan() {
+        if (this.scanTimer == null) {
+            this.scanTimer = new Timer();
+            this.scanTimer.schedule(new ScanTimerTask(), 0, SCAN_PERIOD_MS);
+        }
     }
 
     private void stopScan() {
@@ -122,6 +134,13 @@ public class NetScanService extends Service {
             this.scanTimer = null;
         }
     }
+
+    private void lorriesNear(final List<Net> lorries) {
+        if (lorries.size() > 0) {
+            startScan();
+        }
+    }
+
 
     private class ScanTimerTask extends TimerTask {
         @Override

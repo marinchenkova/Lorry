@@ -57,7 +57,6 @@ public class NetlistAdapter extends BaseAdapter {
         final Net net = this.nets.get(i);
         final String netId = net.getSsid();
         final NetType type = net.getType();
-        final int signal = net.getSignal();
         final boolean wasConnected = net.wasConnected();
 
         final int list[] = new int[]{
@@ -83,7 +82,7 @@ public class NetlistAdapter extends BaseAdapter {
         textView.setSelected(netId.length() > ID_MAX_LENGTH);
 
         ((ImageView) view.findViewById(R.id.netList_imageView_signal))
-                .setImageResource(list[signal]);
+                .setImageResource(list[net.getSignalIcon()]);
 
         return view;
     }

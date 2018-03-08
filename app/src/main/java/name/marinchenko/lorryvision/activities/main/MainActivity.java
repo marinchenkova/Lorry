@@ -36,7 +36,7 @@ import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
 
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_SINGLE;
-import static name.marinchenko.lorryvision.services.NetScanService.MESSENGER;
+import static name.marinchenko.lorryvision.services.NetScanService.MESSENGER_MAIN_ACTIVITY;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCANS;
 
 public class MainActivity
@@ -62,13 +62,13 @@ public class MainActivity
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
+
         Initializer.Main.init(this);
         this.netlistAdapter = Initializer.Main.initNetlist(this);
         this.mActivityMessenger = new Messenger(new IncomingHandler(this));
 
         final Intent netScanServiceIntent = new Intent(this, NetScanService.class);
-        netScanServiceIntent.putExtra(MESSENGER, this.mActivityMessenger);
+        netScanServiceIntent.putExtra(MESSENGER_MAIN_ACTIVITY, this.mActivityMessenger);
         startService(netScanServiceIntent);
     }
 
@@ -163,14 +163,14 @@ public class MainActivity
      */
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        Intent videoIntent = new Intent(this, VideoActivity.class);
+        final Intent videoIntent = new Intent(this, VideoActivity.class);
         startActivity(videoIntent);
     }
 
 
     @Override
     public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-        LoginDialog dialog = new LoginDialog();
+        final LoginDialog dialog = new LoginDialog();
         final Bundle bundle = new Bundle();
 
         final String id = ((Net) adapterView.getItemAtPosition(i)).getSsid();
@@ -298,8 +298,7 @@ public class MainActivity
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_SCANS:
-                    List<Net> list = (List<Net>) msg.obj;
-                    mainActivity.updateNetlist(list);
+                    mainActivity.updateNetlist((List<Net>) msg.obj);
                     break;
 
                 default:

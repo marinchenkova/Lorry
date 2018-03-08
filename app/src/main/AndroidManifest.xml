@@ -72,6 +72,8 @@
         </activity>
 
         <service android:name=".services.NetScanService" />
+        <service android:name=".services.ConnectService" />
+        <service android:name=".services.NetLevelService" />
 
     </application>
 

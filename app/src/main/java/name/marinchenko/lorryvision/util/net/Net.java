@@ -13,7 +13,7 @@ public class Net implements Comparable<Net> {
     private final String caps;
     private final String password;
     private final NetType type;
-    private int signal;
+    private int level;
     private boolean connected = false;
 
     public Net(final String ssid,
@@ -26,12 +26,12 @@ public class Net implements Comparable<Net> {
         this.caps = caps;
         this.password = password;
         this.type = ScanResultParser.getType(ssid);
-        this.signal = signal;
+        this.level = signal;
     }
 
     @Override
     public int compareTo(@NonNull Net net) {
-        return (net.getSignal() - this.signal) +
+        return (net.getLevel() - this.level) +
                 (net.getType() == NetType.lorryNetwork ? 1000 : 0);
     }
 
@@ -41,9 +41,17 @@ public class Net implements Comparable<Net> {
     public String getPassword() { return this.password; }
     public NetType getType() { return this.type; }
 
-    public int getSignal() { return this.signal; }
+    public int getLevel() { return this.level; }
     public boolean wasConnected() { return this.connected; }
 
-    public void setSignal(final int signal) { this.signal = signal; }
+    public void setLevel(final int level) { this.level = level; }
     public void setConnected() { this.connected = true; }
+
+    public int getSignalIcon() {
+        if (this.level > -56) return 4;
+        else if (this.level > -67) return 3;
+        else if (this.level > -78) return 2;
+        else if (this.level > -89) return 1;
+        else return 0;
+    }
 }
