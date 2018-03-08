@@ -2,13 +2,10 @@ package name.marinchenko.lorryvision.util.net;
 
 import android.content.Context;
 import android.net.wifi.ScanResult;
-import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import name.marinchenko.lorryvision.util.debug.NetStore;
@@ -50,7 +47,7 @@ public class ScanResultParser {
     private boolean updateNet(final ScanResult scanResult) {
         for (Net net : this.nets) {
             if (net.getSsid().equals(scanResult.SSID)) {
-                net.setLevel(scanResult.level);
+                net.addLevel(scanResult.level);
                 return true;
             }
         }

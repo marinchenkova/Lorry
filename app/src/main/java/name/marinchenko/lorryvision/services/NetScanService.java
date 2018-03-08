@@ -21,6 +21,8 @@ import name.marinchenko.lorryvision.util.net.WifiAgent;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
+import static name.marinchenko.lorryvision.services.NetLevelService.ACTION_DETECT_START;
+
 /**
  * Service for scanning Wi-Fi networks.
  */

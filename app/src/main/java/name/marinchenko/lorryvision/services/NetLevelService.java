@@ -1,52 +1,55 @@
 package name.marinchenko.lorryvision.services;
 
+import android.app.IntentService;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
-import java.lang.ref.WeakReference;
-import java.util.List;
+import name.marinchenko.lorryvision.util.threading.ToastThread;
 
-import name.marinchenko.lorryvision.activities.main.MainActivity;
-import name.marinchenko.lorryvision.util.net.Net;
-
-import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCANS;
 
 /**
  * Service tracking lorry network signal level.
  */
 
-public class NetLevelService extends Service {
+public class NetLevelService extends IntentService {
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+    private static final String CONSTRUCTOR = "net_level_service";
+
+    public static final String ACTION_DETECT_START = "action_detect_start";
+    public static final String ACTION_DETECT_UPDATE = "action_detect_update";
+    public static final String ACTION_DETECT_STOP = "action_detect_stop";
+
+    public NetLevelService() {
+        super(CONSTRUCTOR);
     }
 
-
-
-
-    private static class IncomingHandler extends Handler {
-        private final NetLevelService netLevelService;
-
-        public IncomingHandler(NetLevelService netLevelService) {
-            this.netLevelService = new WeakReference<>(netLevelService).get();
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case MSG_SCANS:
-
+    @Override
+    protected void onHandleIntent(@Nullable Intent intent) {
+        if (intent != null) {
+            switch (intent.getAction() != null ? intent.getAction() : "") {
+                case ACTION_DETECT_START:
+                    ToastThread.postToastMessage(this, "start", Toast.LENGTH_SHORT);
                     break;
 
-                default:
-                    super.handleMessage(msg);
+                case ACTION_DETECT_UPDATE:
+                    ToastThread.postToastMessage(this, "update", Toast.LENGTH_SHORT);
+                    break;
+
+                case ACTION_DETECT_STOP:
+                    ToastThread.postToastMessage(this, "stop", Toast.LENGTH_SHORT);
+                    break;
             }
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        ToastThread.postToastMessage(this, "onDestroy", Toast.LENGTH_SHORT);
+        super.onDestroy();
     }
 }

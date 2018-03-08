@@ -2,6 +2,8 @@ package name.marinchenko.lorryvision.util.net;
 
 import android.support.annotation.NonNull;
 
+import java.util.ArrayList;
+
 /**
  * Net implementation.
  */
@@ -13,8 +15,11 @@ public class Net implements Comparable<Net> {
     private final String caps;
     private final String password;
     private final NetType type;
-    private int level;
+
+    private final ArrayList<Integer> level = new ArrayList<>();
     private boolean connected = false;
+    private int connectMoment = -1;
+    private int detachMoment = -1;
 
     public Net(final String ssid,
                final String bssid,
@@ -26,12 +31,12 @@ public class Net implements Comparable<Net> {
         this.caps = caps;
         this.password = password;
         this.type = ScanResultParser.getType(ssid);
-        this.level = signal;
+        this.level.add(signal);
     }
 
     @Override
     public int compareTo(@NonNull Net net) {
-        return (net.getLevel() - this.level) +
+        return (net.getLevel() - this.getLevel()) +
                 (net.getType() == NetType.lorryNetwork ? 1000 : 0);
     }
 
@@ -40,18 +45,30 @@ public class Net implements Comparable<Net> {
     public String getCaps() { return this.caps; }
     public String getPassword() { return this.password; }
     public NetType getType() { return this.type; }
-
-    public int getLevel() { return this.level; }
+    public int getLevel() { return this.level.get(this.level.size() - 1); }
+    public int getConnectMoment() { return this.connectMoment; }
+    public int getDetachMoment() { return this.detachMoment; }
     public boolean wasConnected() { return this.connected; }
 
-    public void setLevel(final int level) { this.level = level; }
-    public void setConnected() { this.connected = true; }
-
     public int getSignalIcon() {
-        if (this.level > -56) return 4;
-        else if (this.level > -67) return 3;
-        else if (this.level > -78) return 2;
-        else if (this.level > -89) return 1;
+        final int level = this.getLevel();
+        if (level > -56) return 4;
+        else if (level > -67) return 3;
+        else if (level > -78) return 2;
+        else if (level > -89) return 1;
         else return 0;
     }
+
+    public void addLevel(final int level) { this.level.add(level); }
+
+    public void connected() {
+        this.connected = true;
+        this.connectMoment = this.level.size();
+    }
+
+    public void detached() {
+        this.detachMoment = this.level.size();
+    }
+
+
 }
