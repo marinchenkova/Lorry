@@ -203,10 +203,8 @@ public class Initializer {
         }
 
         public static void initAutoconnectCheckbox(final MainActivity mainActivity) {
-            final SharedPreferences pref =
-                    PreferenceManager.getDefaultSharedPreferences(mainActivity);
             ((CheckBox) mainActivity.findViewById(R.id.netList_checkbox_autoconnect)).
-                    setChecked(pref.getBoolean(SettingsFragment.PREF_KEY_AUTOCONNECT, true));
+                    setChecked(isAutoConnect(mainActivity));
         }
     }
 

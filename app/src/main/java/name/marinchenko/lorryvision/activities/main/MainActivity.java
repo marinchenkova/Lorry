@@ -41,7 +41,6 @@ import name.marinchenko.lorryvision.util.threading.ToastThread;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTING;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_SSID;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_SINGLE;
-import static name.marinchenko.lorryvision.services.NetScanService.MESSENGER_MAIN_ACTIVITY;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_LORRIES_DETECTED;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCANS;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_СONNECT_START;
@@ -87,7 +86,7 @@ public class MainActivity
         super.onResume();
 
         Initializer.Main.initAutoconnectCheckbox(this);
-        Initializer.Main.initAutoUpdate(this, lorriesDetected);
+        Initializer.Main.initAutoUpdate(this, this.lorriesDetected);
     }
 
     /**

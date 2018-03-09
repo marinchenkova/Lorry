@@ -10,6 +10,7 @@ import android.support.annotation.StringRes;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -44,7 +45,11 @@ public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(this.wifiReceiver);
+        try {
+            unregisterReceiver(this.wifiReceiver);
+        } catch (IllegalArgumentException e) {
+            Log.w("MyLog", e.getMessage(), e);
+        }
     }
 
     @Override
