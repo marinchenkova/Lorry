@@ -20,9 +20,11 @@ import name.marinchenko.lorryvision.util.net.WifiConfig;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
+import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTED;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTING;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECT_AUTO;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_AUTO_CONNECT;
+import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_CONNECTED;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_SSID;
 import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_LEVEL;
 import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_TIME;
@@ -54,7 +56,7 @@ public class NetScanService extends Service {
 
     private boolean scanning = false;
     private boolean autoConnect = false;
-    private boolean lorriesNear = false;
+    private boolean connected = false;
     private String connectingNetSsid;
 
     @Nullable
@@ -89,6 +91,10 @@ public class NetScanService extends Service {
 
             case ACTION_CONNECTING:
                 this.connectingNetSsid = intent.getStringExtra(EXTRA_SSID);
+                break;
+
+            case ACTION_CONNECTED:
+                this.connected = intent.getBooleanExtra(EXTRA_CONNECTED, false);
                 break;
 
             case ACTION_CONNECT_AUTO:
@@ -128,13 +134,10 @@ public class NetScanService extends Service {
 
         final List<Net> lorries = this.netBuffer.getLorries();
         if (lorries.size() > 0 ) {
+            if (!this.scanning) startScan(SCAN_PERIOD_MS);
             lorriesNear(lorries);
-            this.lorriesNear = true;
             msg.arg1 = MSG_LORRIES_DETECTED;
-        } else {
-            this.lorriesNear = false;
-            msg.arg1 = -1;
-        }
+        } else msg.arg1 = -1;
 
         sendMessage(mActivityMessenger, msg);
     }
@@ -155,10 +158,12 @@ public class NetScanService extends Service {
     }
 
     private void startScan(final int delayMs) {
-        stopScan();
-        this.scanTimer = new Timer();
-        this.scanTimer.schedule(new ScanTimerTask(), delayMs, SCAN_PERIOD_MS);
-        this.scanning = true;
+        if (!this.scanning) {
+            stopScan();
+            this.scanTimer = new Timer();
+            this.scanTimer.schedule(new ScanTimerTask(), delayMs, SCAN_PERIOD_MS);
+            this.scanning = true;
+        }
     }
 
     private void stopScan() {
@@ -170,23 +175,33 @@ public class NetScanService extends Service {
     }
 
     private void lorriesNear(final List<Net> lorries) {
-        if (!this.scanning) startScan(SCAN_PERIOD_MS);
-        setConnectingNet(lorries);
+        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        setConnectingNet(lorries);
 
-        if (!WifiAgent.connected(this, WifiConfig.formatSsid(this.connectingNetSsid))) {
-            for (Net net : lorries) {
-                if (net.getSsid().equals(this.connectingNetSsid)) {
-                    if (connect(net)) return;
+                        if (!WifiAgent.connected(getApplicationContext(),
+                                WifiConfig.formatSsid(connectingNetSsid))) {
+
+                            for (Net net : lorries) {
+                                if (net.getSsid().equals(connectingNetSsid)) {
+                                    if (connect(net)) return;
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-        }
+        );
      }
 
     private void setConnectingNet(final List<Net> lorries) {
-        for (Net net : lorries) {
-            if (this.autoConnect && this.connectingNetSsid == null) {
-                this.connectingNetSsid = net.getSsid();
-                break;
+        if (this.connectingNetSsid == null && !this.connected) {
+            for (Net net : lorries) {
+                if (this.autoConnect) {
+                    this.connectingNetSsid = net.getSsid();
+                    break;
+                }
             }
         }
     }
