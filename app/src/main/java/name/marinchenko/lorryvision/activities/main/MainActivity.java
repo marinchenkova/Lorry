@@ -270,10 +270,10 @@ public class MainActivity
         drawer.closeDrawer(GravityCompat.START, animate);
     }
 
-    /*
-     * Public methods
-     */
 
+    /*
+     * Own methods
+     */
 
     /**
      * Click update nets button

@@ -41,7 +41,7 @@ public class NetScanService extends Service {
     private final static int SCAN_PERIOD_MS = 1000;
 
     private Timer scanTimer;
-    private NetBuffer scanResultParser = new NetBuffer();
+    private NetBuffer netBuffer = new NetBuffer();
 
     private Messenger mActivityMessenger;
     private WifiAgent wifiAgent;
@@ -77,6 +77,7 @@ public class NetScanService extends Service {
 
             case ACTION_SCAN_STOP:
                 stopScan();
+                removeScanResults();
                 break;
         }
 
@@ -102,15 +103,15 @@ public class NetScanService extends Service {
     }
 
     private void updateAndSendScanResults() {
-        final List<Net> nets = this.scanResultParser.getNets(
-                this,
-                wifiAgent.getScanResults()
+        final List<Net> nets = this.netBuffer.getNets(
+                wifiAgent.getScanResults(),
+                this
         );
         final Message msg = new Message();
         msg.what = MSG_SCANS;
         msg.obj = nets;
 
-        final List<Net> lorries = this.scanResultParser.getLorries();
+        final List<Net> lorries = this.netBuffer.getLorries();
         if (lorries.size() > 0 ) {
             lorriesNear(lorries);
             this.lorriesNear = true;
@@ -121,6 +122,10 @@ public class NetScanService extends Service {
         }
 
         sendMessage(mActivityMessenger, msg);
+    }
+
+    private void removeScanResults() {
+        this.netBuffer.removeAll();
     }
 
     private void singleScan() {
@@ -152,21 +157,26 @@ public class NetScanService extends Service {
     private void lorriesNear(final List<Net> lorries) {
         if (!this.scanning) { startScan(SCAN_PERIOD_MS); }
         for (Net net : lorries) {
-            if (net.getLastTimeMeanLevel(STABLE_CONNECT_TIME) > STABLE_CONNECT_LEVEL) {
-                connect(net.wrapConfig());
-                final Message msg = new Message();
-                msg.what = MSG_СONNECT_START;
-                sendMessage(this.mActivityMessenger, msg);
-                return;
-            }
+            if (connect(net)) return;
         }
     }
 
-    private void connect(final NetConfig config) {
-        final Intent connectService = new Intent(this, ConnectService.class);
-        connectService.setAction(ConnectService.ACTION_CONNECTING);
-        connectService.putStringArrayListExtra(ConnectService.KEY_CONFIG, config.asArrayList());
-        startService(connectService);
+    private boolean connect(final Net net) {
+        if (net.getLastTimeMeanLevel(STABLE_CONNECT_TIME) > STABLE_CONNECT_LEVEL) {
+            final Intent connectService = new Intent(this, ConnectService.class);
+            connectService.setAction(ConnectService.ACTION_CONNECTING);
+            connectService.putStringArrayListExtra(
+                    ConnectService.KEY_CONFIG,
+                    net.wrapConfig().asArrayList()
+            );
+            startService(connectService);
+
+            final Message msg = new Message();
+            msg.what = MSG_СONNECT_START;
+            sendMessage(this.mActivityMessenger, msg);
+            
+            return true;
+        } else return false;
     }
 
 

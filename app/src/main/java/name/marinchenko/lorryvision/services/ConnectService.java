@@ -50,11 +50,6 @@ public class ConnectService extends IntentService {
 
                 case ACTION_CONNECTED:
                     this.connecting = false;
-                    ToastThread.postToastMessage(
-                            this,
-                            "Connected",
-                            Toast.LENGTH_SHORT
-                    );
                     break;
             }
         }

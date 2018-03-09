@@ -25,10 +25,37 @@ public class NetBuffer {
 
     public NetBuffer() {}
 
-    public List<Net> getNets(final Context context,
-                             final List<ScanResult> results) {
-        for (ScanResult s : results) {
-            if (!updateNet(s)) {
+    public List<Net> getNets(final List<ScanResult> results,
+                             final Context context) {
+        updateAndRemoveNets(results);
+        addNets(results, context);
+
+        Collections.sort(this.nets);
+        this.lorries = getLorries(this.nets);
+
+        return this.nets;
+    }
+
+    private void updateAndRemoveNets(final List<ScanResult> results) {
+        out : for (int i = 0; i < this.nets.size(); i++) {
+            final Net net = this.nets.get(i);
+            for (ScanResult s : results) {
+                if (net.getSsid().equals(s.SSID)) {
+                    net.addLevel(s.level);
+                    continue out;
+                }
+            }
+            this.nets.remove(i);
+        }
+    }
+
+    private void addNets(final List<ScanResult> results,
+                         final Context context) {
+        out : for (ScanResult s : results) {
+            for (Net net : this.nets) {
+                if (net.getSsid().equals(s.SSID)) continue out;
+            }
+            if (!s.SSID.equals("")) {
                 final Net net = new Net(
                         s.SSID,
                         s.BSSID,
@@ -39,20 +66,6 @@ public class NetBuffer {
                 this.nets.add(net);
             }
         }
-        Collections.sort(this.nets);
-        this.lorries = getLorries(this.nets);
-
-        return this.nets;
-    }
-
-    private boolean updateNet(final ScanResult scanResult) {
-        for (Net net : this.nets) {
-            if (net.getSsid().equals(scanResult.SSID)) {
-                net.addLevel(scanResult.level);
-                return true;
-            }
-        }
-        return false;
     }
 
     private static List<Net> getLorries(final List<Net> nets) {
@@ -61,6 +74,11 @@ public class NetBuffer {
             if (net.getType() == NetType.lorryNetwork) lorries.add(net);
         }
         return lorries;
+    }
+
+    public void removeAll() {
+        this.nets.clear();
+        this.lorries.clear();
     }
 
     public List<Net> getLorries() { return this.lorries; }

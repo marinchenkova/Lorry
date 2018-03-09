@@ -76,12 +76,14 @@ public class Initializer {
         public static void initAutoUpdate(final MainActivity mainActivity,
                                           final boolean lorriesDetected) {
             final Button updateButton = mainActivity.findViewById(R.id.netList_button_updateNets);
-            if (lorriesDetected) {
+
+            if (lorriesDetected || isAutoUpdate(mainActivity)) {
                 updateButton.setEnabled(false);
-                updateButton.setText(R.string.netList_button_updateNets_lorries);
-            } else if (isAutoUpdate(mainActivity)) {
-                updateButton.setEnabled(false);
-                updateButton.setText(R.string.netList_button_updateNets_auto);
+                updateButton.setText(lorriesDetected
+                        ? R.string.netList_button_updateNets_lorries
+                        : R.string.netList_button_updateNets_auto
+                );
+
             } else {
                 updateButton.setEnabled(true);
                 updateButton.setText(R.string.netList_button_updateNets);
