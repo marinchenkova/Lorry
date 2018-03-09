@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.wifi.ScanResult;
 import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.widget.Toast;
 
@@ -80,7 +81,7 @@ public class WifiAgent {
                 new Runnable() {
                     @Override
                     public void run() {
-                        if (connected(context)) {
+                        if (connected(context, null)) {
                             final Intent connected = new Intent(context, ConnectService.class);
                             connected.setAction(ConnectService.ACTION_CONNECTED);
                             context.startService(connected);
@@ -90,15 +91,17 @@ public class WifiAgent {
         );
     }
 
-    public static boolean connected(final Context context) {
+    public static boolean connected(final Context context,
+                                    final String ssid) {
         final WifiManager wifiManager = (WifiManager) context
                 .getApplicationContext()
                 .getSystemService(Context.WIFI_SERVICE);
-        final SupplicantState state = wifiManager != null ? wifiManager
-                .getConnectionInfo()
-                .getSupplicantState() : null;
+        final WifiInfo info = wifiManager != null ? wifiManager.getConnectionInfo() : null;
+        final SupplicantState state = info != null ? info.getSupplicantState() : null;
 
-        return state != null && state == SupplicantState.COMPLETED;
+        return state != null
+                && state == SupplicantState.COMPLETED
+                && (ssid == null || ssid.equals(info.getSSID()));
     }
 
     public static class EnableWifiTimerTask extends TimerTask {

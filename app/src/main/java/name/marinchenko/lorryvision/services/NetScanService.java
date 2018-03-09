@@ -7,17 +7,23 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import name.marinchenko.lorryvision.util.net.Net;
-import name.marinchenko.lorryvision.util.net.NetConfig;
 import name.marinchenko.lorryvision.util.net.NetBuffer;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
+import name.marinchenko.lorryvision.util.net.WifiConfig;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
+import name.marinchenko.lorryvision.util.threading.ToastThread;
 
+import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTING;
+import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECT_AUTO;
+import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_AUTO_CONNECT;
+import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_SSID;
 import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_LEVEL;
 import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_TIME;
 
@@ -47,8 +53,9 @@ public class NetScanService extends Service {
     private WifiAgent wifiAgent;
 
     private boolean scanning = false;
+    private boolean autoConnect = false;
     private boolean lorriesNear = false;
-
+    private String connectingNetSsid;
 
     @Nullable
     @Override
@@ -78,6 +85,14 @@ public class NetScanService extends Service {
             case ACTION_SCAN_STOP:
                 stopScan();
                 removeScanResults();
+                break;
+
+            case ACTION_CONNECTING:
+                this.connectingNetSsid = intent.getStringExtra(EXTRA_SSID);
+                break;
+
+            case ACTION_CONNECT_AUTO:
+                this.autoConnect = intent.getBooleanExtra(EXTRA_AUTO_CONNECT, true);
                 break;
         }
 
@@ -155,9 +170,24 @@ public class NetScanService extends Service {
     }
 
     private void lorriesNear(final List<Net> lorries) {
-        if (!this.scanning) { startScan(SCAN_PERIOD_MS); }
+        if (!this.scanning) startScan(SCAN_PERIOD_MS);
+        setConnectingNet(lorries);
+
+        if (!WifiAgent.connected(this, WifiConfig.formatSsid(this.connectingNetSsid))) {
+            for (Net net : lorries) {
+                if (net.getSsid().equals(this.connectingNetSsid)) {
+                    if (connect(net)) return;
+                }
+            }
+        }
+     }
+
+    private void setConnectingNet(final List<Net> lorries) {
         for (Net net : lorries) {
-            if (connect(net)) return;
+            if (this.autoConnect && this.connectingNetSsid == null) {
+                this.connectingNetSsid = net.getSsid();
+                break;
+            }
         }
     }
 
@@ -166,7 +196,7 @@ public class NetScanService extends Service {
             final Intent connectService = new Intent(this, ConnectService.class);
             connectService.setAction(ConnectService.ACTION_CONNECTING);
             connectService.putStringArrayListExtra(
-                    ConnectService.KEY_CONFIG,
+                    ConnectService.EXTRA_CONFIG,
                     net.wrapConfig().asArrayList()
             );
             startService(connectService);
@@ -174,7 +204,8 @@ public class NetScanService extends Service {
             final Message msg = new Message();
             msg.what = MSG_СONNECT_START;
             sendMessage(this.mActivityMessenger, msg);
-            
+
+            this.connectingNetSsid = null;
             return true;
         } else return false;
     }

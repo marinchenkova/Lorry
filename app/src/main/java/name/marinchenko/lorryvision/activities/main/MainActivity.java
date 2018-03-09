@@ -38,6 +38,8 @@ import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
+import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTING;
+import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_SSID;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_SINGLE;
 import static name.marinchenko.lorryvision.services.NetScanService.MESSENGER_MAIN_ACTIVITY;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_LORRIES_DETECTED;
@@ -69,24 +71,10 @@ public class MainActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Initializer.Main.init(this);
         this.netlistAdapter = Initializer.Main.initNetlist(this);
         this.mActivityMessenger = new Messenger(new IncomingHandler(this));
 
-        final Intent netScanServiceIntent = new Intent(this, NetScanService.class);
-        netScanServiceIntent.putExtra(MESSENGER_MAIN_ACTIVITY, this.mActivityMessenger);
-        startService(netScanServiceIntent);
-
-        /*
-        final Intent intent = getIntent();
-        if (ConnectService.ACTION_CONNECTED.equals(intent.getAction())) {
-            ToastThread.postToastMessage(
-                    this,
-                    "Connecting to " + intent.getStringExtra(ConnectService.EXTRA_SSID),
-                    Toast.LENGTH_SHORT
-            );
-        }
-        */
+        Initializer.Main.init(this);
     }
 
     /**
@@ -180,8 +168,12 @@ public class MainActivity
      */
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        final Intent videoIntent = new Intent(this, VideoActivity.class);
-        startActivity(videoIntent);
+        final Net net = (Net) this.netlistAdapter.getItem(i);
+        final Intent connectingIntent = new Intent(this, NetScanService.class);
+
+        connectingIntent.setAction(ACTION_CONNECTING);
+        connectingIntent.putExtra(EXTRA_SSID, net.getSsid());
+        startService(connectingIntent);
     }
 
 
@@ -287,10 +279,15 @@ public class MainActivity
     public void onCheckboxAutoconnectClick(View view) {
         final SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean autoConnect = ((CheckBox) view).isChecked();
+
         SharedPreferences.Editor editor = pref.edit();
         editor.putBoolean(SettingsFragment.PREF_KEY_AUTOCONNECT, autoConnect);
         editor.apply();
+
+        Initializer.initAutoConnect(this);
     }
+
+    public Messenger getActivityMessenger() { return this.mActivityMessenger; }
 
     private void updateNetlist(final List<Net> newList) {
         this.netlistAdapter.update(this, newList);
@@ -318,6 +315,14 @@ public class MainActivity
                     mainActivity.updateNetlist((List<Net>) msg.obj);
                     mainActivity.lorriesDetected = (msg.arg1 == MSG_LORRIES_DETECTED);
                     Initializer.Main.initAutoUpdate(mainActivity, mainActivity.lorriesDetected);
+                    break;
+
+                case MSG_СONNECT_START:
+                    ToastThread.postToastMessage(
+                            mainActivity,
+                            "Connect started",
+                            Toast.LENGTH_SHORT
+                    );
                     break;
 
                 default:

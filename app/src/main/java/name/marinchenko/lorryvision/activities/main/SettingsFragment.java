@@ -58,5 +58,6 @@ public class SettingsFragment
         }
 
         Initializer.initNetScanService(getActivity().getApplicationContext());
+        Initializer.initAutoConnect(getActivity().getApplicationContext());
     }
 }

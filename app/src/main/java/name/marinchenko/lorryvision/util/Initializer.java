@@ -30,9 +30,13 @@ import name.marinchenko.lorryvision.util.net.NetlistAdapter;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 
+import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_AUTOCONNECT;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_AUTOUPDATE;
+import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECT_AUTO;
+import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_AUTO_CONNECT;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_START;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_STOP;
+import static name.marinchenko.lorryvision.services.NetScanService.MESSENGER_MAIN_ACTIVITY;
 
 
 /**
@@ -56,6 +60,27 @@ public class Initializer {
         );
     }
 
+    public static void initAutoConnect(final Context context) {
+        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final Intent serviceIntent = new Intent(context, NetScanService.class);
+                        final boolean auto = isAutoConnect(context);
+
+                        serviceIntent.setAction(ACTION_CONNECT_AUTO);
+                        serviceIntent.putExtra(EXTRA_AUTO_CONNECT, auto);
+                        context.startService(serviceIntent);
+                    }
+                }
+        );
+    }
+
+    public static boolean isAutoConnect(final Context context) {
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return prefs.getBoolean(PREF_KEY_AUTOCONNECT, true);
+    }
+
     public static boolean isAutoUpdate(final Context context) {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         return prefs.getBoolean(PREF_KEY_AUTOUPDATE, true);
@@ -70,7 +95,28 @@ public class Initializer {
                     false
             );
             initDrawer(mainActivity);
+            initActivityMessenger(mainActivity);
             initNetScanService(mainActivity);
+            initAutoConnect(mainActivity);
+        }
+
+        private static void initActivityMessenger(final MainActivity mainActivity) {
+            DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            final Intent netScanServiceIntent = new Intent(
+                                    mainActivity,
+                                    NetScanService.class
+                            );
+                            netScanServiceIntent.putExtra(
+                                    MESSENGER_MAIN_ACTIVITY,
+                                    mainActivity.getActivityMessenger()
+                            );
+                            mainActivity.startService(netScanServiceIntent);
+                        }
+                    }
+            );
         }
 
         public static void initAutoUpdate(final MainActivity mainActivity,

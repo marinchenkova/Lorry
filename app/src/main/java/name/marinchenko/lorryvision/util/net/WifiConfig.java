@@ -11,6 +11,10 @@ public class WifiConfig {
     private final static String WPA = "WPA";
     private final static String WEP = "WEP";
 
+    public static String formatSsid(final String ssid) {
+        return String.format("\"%s\"", ssid);
+    }
+
     /**
      * Configure Wi-Fi network.
      * @param net Wi-Fi network configuration
@@ -18,7 +22,7 @@ public class WifiConfig {
     public static WifiConfiguration configure(NetConfig net){
         WifiConfiguration config = new WifiConfiguration();
 
-        config.SSID = String.format("\"%s\"", net.getSsid());
+        config.SSID = formatSsid(net.getSsid());
         config.BSSID = net.getBssid();
         config.priority = 40;
 
