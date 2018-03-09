@@ -4,6 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.ScanResult;
+import android.net.wifi.SupplicantState;
+import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.widget.Toast;
 
@@ -12,6 +14,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import name.marinchenko.lorryvision.R;
+import name.marinchenko.lorryvision.services.ConnectService;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 
@@ -29,6 +32,22 @@ public class WifiAgent {
         this.wifiManager = (WifiManager) context
                 .getApplicationContext()
                 .getSystemService(Context.WIFI_SERVICE);
+    }
+
+    public static void connect(final Context context,
+                               final WifiConfiguration config) {
+        WifiManager wifiManager = (WifiManager) context
+                .getApplicationContext()
+                .getSystemService(Context.WIFI_SERVICE);
+
+        if (wifiManager != null) {
+            final int lastId = wifiManager.addNetwork(config);
+
+            wifiManager.saveConfiguration();
+            wifiManager.disconnect();
+            wifiManager.enableNetwork(lastId, true);
+            wifiManager.reconnect();
+        }
     }
 
     public static void enableWifi(final Context context,
@@ -56,6 +75,31 @@ public class WifiAgent {
         return this.wifiManager.getScanResults();
     }
 
+    private static void startConnected(final Context context) {
+        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (connected(context)) {
+                            final Intent connected = new Intent(context, ConnectService.class);
+                            connected.setAction(ConnectService.ACTION_CONNECTED);
+                            context.startService(connected);
+                        }
+                    }
+                }
+        );
+    }
+
+    public static boolean connected(final Context context) {
+        final WifiManager wifiManager = (WifiManager) context
+                .getApplicationContext()
+                .getSystemService(Context.WIFI_SERVICE);
+        final SupplicantState state = wifiManager != null ? wifiManager
+                .getConnectionInfo()
+                .getSupplicantState() : null;
+
+        return state != null && state == SupplicantState.COMPLETED;
+    }
 
     public static class EnableWifiTimerTask extends TimerTask {
         public final static int CNT_MAX = 3;
@@ -85,6 +129,7 @@ public class WifiAgent {
             WifiManager wifiManager = (WifiManager) context
                     .getApplicationContext()
                     .getSystemService(Context.WIFI_SERVICE);
+
             if (wifiManager != null && (force || !wifiManager.isWifiEnabled())) {
                 wifiManager.setWifiEnabled(true);
                 if (toast && cnt == 0) {
@@ -102,7 +147,12 @@ public class WifiAgent {
     public static class WifiReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            enableWifi(context, false, true);
+            enableWifi(
+                    context,
+                    false,
+                    true
+            );
+            startConnected(context);
         }
     }
 }

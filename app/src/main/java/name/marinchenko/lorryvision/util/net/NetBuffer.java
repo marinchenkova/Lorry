@@ -5,6 +5,7 @@ import android.net.wifi.ScanResult;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -15,14 +16,14 @@ import name.marinchenko.lorryvision.util.debug.NetStore;
  * ScanResult parsing class to produce Net object.
  */
 
-public class ScanResultParser {
+public class NetBuffer {
 
     private final static Pattern LORRY = Pattern.compile("LV-[0-9]{8}");
 
     private List<Net> nets = new ArrayList<>();
     private List<Net> lorries = new ArrayList<>();
 
-    public ScanResultParser() {}
+    public NetBuffer() {}
 
     public List<Net> getNets(final Context context,
                              final List<ScanResult> results) {
@@ -38,7 +39,7 @@ public class ScanResultParser {
                 this.nets.add(net);
             }
         }
-        Collections.sort(nets);
+        Collections.sort(this.nets);
         this.lorries = getLorries(this.nets);
 
         return this.nets;
@@ -74,5 +75,6 @@ public class ScanResultParser {
         //Matcher matcher = LORRY.matcher(name);
         //return matcher.matches() ? NetType.lorryNetwork : NetType.wifiNetwork;
         return name.equals("ASUS-9840") ? NetType.lorryNetwork : NetType.wifiNetwork;
+        //return NetType.wifiNetwork;
     }
 }

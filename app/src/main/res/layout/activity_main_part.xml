@@ -36,7 +36,7 @@
         android:layout_marginEnd="8dp"
         android:onClick="onButtonUpdateClick"
         android:text="@string/netList_button_updateNets"
-        android:textSize="26sp"
+        android:textSize="22sp"
         app:layout_constraintTop_toBottomOf="@+id/netList_checkbox_autoconnect" />
 
     <ListView

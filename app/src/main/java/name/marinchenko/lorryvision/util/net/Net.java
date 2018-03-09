@@ -3,19 +3,16 @@ package name.marinchenko.lorryvision.util.net;
 import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Net implementation.
  */
 
-public class Net implements Comparable<Net> {
+public class Net extends NetConfig
+                 implements Comparable<Net> {
 
-    private final String ssid;
-    private final String bssid;
-    private final String caps;
-    private final String password;
     private final NetType type;
+    private final long detectTime;
 
     private final ArrayList<Integer> level = new ArrayList<>();
     private boolean connected = false;
@@ -27,37 +24,43 @@ public class Net implements Comparable<Net> {
                final String caps,
                final String password,
                final int signal) {
-        this.ssid = ssid;
-        this.bssid = bssid;
-        this.caps = caps;
-        this.password = password;
-        this.type = ScanResultParser.getType(ssid);
+        super(ssid, bssid, caps, password);
+        this.type = NetBuffer.getType(ssid);
         this.level.add(signal);
+        this.detectTime = System.currentTimeMillis();
     }
 
-    public ArrayList<String> wrap() {
-        final ArrayList<String> config = new ArrayList<>();
-        config.add(this.ssid);
-        config.add(this.bssid);
-        config.add(this.caps);
-        config.add(this.password);
-        return config;
+    public NetConfig wrapConfig() {
+        return new NetConfig(
+                this.ssid,
+                this.bssid,
+                this.caps,
+                this.password
+        );
     }
 
     @Override
     public int compareTo(@NonNull Net net) {
-        return (net.getLevel() - this.getLevel()) +
-                (net.getType() == NetType.lorryNetwork ? 1000 : 0);
+        if (this.type == NetType.wifiNetwork && net.getType() == NetType.wifiNetwork) {
+            return this.ssid.compareToIgnoreCase(net.getSsid());
+
+        } else if (this.type == NetType.lorryNetwork && net.getType() == NetType.wifiNetwork) {
+            return -1;
+
+        } else if (this.type == NetType.wifiNetwork && net.getType() == NetType.lorryNetwork) {
+            return 1;
+
+        } else {
+            return Integer.signum(net.getLevel() - this.getLevel()) +
+                    2 * Long.signum(this.detectTime - net.getDetectTime());
+        }
     }
 
-    public String getSsid() { return this.ssid; }
-    public String getBssid() { return this.bssid; }
-    public String getCaps() { return this.caps; }
-    public String getPassword() { return this.password; }
     public NetType getType() { return this.type; }
     public int getLevel() { return this.level.get(this.level.size() - 1); }
     public int getConnectMoment() { return this.connectMoment; }
     public int getDetachMoment() { return this.detachMoment; }
+    public long getDetectTime() { return this.detectTime; }
     public boolean wasConnected() { return this.connected; }
 
     public int getSignalIcon() {
@@ -69,6 +72,17 @@ public class Net implements Comparable<Net> {
         else return 0;
     }
 
+    public int getLastTimeMeanLevel(final int sec) {
+        if (this.level.size() <= sec) return -100;
+        else {
+            int sum = 0;
+            for (int i = this.level.size() - 1; i > this.level.size() - sec - 1; i--) {
+                sum += this.level.get(i);
+            }
+            return sum / sec;
+        }
+    }
+
     public void addLevel(final int level) { this.level.add(level); }
 
     public void connected() {
@@ -78,16 +92,5 @@ public class Net implements Comparable<Net> {
 
     public void detached() {
         this.detachMoment = this.level.size();
-    }
-
-    public int getLastTimeMeanLevel(final int sec) {
-        if (this.level.size() < sec) return -100;
-        else {
-            int sum = 0;
-            for (int i = this.level.size() - 1; i > this.level.size() - sec - 1; i--) {
-                sum += this.level.get(i);
-            }
-            return sum / sec;
-        }
     }
 }

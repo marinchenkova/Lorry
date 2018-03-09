@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
+import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -28,16 +29,20 @@ import name.marinchenko.lorryvision.activities.info.AboutActivity;
 import name.marinchenko.lorryvision.activities.info.InstructionActivity;
 import name.marinchenko.lorryvision.activities.info.LicenseActivity;
 import name.marinchenko.lorryvision.activities.web.FeedbackActivity;
+import name.marinchenko.lorryvision.services.ConnectService;
 import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.Initializer;
 import name.marinchenko.lorryvision.util.debug.LoginDialog;
 import name.marinchenko.lorryvision.util.debug.NetStore;
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
+import name.marinchenko.lorryvision.util.threading.ToastThread;
 
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_SINGLE;
 import static name.marinchenko.lorryvision.services.NetScanService.MESSENGER_MAIN_ACTIVITY;
+import static name.marinchenko.lorryvision.services.NetScanService.MSG_LORRIES_DETECTED;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCANS;
+import static name.marinchenko.lorryvision.services.NetScanService.MSG_СONNECT_START;
 
 public class MainActivity
         extends ToolbarAppCompatActivity
@@ -48,6 +53,7 @@ public class MainActivity
     private NetlistAdapter netlistAdapter;
     private Messenger mActivityMessenger;
     private List<Net> nets = new ArrayList<>();
+    private boolean lorriesDetected = false;
 
 
     /*
@@ -70,6 +76,17 @@ public class MainActivity
         final Intent netScanServiceIntent = new Intent(this, NetScanService.class);
         netScanServiceIntent.putExtra(MESSENGER_MAIN_ACTIVITY, this.mActivityMessenger);
         startService(netScanServiceIntent);
+
+        /*
+        final Intent intent = getIntent();
+        if (ConnectService.ACTION_CONNECTED.equals(intent.getAction())) {
+            ToastThread.postToastMessage(
+                    this,
+                    "Connecting to " + intent.getStringExtra(ConnectService.EXTRA_SSID),
+                    Toast.LENGTH_SHORT
+            );
+        }
+        */
     }
 
     /**
@@ -82,7 +99,7 @@ public class MainActivity
         super.onResume();
 
         Initializer.Main.initAutoconnectCheckbox(this);
-        Initializer.Main.initAutoUpdate(this);
+        Initializer.Main.initAutoUpdate(this, lorriesDetected);
     }
 
     /**
@@ -299,6 +316,8 @@ public class MainActivity
             switch (msg.what) {
                 case MSG_SCANS:
                     mainActivity.updateNetlist((List<Net>) msg.obj);
+                    mainActivity.lorriesDetected = (msg.arg1 == MSG_LORRIES_DETECTED);
+                    Initializer.Main.initAutoUpdate(mainActivity, mainActivity.lorriesDetected);
                     break;
 
                 default:

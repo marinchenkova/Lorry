@@ -28,7 +28,8 @@
     <!-- Nets -->
     <string name="netList_checkbox_autoconnect">Autoconnect to net</string>
     <string name="netList_button_updateNets">UPDATE NETS LIST</string>
-    <string name="netList_button_updateNets_auto">AUTO UPDATING NETS LIST</string>
+    <string name="netList_button_updateNets_auto">AUTOUPDATING NETS LIST</string>
+    <string name="netList_button_updateNets_lorries">LORRY NETS DETECTED</string>
     <string name="netList_item_textView_netId">&lt;unknown network&gt;</string>
     <string name="netList_item_imageView_type">Type of network</string>
     <string name="netList_item_imageView_signal">Signal strength</string>

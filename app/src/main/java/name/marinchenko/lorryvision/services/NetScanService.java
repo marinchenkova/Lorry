@@ -8,13 +8,13 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import name.marinchenko.lorryvision.util.net.Net;
-import name.marinchenko.lorryvision.util.net.ScanResultParser;
+import name.marinchenko.lorryvision.util.net.NetConfig;
+import name.marinchenko.lorryvision.util.net.NetBuffer;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 
@@ -30,6 +30,7 @@ public class NetScanService extends Service {
 
     public final static int MSG_SCANS = 0;
     public final static int MSG_LORRIES_DETECTED = 1;
+    public final static int MSG_СONNECT_START = 2;
 
     public final static String MESSENGER_MAIN_ACTIVITY = "messenger_main_activity";
 
@@ -40,11 +41,12 @@ public class NetScanService extends Service {
     private final static int SCAN_PERIOD_MS = 1000;
 
     private Timer scanTimer;
-    private ScanResultParser scanResultParser = new ScanResultParser();
+    private NetBuffer scanResultParser = new NetBuffer();
 
     private Messenger mActivityMessenger;
     private WifiAgent wifiAgent;
 
+    private boolean scanning = false;
     private boolean lorriesNear = false;
 
 
@@ -70,7 +72,7 @@ public class NetScanService extends Service {
                 break;
 
             case ACTION_SCAN_START:
-                startScan();
+                startScan(0);
                 break;
 
             case ACTION_SCAN_STOP:
@@ -104,12 +106,20 @@ public class NetScanService extends Service {
                 this,
                 wifiAgent.getScanResults()
         );
-
-        lorriesNear(this.scanResultParser.getLorries());
-
         final Message msg = new Message();
         msg.what = MSG_SCANS;
         msg.obj = nets;
+
+        final List<Net> lorries = this.scanResultParser.getLorries();
+        if (lorries.size() > 0 ) {
+            lorriesNear(lorries);
+            this.lorriesNear = true;
+            msg.arg1 = MSG_LORRIES_DETECTED;
+        } else {
+            this.lorriesNear = false;
+            msg.arg1 = -1;
+        }
+
         sendMessage(mActivityMessenger, msg);
     }
 
@@ -124,36 +134,38 @@ public class NetScanService extends Service {
         );
     }
 
-    private void startScan() {
+    private void startScan(final int delayMs) {
         stopScan();
         this.scanTimer = new Timer();
-        this.scanTimer.schedule(new ScanTimerTask(), 0, SCAN_PERIOD_MS);
+        this.scanTimer.schedule(new ScanTimerTask(), delayMs, SCAN_PERIOD_MS);
+        this.scanning = true;
     }
 
     private void stopScan() {
         if (this.scanTimer != null) {
             this.scanTimer.cancel();
             this.scanTimer = null;
+            this.scanning = false;
         }
     }
 
     private void lorriesNear(final List<Net> lorries) {
-        if (lorries.size() > 0) {
-            this.lorriesNear = true;
-            startScan();
-            for (Net net : lorries) {
-                //TODO priority by earlier detection time
-                if (net.getLastTimeMeanLevel(STABLE_CONNECT_TIME) > STABLE_CONNECT_LEVEL) {
-                    connect(net.wrap());
-                    return;
-                }
+        if (!this.scanning) { startScan(SCAN_PERIOD_MS); }
+        for (Net net : lorries) {
+            if (net.getLastTimeMeanLevel(STABLE_CONNECT_TIME) > STABLE_CONNECT_LEVEL) {
+                connect(net.wrapConfig());
+                final Message msg = new Message();
+                msg.what = MSG_СONNECT_START;
+                sendMessage(this.mActivityMessenger, msg);
+                return;
             }
-        } else this.lorriesNear = false;
+        }
     }
 
-    private void connect(ArrayList<String> config) {
+    private void connect(final NetConfig config) {
         final Intent connectService = new Intent(this, ConnectService.class);
-        connectService.putStringArrayListExtra(ConnectService.KEY_CONFIG, config);
+        connectService.setAction(ConnectService.ACTION_CONNECTING);
+        connectService.putStringArrayListExtra(ConnectService.KEY_CONFIG, config.asArrayList());
         startService(connectService);
     }
 
