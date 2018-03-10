@@ -17,8 +17,8 @@ import java.util.TimerTask;
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.services.ConnectService;
 import name.marinchenko.lorryvision.services.NetScanService;
-import name.marinchenko.lorryvision.util.threading.ToastThread;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
+import name.marinchenko.lorryvision.util.threading.ToastThread;
 
 /**
  * Class with Wi-Fi operations methods.

@@ -11,9 +11,6 @@ import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.activities.ToolbarAppCompatActivity;
 import name.marinchenko.lorryvision.util.Initializer;
 
-import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_FOREGROUND_MAIN;
-import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_FOREGROUND_SETTINGS;
-
 public class SettingsActivity
         extends ToolbarAppCompatActivity {
 
@@ -21,8 +18,6 @@ public class SettingsActivity
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-
-        this.prefActivityTag = PREF_KEY_FOREGROUND_SETTINGS;
 
         Initializer.Settings.init(this);
 

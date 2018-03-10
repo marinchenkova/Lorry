@@ -24,7 +24,6 @@ import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNEC
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECT_AUTO;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_DISCONNECTED;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_AUTO_CONNECT;
-import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_CONNECTED;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_SSID;
 import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_LEVEL;
 import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_TIME;
@@ -143,6 +142,9 @@ public class NetScanService extends Service {
         if (lorries.size() > 0 ) {
             if (!this.scanning) startScan(SCAN_PERIOD_MS);
             if (!this.connected) lorriesNear(lorries);
+            if (!this.connected && !this.connecting && this.netBuffer.lorriesChanged()) {
+                //Notificator.notifyNetDetected(this);
+            }
             this.lorriesNear = true;
             msg.arg1 = MSG_LORRIES_DETECTED;
         } else {
@@ -224,7 +226,7 @@ public class NetScanService extends Service {
                 && !this.connecting) {
             startConnectService(net);
 
-            Notificator.notifyNetDetected(this);
+            if (this.autoConnect) Notificator.notifyNetDetected(this);
 
             final Message msg = new Message();
             msg.what = MSG_СONNECT_START;

@@ -8,10 +8,6 @@ import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.util.Initializer;
 
@@ -22,24 +18,6 @@ import name.marinchenko.lorryvision.util.Initializer;
 public class SettingsFragment
         extends PreferenceFragment
         implements SharedPreferences.OnSharedPreferenceChangeListener {
-
-    public final static String PREF_KEY_FOREGROUND_MAIN = "pref_key_foreground_main";
-    public final static String PREF_KEY_FOREGROUND_SETTINGS = "pref_key_foreground_main";
-    public final static String PREF_KEY_FOREGROUND_VIDEO = "pref_key_foreground_main";
-    public final static String PREF_KEY_FOREGROUND_ABOUT = "pref_key_foreground_main";
-    public final static String PREF_KEY_FOREGROUND_INSTRUCTION = "pref_key_foreground_main";
-    public final static String PREF_KEY_FOREGROUND_LICENSE = "pref_key_foreground_main";
-    public final static String PREF_KEY_FOREGROUND_FEEDBACK = "pref_key_foreground_main";
-
-    public final static List<String> PREF_KEY_FOREGROUND = Arrays.asList(
-                    PREF_KEY_FOREGROUND_MAIN,
-                    PREF_KEY_FOREGROUND_SETTINGS,
-                    PREF_KEY_FOREGROUND_VIDEO,
-                    PREF_KEY_FOREGROUND_ABOUT,
-                    PREF_KEY_FOREGROUND_INSTRUCTION,
-                    PREF_KEY_FOREGROUND_LICENSE,
-                    PREF_KEY_FOREGROUND_FEEDBACK
-    );
 
     public final static String PREF_KEY_LANGUAGE = "pref_key_language";
 

@@ -5,7 +5,6 @@ import android.net.wifi.ScanResult;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -22,6 +21,7 @@ public class NetBuffer {
 
     private List<Net> nets = new ArrayList<>();
     private List<Net> lorries = new ArrayList<>();
+    private List<Net> previousLorries = new ArrayList<>();
 
     public NetBuffer() {}
 
@@ -31,6 +31,8 @@ public class NetBuffer {
         addNets(results, context);
 
         Collections.sort(this.nets);
+
+        this.previousLorries = this.lorries;
         this.lorries = getLorries(this.nets);
 
         return this.nets;
@@ -82,6 +84,17 @@ public class NetBuffer {
     }
 
     public List<Net> getLorries() { return this.lorries; }
+
+    public boolean lorriesChanged() {
+        if (this.lorries.size() == 0) return false;
+        if (this.lorries.size() != this.previousLorries.size()) return true;
+        for (int i = 0; i < this.lorries.size(); i++) {
+            if (!this.lorries.get(i).getSsid().equals(this.previousLorries.get(i).getSsid())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public static String getPassword(final Context context,
                                      final String ssid) {

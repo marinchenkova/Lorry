@@ -1,25 +1,15 @@
 package name.marinchenko.lorryvision.activities.main;
 
-import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Messenger;
-import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
@@ -39,7 +29,6 @@ import name.marinchenko.lorryvision.activities.info.AboutActivity;
 import name.marinchenko.lorryvision.activities.info.InstructionActivity;
 import name.marinchenko.lorryvision.activities.info.LicenseActivity;
 import name.marinchenko.lorryvision.activities.web.FeedbackActivity;
-import name.marinchenko.lorryvision.services.ConnectService;
 import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.Initializer;
 import name.marinchenko.lorryvision.util.debug.LoginDialog;
@@ -48,10 +37,6 @@ import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
-import static android.app.Notification.DEFAULT_VIBRATE;
-import static android.support.v4.app.NotificationCompat.CATEGORY_ALARM;
-import static android.support.v4.app.NotificationCompat.VISIBILITY_PUBLIC;
-import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_FOREGROUND_MAIN;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTING;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_SSID;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_SINGLE;
@@ -86,7 +71,6 @@ public class MainActivity
 
         this.netlistAdapter = Initializer.Main.initNetlist(this);
         this.mActivityMessenger = new Messenger(new IncomingHandler(this));
-        this.prefActivityTag = PREF_KEY_FOREGROUND_MAIN;
 
         Initializer.Main.init(this);
     }
@@ -110,14 +94,6 @@ public class MainActivity
     @Override
     protected void onRestart() {
         super.onRestart();
-    }
-
-    /**
-     * Activity lifecycle: after onPause() when activity is no longer visible
-     */
-    @Override
-    protected void onStop() {
-        super.onStop();
     }
 
     /**

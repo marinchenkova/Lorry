@@ -25,7 +25,6 @@ import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
 import static android.app.Notification.DEFAULT_ALL;
-import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_FOREGROUND_MAIN;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_JUMP;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_NOTIFICATION_ALLOWED;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_SOUND;
@@ -50,22 +49,26 @@ public class Notificator {
                 new Runnable() {
                     @Override
                     public void run() {
-                        if (Initializer.isAppBackground(context)) {
+                        if (isAppBackground(context)) {
                             if (notificationAllowed(context)) {
                                 showNotification(context, createNotification(context));
                                 final boolean on = screenOn(context);
 
                                 if (jumpToAppAllowed(context)) {
-                                    if (!on || !isLocked(context))
-                                        jumpToApp(context);
+                                    if (!on || !isLocked(context)) {
+                                        jumpToApp(context, NOTIFICATION_NET_FOUND_JUMP_DELAY);
+                                    }
                                 }
                             }
 
                         } else jumpToMainActivity(context);
-
                     }
                 }
         );
+    }
+
+    private static boolean isAppBackground(final Context context) {
+        return true;
     }
 
     public static void removeNetDetectedNotification(final Context context) {
@@ -84,7 +87,8 @@ public class Notificator {
         );
     }
 
-    private static void jumpToApp(final Context context) {
+    private static void jumpToApp(final Context context,
+                                  final int delay) {
         final Timer timer = new Timer();
         final TimerTask jumpTask = new TimerTask() {
             @Override
@@ -105,17 +109,17 @@ public class Notificator {
             }
         };
 
-        timer.schedule(jumpTask, NOTIFICATION_NET_FOUND_JUMP_DELAY);
+        timer.schedule(jumpTask, delay);
     }
 
     private static void jumpToMainActivity(final Context context) {
-        if (!Initializer.isActivityForeground(context, PREF_KEY_FOREGROUND_MAIN)) {
-            ToastThread.postToastMessage(context, "mainActivity paused", Toast.LENGTH_SHORT);
+        ToastThread.postToastMessage(context, "jump", Toast.LENGTH_SHORT);
 
-            Intent mainActivityIntent = new Intent(context, MainActivity.class);
-            mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            context.startActivity(mainActivityIntent);
-        }
+        /*
+        Intent mainActivityIntent = new Intent(context, MainActivity.class);
+        mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(mainActivityIntent);
+        */
     }
 
     private static boolean isLocked(final Context context) {
