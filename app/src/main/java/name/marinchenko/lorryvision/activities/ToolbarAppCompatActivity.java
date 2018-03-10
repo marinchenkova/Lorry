@@ -1,5 +1,6 @@
 package name.marinchenko.lorryvision.activities;
 
+import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -17,6 +18,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import name.marinchenko.lorryvision.util.Notificator;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
@@ -42,6 +44,7 @@ public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
         WifiAgent.enableWifi(this, false, true);
         final IntentFilter filter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         registerReceiver(this.wifiReceiver, filter);
+        Notificator.removeNetDetectedNotification(this);
     }
 
     @Override

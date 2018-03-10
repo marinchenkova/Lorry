@@ -16,6 +16,7 @@ import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.activities.main.MainActivity;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 
+import static android.app.Notification.DEFAULT_ALL;
 import static android.app.Notification.DEFAULT_VIBRATE;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_JUMP;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_NETFOUND;
@@ -25,6 +26,14 @@ import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF
  */
 
 public class Notificator {
+
+    private static final int NOTIFICATION_NET_FOUND_ID = 100;
+
+    private static final String NOTIFICATION_CHANNEL_ID = "lorry_vision_notification";
+    private static final String NOTIFICATION_CHANNEL_TITLE = "LorryVision notification";
+
+    private static final String TAG_WAKELOCK = "tag_wakelock";
+    private static final String TAG_WAKELOCK_CPU = "tag_wakelock_cpu";
 
     public static void notifyNetDetected(final Context context) {
         DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
@@ -41,6 +50,22 @@ public class Notificator {
 
                         } else jumpToMainActivity();
 
+                    }
+                }
+        );
+    }
+
+    public static void removeNetDetectedNotification(final Context context) {
+        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final NotificationManager mNotificationManager = (NotificationManager)
+                                context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+                        if (mNotificationManager != null) {
+                            mNotificationManager.cancel(NOTIFICATION_NET_FOUND_ID);
+                        }
                     }
                 }
         );
@@ -70,9 +95,9 @@ public class Notificator {
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    "notify_001",
-                    "Channel human readable title",
+            final NotificationChannel channel = new NotificationChannel(
+                    NOTIFICATION_CHANNEL_ID,
+                    NOTIFICATION_CHANNEL_TITLE,
                     NotificationManager.IMPORTANCE_DEFAULT);
             if (mNotificationManager != null) {
                 mNotificationManager.createNotificationChannel(channel);
@@ -80,7 +105,7 @@ public class Notificator {
         }
 
         if (mNotificationManager != null) {
-            mNotificationManager.notify(0, notification);
+            mNotificationManager.notify(NOTIFICATION_NET_FOUND_ID, notification);
         }
     }
 
@@ -99,21 +124,15 @@ public class Notificator {
 
         final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
                 context.getApplicationContext(),
-                "notify_001"
+                NOTIFICATION_CHANNEL_ID
         );
-
-        NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
-        bigText.bigText("Style big text");
-        bigText.setBigContentTitle("Style big content title");
-        bigText.setSummaryText("Style summary text");
 
         mBuilder.setContentIntent(pendingIntent);
         mBuilder.setSmallIcon(R.mipmap.ic_launcher_round);
-        mBuilder.setContentTitle("Content title");
-        mBuilder.setContentText("Content text");
+        mBuilder.setContentTitle(context.getString(R.string.notif_net_found_content_title));
+        mBuilder.setContentText(context.getString(R.string.notif_net_found_content_text));
         mBuilder.setPriority(Notification.PRIORITY_MAX);
-        mBuilder.setStyle(bigText);
-        mBuilder.setDefaults(DEFAULT_VIBRATE);
+        mBuilder.setDefaults(DEFAULT_ALL);
 
         return mBuilder.build();
     }
@@ -125,12 +144,12 @@ public class Notificator {
                     PowerManager.FULL_WAKE_LOCK
                             | PowerManager.ACQUIRE_CAUSES_WAKEUP
                             | PowerManager.ON_AFTER_RELEASE,
-                    "MyLock"
+                    TAG_WAKELOCK
             );
             wakeLock.acquire(0);
             PowerManager.WakeLock wakeLockCpu = pm.newWakeLock(
                     PowerManager.PARTIAL_WAKE_LOCK,
-                    "MyCpuLock"
+                    TAG_WAKELOCK_CPU
             );
 
             wakeLockCpu.acquire(0);

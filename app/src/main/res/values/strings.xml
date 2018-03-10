@@ -3,6 +3,12 @@
     <string name="app_version">Version</string>
 
 
+    <!-- Notifications -->
+    <string name="notif_net_found_content_title">LorryVision: network detected</string>
+    <string name="notif_net_found_content_text">Click to go to the app</string>
+
+
+
     <!-- MainActivity -->
     <!-- Drawer -->
     <string name="drawer_item_home">Home</string>
@@ -38,10 +44,12 @@
     <string name="toast_enabling_wifi">Enabling Wi-Fi service…</string>
 
 
+
     <!-- VideoActivity -->
     <string name="activity_video">Camera translation</string>
     <string name="activity_video_imageExample">Example</string>
     <string name="activity_video_button_exit">EXIT</string>
+
 
 
     <!-- InstructionActivity -->
@@ -52,6 +60,7 @@
     </string>
 
 
+
     <!-- AboutActivity -->
     <string name="activity_about">About</string>
     <string name="activity_about_textview">
@@ -60,12 +69,14 @@
     </string>
 
 
+
     <!-- LicenseActivity -->
     <string name="activity_license">License agreement</string>
     <string name="activity_license_textview">
         License here\n<!--
         -->Stub
     </string>
+
 
 
     <!-- SettingsActivity -->
