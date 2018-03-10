@@ -1,18 +1,30 @@
 package name.marinchenko.lorryvision.services;
 
+import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.os.PowerManager;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.widget.Toast;
 
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import name.marinchenko.lorryvision.R;
+import name.marinchenko.lorryvision.activities.main.MainActivity;
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetBuffer;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
@@ -20,6 +32,10 @@ import name.marinchenko.lorryvision.util.net.WifiConfig;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
+import static android.app.Notification.DEFAULT_VIBRATE;
+import static android.support.v4.app.NotificationCompat.CATEGORY_ALARM;
+import static android.support.v4.app.NotificationCompat.CATEGORY_CALL;
+import static android.support.v4.app.NotificationCompat.VISIBILITY_PUBLIC;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTED;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTING;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECT_AUTO;
@@ -221,6 +237,8 @@ public class NetScanService extends Service {
             );
             startService(connectService);
 
+            showNotification();
+
             final Message msg = new Message();
             msg.what = MSG_СONNECT_START;
             sendMessage(this.mActivityMessenger, msg);
@@ -228,6 +246,67 @@ public class NetScanService extends Service {
             this.connectingNetSsid = null;
             return true;
         } else return false;
+    }
+
+    private void showNotification() {
+        final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
+                getApplicationContext(),
+                "notify_001"
+        );
+
+        final Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        final PendingIntent pendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                intent,
+                0
+        );
+
+        NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
+        bigText.bigText("Style big text");
+        bigText.setBigContentTitle("Style big content title");
+        bigText.setSummaryText("Style summary text");
+
+        mBuilder.setContentIntent(pendingIntent);
+        mBuilder.setSmallIcon(R.mipmap.ic_launcher_round);
+        mBuilder.setContentTitle("Content title");
+        mBuilder.setContentText("Content text");
+        mBuilder.setPriority(Notification.PRIORITY_MAX);
+        mBuilder.setStyle(bigText);
+        mBuilder.setDefaults(DEFAULT_VIBRATE);
+
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    "notify_001",
+                    "Channel human readable title",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            if (mNotificationManager != null) {
+                mNotificationManager.createNotificationChannel(channel);
+            }
+        }
+
+        mNotificationManager.notify(0, mBuilder.build());
+
+        final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        if (!pm.isScreenOn()) {
+            PowerManager.WakeLock wakeLock = pm.newWakeLock(
+                    PowerManager.FULL_WAKE_LOCK
+                            |PowerManager.ACQUIRE_CAUSES_WAKEUP
+                            |PowerManager.ON_AFTER_RELEASE,
+                    "MyLock"
+            );
+            wakeLock.acquire(0);
+            PowerManager.WakeLock wakeLockCpu = pm.newWakeLock(
+                    PowerManager.PARTIAL_WAKE_LOCK,
+                    "MyCpuLock"
+            );
+
+            wakeLockCpu.acquire(0);
+        }
     }
 
 

@@ -15,8 +15,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import name.marinchenko.lorryvision.util.net.WifiAgent;
+import name.marinchenko.lorryvision.util.threading.ToastThread;
 
 public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
 
