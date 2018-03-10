@@ -51,6 +51,7 @@ import name.marinchenko.lorryvision.util.threading.ToastThread;
 import static android.app.Notification.DEFAULT_VIBRATE;
 import static android.support.v4.app.NotificationCompat.CATEGORY_ALARM;
 import static android.support.v4.app.NotificationCompat.VISIBILITY_PUBLIC;
+import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_FOREGROUND_MAIN;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTING;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_SSID;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_SINGLE;
@@ -85,6 +86,7 @@ public class MainActivity
 
         this.netlistAdapter = Initializer.Main.initNetlist(this);
         this.mActivityMessenger = new Messenger(new IncomingHandler(this));
+        this.prefActivityTag = PREF_KEY_FOREGROUND_MAIN;
 
         Initializer.Main.init(this);
     }

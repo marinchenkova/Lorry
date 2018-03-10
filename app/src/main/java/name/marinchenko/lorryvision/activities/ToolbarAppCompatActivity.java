@@ -18,6 +18,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import name.marinchenko.lorryvision.util.Initializer;
 import name.marinchenko.lorryvision.util.Notificator;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
@@ -25,6 +26,7 @@ import name.marinchenko.lorryvision.util.threading.ToastThread;
 public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
 
     private BroadcastReceiver wifiReceiver = new WifiAgent.WifiReceiver();
+    protected String prefActivityTag;
 
     public void initToolbar(@IdRes final int toolbarId,
                             @StringRes final int titleId,
@@ -45,17 +47,21 @@ public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
         final IntentFilter filter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
         registerReceiver(this.wifiReceiver, filter);
         Notificator.removeNetDetectedNotification(this);
+        Initializer.initForeground(this, this.prefActivityTag, true);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        Initializer.initForeground(this, this.prefActivityTag, false);
         try {
             unregisterReceiver(this.wifiReceiver);
         } catch (IllegalArgumentException e) {
             Log.w("MyLog", e.getMessage(), e);
         }
     }
+
+    protected String getPrefActivityTag() { return this.prefActivityTag; }
 
     @Override
     public boolean onSupportNavigateUp() {

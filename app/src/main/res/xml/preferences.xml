@@ -50,7 +50,7 @@
             android:defaultValue="true" />
 
         <CheckBoxPreference
-            android:key="pref_key_netfound"
+            android:key="pref_key_notification_allowed"
             android:summary="@string/pref_group_notif_netfound_summary"
             android:title="@string/pref_group_notif_netfound_title"
             android:defaultValue="true" />

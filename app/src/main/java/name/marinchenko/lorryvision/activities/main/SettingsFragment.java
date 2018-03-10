@@ -7,7 +7,10 @@ import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
-import android.widget.BaseAdapter;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.util.Initializer;
@@ -20,13 +23,32 @@ public class SettingsFragment
         extends PreferenceFragment
         implements SharedPreferences.OnSharedPreferenceChangeListener {
 
+    public final static String PREF_KEY_FOREGROUND_MAIN = "pref_key_foreground_main";
+    public final static String PREF_KEY_FOREGROUND_SETTINGS = "pref_key_foreground_main";
+    public final static String PREF_KEY_FOREGROUND_VIDEO = "pref_key_foreground_main";
+    public final static String PREF_KEY_FOREGROUND_ABOUT = "pref_key_foreground_main";
+    public final static String PREF_KEY_FOREGROUND_INSTRUCTION = "pref_key_foreground_main";
+    public final static String PREF_KEY_FOREGROUND_LICENSE = "pref_key_foreground_main";
+    public final static String PREF_KEY_FOREGROUND_FEEDBACK = "pref_key_foreground_main";
+
+    public final static List<String> PREF_KEY_FOREGROUND = Arrays.asList(
+                    PREF_KEY_FOREGROUND_MAIN,
+                    PREF_KEY_FOREGROUND_SETTINGS,
+                    PREF_KEY_FOREGROUND_VIDEO,
+                    PREF_KEY_FOREGROUND_ABOUT,
+                    PREF_KEY_FOREGROUND_INSTRUCTION,
+                    PREF_KEY_FOREGROUND_LICENSE,
+                    PREF_KEY_FOREGROUND_FEEDBACK
+    );
+
     public final static String PREF_KEY_LANGUAGE = "pref_key_language";
 
     public final static String PREF_KEY_AUTOCONNECT = "pref_key_autoconnect";
     public final static String PREF_KEY_AUTOUPDATE = "pref_key_autoupdate";
     public final static String PREF_KEY_DISPLAY_GENERAL = "pref_key_display_general";
 
-    public final static String PREF_KEY_NETFOUND = "pref_key_netfound";
+    public final static String PREF_KEY_SOUND = "pref_key_sound";
+    public final static String PREF_KEY_NOTIFICATION_ALLOWED = "pref_key_notification_allowed";
     public final static String PREF_KEY_JUMP = "pref_key_jump";
 
     @Override
@@ -65,9 +87,9 @@ public class SettingsFragment
             pref.setSummary(listPref.getEntry());
         }
 
-        if (key.equals(PREF_KEY_NETFOUND)) {
+        if (key.equals(PREF_KEY_NOTIFICATION_ALLOWED)) {
             final CheckBoxPreference jump = (CheckBoxPreference) findPreference(PREF_KEY_JUMP);
-            if (!sharedPreferences.getBoolean(PREF_KEY_NETFOUND, true)) {
+            if (!sharedPreferences.getBoolean(PREF_KEY_NOTIFICATION_ALLOWED, true)) {
                 sharedPreferences
                         .edit()
                         .putBoolean(PREF_KEY_JUMP, false)

@@ -1,25 +1,34 @@
 package name.marinchenko.lorryvision.util;
 
+import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.widget.Toast;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.activities.main.MainActivity;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
+import name.marinchenko.lorryvision.util.threading.ToastThread;
 
 import static android.app.Notification.DEFAULT_ALL;
-import static android.app.Notification.DEFAULT_VIBRATE;
+import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_FOREGROUND_MAIN;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_JUMP;
-import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_NETFOUND;
+import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_NOTIFICATION_ALLOWED;
+import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_SOUND;
 
 /**
  * Static methods for creating and showing notifications.
@@ -28,6 +37,7 @@ import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF
 public class Notificator {
 
     private static final int NOTIFICATION_NET_FOUND_ID = 100;
+    private static final int NOTIFICATION_NET_FOUND_JUMP_DELAY = 1000;
 
     private static final String NOTIFICATION_CHANNEL_ID = "lorry_vision_notification";
     private static final String NOTIFICATION_CHANNEL_TITLE = "LorryVision notification";
@@ -40,15 +50,18 @@ public class Notificator {
                 new Runnable() {
                     @Override
                     public void run() {
-                        if (appIsMinimized()) {
+                        if (Initializer.isAppBackground(context)) {
                             if (notificationAllowed(context)) {
                                 showNotification(context, createNotification(context));
-                                screenOn(context);
+                                final boolean on = screenOn(context);
+
+                                if (jumpToAppAllowed(context)) {
+                                    if (!on || !isLocked(context))
+                                        jumpToApp(context);
+                                }
                             }
 
-                            if (jumpToAppAllowed(context)) jumpToApp();
-
-                        } else jumpToMainActivity();
+                        } else jumpToMainActivity(context);
 
                     }
                 }
@@ -71,22 +84,59 @@ public class Notificator {
         );
     }
 
-    private static void jumpToApp() {}
+    private static void jumpToApp(final Context context) {
+        final Timer timer = new Timer();
+        final TimerTask jumpTask = new TimerTask() {
+            @Override
+            public void run() {
+                final PackageManager manager = context.getPackageManager();
+                try {
+                    Intent intent = manager.getLaunchIntentForPackage(
+                            context.getApplicationContext().getPackageName()
+                    );
 
-    private static void jumpToMainActivity() {}
-
-    private static boolean appIsMinimized() { return true; }
+                    if (intent == null) return;
 
 
+                    intent.addCategory(Intent.CATEGORY_LAUNCHER);
+                    context.startActivity(intent);
+
+                } catch (ActivityNotFoundException e) {}
+            }
+        };
+
+        timer.schedule(jumpTask, NOTIFICATION_NET_FOUND_JUMP_DELAY);
+    }
+
+    private static void jumpToMainActivity(final Context context) {
+        if (!Initializer.isActivityForeground(context, PREF_KEY_FOREGROUND_MAIN)) {
+            ToastThread.postToastMessage(context, "mainActivity paused", Toast.LENGTH_SHORT);
+
+            Intent mainActivityIntent = new Intent(context, MainActivity.class);
+            mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            context.startActivity(mainActivityIntent);
+        }
+    }
+
+    private static boolean isLocked(final Context context) {
+        final KeyguardManager keyguardManager = (KeyguardManager)
+                context.getSystemService(Context.KEYGUARD_SERVICE);
+        return keyguardManager != null && keyguardManager.inKeyguardRestrictedInputMode();
+    }
 
     private static boolean notificationAllowed(final Context context) {
         final SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-        return pref.getBoolean(PREF_KEY_NETFOUND, true);
+        return pref.getBoolean(PREF_KEY_NOTIFICATION_ALLOWED, true);
     }
 
     private static boolean jumpToAppAllowed(final Context context) {
         final SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
         return pref.getBoolean(PREF_KEY_JUMP, true);
+    }
+
+    private static boolean soundAllowed(final Context context) {
+        final SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        return pref.getBoolean(PREF_KEY_SOUND, true);
     }
 
     private static void showNotification(final Context context,
@@ -132,12 +182,12 @@ public class Notificator {
         mBuilder.setContentTitle(context.getString(R.string.notif_net_found_content_title));
         mBuilder.setContentText(context.getString(R.string.notif_net_found_content_text));
         mBuilder.setPriority(Notification.PRIORITY_MAX);
-        mBuilder.setDefaults(DEFAULT_ALL);
+        if (soundAllowed(context)) mBuilder.setDefaults(DEFAULT_ALL);
 
         return mBuilder.build();
     }
 
-    private static void screenOn(final Context context) {
+    private static boolean screenOn(final Context context) {
         final PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         if (!pm.isScreenOn()) {
             PowerManager.WakeLock wakeLock = pm.newWakeLock(
@@ -153,6 +203,8 @@ public class Notificator {
             );
 
             wakeLockCpu.acquire(0);
+            return false;
         }
+        return true;
     }
 }

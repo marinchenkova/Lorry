@@ -33,6 +33,7 @@ import name.marinchenko.lorryvision.util.threading.ToastThread;
 
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_AUTOCONNECT;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_AUTOUPDATE;
+import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_FOREGROUND;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECT_AUTO;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_AUTO_CONNECT;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_START;
@@ -75,6 +76,32 @@ public class Initializer {
                     }
                 }
         );
+    }
+
+    public static void initForeground(final Context context,
+                                      final String prefKey,
+                                      final boolean foreground) {
+        final SharedPreferences prefs =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        prefs.edit()
+                .putBoolean(prefKey, foreground)
+                .apply();
+    }
+
+    public static boolean isAppBackground(final Context context) {
+        final SharedPreferences prefs =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        for (String key : PREF_KEY_FOREGROUND) {
+            if (prefs.getBoolean(key, false)) return false;
+        }
+        return true;
+    }
+
+    public static boolean isActivityForeground(final Context context,
+                                               final String prefTag) {
+        final SharedPreferences prefs =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        return prefs.getBoolean(prefTag, false);
     }
 
     public static boolean isAutoConnect(final Context context) {

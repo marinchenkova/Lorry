@@ -11,7 +11,7 @@
         style="@style/Toolbar" />
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/activity_video_imageView"
         android:layout_width="0dip"
         android:layout_height="0dip"
         android:layout_marginBottom="8dp"
@@ -20,17 +20,17 @@
         android:layout_marginTop="8dp"
         android:contentDescription="@string/activity_video_imageExample"
         app:srcCompat="@drawable/video_example"
-        app:layout_constraintBottom_toTopOf="@+id/button"
+        app:layout_constraintBottom_toTopOf="@+id/activity_video_button_disconnect"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/activity_video_toolbar" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/activity_video_button_disconnect"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:text="@string/activity_video_button_exit"
+        android:text="@string/activity_video_button_disconnect"
         android:textSize="40sp"
         android:onClick="onButtonExitClick"
         app:layout_constraintBottom_toBottomOf="parent"

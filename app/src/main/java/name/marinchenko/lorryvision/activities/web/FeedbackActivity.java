@@ -19,6 +19,9 @@ import name.marinchenko.lorryvision.util.feedback.EmailValidator;
 import name.marinchenko.lorryvision.util.feedback.FeedbackAgent;
 import name.marinchenko.lorryvision.util.feedback.FeedbackMessage;
 
+import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_FOREGROUND_FEEDBACK;
+import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_FOREGROUND_MAIN;
+
 public class FeedbackActivity extends ToolbarAppCompatActivity {
 
     private Drawable iconDisabled;
@@ -38,7 +41,7 @@ public class FeedbackActivity extends ToolbarAppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_feedback);
-
+        this.prefActivityTag = PREF_KEY_FOREGROUND_FEEDBACK;
         Initializer.Feedback.init(this);
 
         this.editTextEmail = findViewById(R.id.activity_feedback_editText_email);
