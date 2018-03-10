@@ -57,6 +57,7 @@ public class NetScanService extends Service {
     private boolean scanning = false;
     private boolean autoConnect = false;
     private boolean connected = false;
+    private boolean lorriesNear = false;
     private String connectingNetSsid;
 
     @Nullable
@@ -136,8 +137,12 @@ public class NetScanService extends Service {
         if (lorries.size() > 0 ) {
             if (!this.scanning) startScan(SCAN_PERIOD_MS);
             lorriesNear(lorries);
+            this.lorriesNear = true;
             msg.arg1 = MSG_LORRIES_DETECTED;
-        } else msg.arg1 = -1;
+        } else {
+            msg.arg1 = -1;
+            this.lorriesNear = false;
+        }
 
         sendMessage(mActivityMessenger, msg);
     }
@@ -167,7 +172,7 @@ public class NetScanService extends Service {
     }
 
     private void stopScan() {
-        if (this.scanTimer != null) {
+        if (!this.lorriesNear && this.scanTimer != null) {
             this.scanTimer.cancel();
             this.scanTimer = null;
             this.scanning = false;

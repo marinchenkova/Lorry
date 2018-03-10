@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import name.marinchenko.lorryvision.BuildConfig;
 import name.marinchenko.lorryvision.R;
@@ -29,6 +30,7 @@ import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
+import name.marinchenko.lorryvision.util.threading.ToastThread;
 
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_AUTOCONNECT;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_AUTOUPDATE;
