@@ -23,11 +23,13 @@ public class ConnectService extends IntentService {
 
     private final static String CONSTRUCTOR = "connect_service";
     private final static int PERIOD_TRY_CONNECTED = 500;
-    private final static int CNT_TRY_CONNECTED = 6;
+    private final static int PERIOD_TRY_DISCONNECTED = 2000;
+    private final static int CNT_TRY_CONNECTED = 20;
 
 
     public final static String ACTION_CONNECTING = "action_connecting";
     public final static String ACTION_CONNECTED = "action_connected";
+    public final static String ACTION_DISCONNECTED = "action_disconnected";
     public final static String ACTION_CONNECT_AUTO = "action_connect_auto";
 
     public final static String EXTRA_CONFIG = "extra_config";
@@ -62,51 +64,72 @@ public class ConnectService extends IntentService {
         final NetConfig netConfig = new NetConfig(configList);
         if (!this.connecting
                 && configList != null
-                && !WifiAgent.connected(this, WifiConfig.formatSsid(netConfig.getSsid()))) {
+                && !WifiAgent.connectedTo(this, WifiConfig.formatSsid(netConfig.getSsid()))) {
 
             this.connecting = true;
             final WifiConfiguration wifiConfig = netConfig.getWifiConfiguration();
-            WifiAgent.connect(this, wifiConfig);
+
+            WifiAgent.connect(getApplicationContext(), wifiConfig);
 
             final Timer timer = new Timer();
-            final TimerTask videoTask = new VideoTask(timer, netConfig.getSsid());
+            final TimerTask videoTask = new VideoTask(netConfig.getSsid());
             timer.schedule(videoTask, 0, PERIOD_TRY_CONNECTED);
         }
     }
 
-    private void toVideoActivity(final String netSsid) {
+    private void toVideoActivity(final String ssid) {
+        sendConnectionState(ACTION_CONNECTED);
+        final Timer timer = new Timer();
+        final TimerTask stabilityTask = new StabilityTask(ssid);
+        timer.schedule(stabilityTask, 0, PERIOD_TRY_DISCONNECTED);
         ToastThread.postToastMessage(
                 this,
-                "Connected to " + netSsid,
+                "Connected to " + ssid,
                 Toast.LENGTH_SHORT
         );
+    }
+
+    private void sendConnectionState(final String action) {
+        final Intent connected = new Intent(this, NetScanService.class);
+        connected.setAction(action);
+        startService(connected);
     }
 
 
     private class VideoTask extends TimerTask {
         private final String ssid;
-        private Timer timer;
-        private int cnt = CNT_TRY_CONNECTED;
+        private int cnt = 0;
 
-        public VideoTask(final Timer timer,
-                         final String ssid) {
+        public VideoTask(final String ssid) {
             this.ssid = ssid;
-            this.timer = timer;
         }
 
         @Override
         public void run() {
-            if (cnt > 0) {
-                if (WifiAgent.connected(getApplicationContext(), WifiConfig.formatSsid(ssid))) {
-                    toVideoActivity(ssid);
-                    timer.cancel();
-                    timer = null;
+            if (cnt < CNT_TRY_CONNECTED) {
+                if (WifiAgent.connectedTo(getApplicationContext(), WifiConfig.formatSsid(ssid))) {
+                    toVideoActivity(ssid + ", cnt=" + String.valueOf(cnt));
+                    this.cancel();
                 }
-            } else {
-                timer.cancel();
-                timer = null;
+
+            } else this.cancel();
+
+            cnt++;
+        }
+    }
+
+    private class StabilityTask extends TimerTask {
+        private final String ssid;
+
+        public StabilityTask(final String ssid) {
+            this.ssid = ssid;
+        }
+
+        @Override
+        public void run() {
+            if (!WifiAgent.connectedTo(getApplicationContext(), WifiConfig.formatSsid(ssid))) {
+                sendConnectionState(ACTION_DISCONNECTED);
             }
-            cnt--;
         }
     }
 }

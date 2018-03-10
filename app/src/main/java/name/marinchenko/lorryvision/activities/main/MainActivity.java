@@ -286,7 +286,6 @@ public class MainActivity
     public void onButtonUpdateClick(final View view) {
         requestScanResults();
         updateNetlist(this.nets);
-        //createNotification();
     }
 
     public void onCheckboxAutoconnectClick(View view) {
@@ -331,8 +330,6 @@ public class MainActivity
                     break;
 
                 case MSG_СONNECT_START:
-
-
                     ToastThread.postToastMessage(
                             mainActivity,
                             "Connect started",

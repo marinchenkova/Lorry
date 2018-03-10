@@ -16,6 +16,7 @@ import java.util.TimerTask;
 
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.services.ConnectService;
+import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 
@@ -25,31 +26,14 @@ import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 
 public class WifiAgent {
 
-    private final Context context;
     private final WifiManager wifiManager;
 
     public WifiAgent(Context context) {
-        this.context = context;
         this.wifiManager = (WifiManager) context
                 .getApplicationContext()
                 .getSystemService(Context.WIFI_SERVICE);
     }
 
-    public static void connect(final Context context,
-                               final WifiConfiguration config) {
-        WifiManager wifiManager = (WifiManager) context
-                .getApplicationContext()
-                .getSystemService(Context.WIFI_SERVICE);
-
-        if (wifiManager != null) {
-            final int lastId = wifiManager.addNetwork(config);
-
-            wifiManager.saveConfiguration();
-            wifiManager.disconnect();
-            wifiManager.enableNetwork(lastId, true);
-            wifiManager.reconnect();
-        }
-    }
 
     public static void enableWifi(final Context context,
                                   final boolean toast,
@@ -58,9 +42,13 @@ public class WifiAgent {
                 new Runnable() {
                     @Override
                     public void run() {
+                        WifiManager wifiManager = (WifiManager) context
+                                .getApplicationContext()
+                                .getSystemService(Context.WIFI_SERVICE);
+
                         final Timer timer = new Timer();
                         final TimerTask enableWifiTimerTask = new EnableWifiTimerTask(
-                                timer,
+                                wifiManager,
                                 context,
                                 toast,
                                 force
@@ -76,23 +64,24 @@ public class WifiAgent {
         return this.wifiManager.getScanResults();
     }
 
-    private static void startConnected(final Context context) {
-        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        if (connected(context, null)) {
-                            final Intent connected = new Intent(context, ConnectService.class);
-                            connected.setAction(ConnectService.ACTION_CONNECTED);
-                            context.startService(connected);
-                        }
-                    }
-                }
-        );
+    public static void connect(final Context context,
+                                final WifiConfiguration config) {
+        WifiManager wifiManager = (WifiManager) context
+                .getApplicationContext()
+                .getSystemService(Context.WIFI_SERVICE);
+
+        if (wifiManager != null) {
+            final int lastId = wifiManager.addNetwork(config);
+
+            wifiManager.saveConfiguration();
+            wifiManager.disconnect();
+            wifiManager.enableNetwork(lastId, true);
+            wifiManager.reconnect();
+        }
     }
 
-    public static boolean connected(final Context context,
-                                    final String ssid) {
+    public static boolean connectedTo(final Context context,
+                                      final String ssid) {
         final WifiManager wifiManager = (WifiManager) context
                 .getApplicationContext()
                 .getSystemService(Context.WIFI_SERVICE);
@@ -104,34 +93,47 @@ public class WifiAgent {
                 && (ssid == null || ssid.equals(info.getSSID()));
     }
 
-    public static class EnableWifiTimerTask extends TimerTask {
+    private static void notifyConnected(final Context context) {
+        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (connectedTo(context, null)) {
+                            final Intent connected = new Intent(context, ConnectService.class);
+                            connected.setAction(ConnectService.ACTION_CONNECTED);
+                            context.startService(connected);
+                        } else {
+                            final Intent disconnected = new Intent(context, NetScanService.class);
+                            disconnected.setAction(ConnectService.ACTION_DISCONNECTED);
+                            context.startService(disconnected);
+                        }
+                    }
+                }
+        );
+    }
+
+    private static class EnableWifiTimerTask extends TimerTask {
         public final static int CNT_MAX = 3;
         public final static int PERIOD = 500;
 
-        private Timer timer;
+        private final WifiManager wifiManager;
         private final Context context;
         private final boolean toast;
         private final boolean force;
         private int cnt = 0;
 
-        public EnableWifiTimerTask(final Timer timer,
+        public EnableWifiTimerTask(final WifiManager wifiManager,
                                    final Context context,
                                    final boolean toast,
                                    final boolean force) {
-            this.timer = timer;
+            this.wifiManager = wifiManager;
             this.context = context;
             this.toast = toast;
             this.force = force;
         }
         @Override
         public void run() {
-            if (cnt > CNT_MAX && timer != null) {
-                timer.cancel();
-                timer = null;
-            }
-            WifiManager wifiManager = (WifiManager) context
-                    .getApplicationContext()
-                    .getSystemService(Context.WIFI_SERVICE);
+            if (cnt > CNT_MAX) this.cancel();
 
             if (wifiManager != null && (force || !wifiManager.isWifiEnabled())) {
                 wifiManager.setWifiEnabled(true);
@@ -150,12 +152,8 @@ public class WifiAgent {
     public static class WifiReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
-            enableWifi(
-                    context,
-                    false,
-                    true
-            );
-            startConnected(context);
+            enableWifi(context, false, true);
+            notifyConnected(context);
         }
     }
 }

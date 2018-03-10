@@ -1,44 +1,28 @@
 package name.marinchenko.lorryvision.services;
 
-import android.app.AlarmManager;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
-import android.os.PowerManager;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
-import android.widget.Toast;
 
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import name.marinchenko.lorryvision.R;
-import name.marinchenko.lorryvision.activities.main.MainActivity;
+import name.marinchenko.lorryvision.util.Notificator;
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetBuffer;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 import name.marinchenko.lorryvision.util.net.WifiConfig;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
-import name.marinchenko.lorryvision.util.threading.ToastThread;
 
-import static android.app.Notification.DEFAULT_VIBRATE;
-import static android.support.v4.app.NotificationCompat.CATEGORY_ALARM;
-import static android.support.v4.app.NotificationCompat.CATEGORY_CALL;
-import static android.support.v4.app.NotificationCompat.VISIBILITY_PUBLIC;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTED;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTING;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECT_AUTO;
+import static name.marinchenko.lorryvision.services.ConnectService.ACTION_DISCONNECTED;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_AUTO_CONNECT;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_CONNECTED;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_SSID;
@@ -72,6 +56,7 @@ public class NetScanService extends Service {
 
     private boolean scanning = false;
     private boolean autoConnect = false;
+    private boolean connecting = false;
     private boolean connected = false;
     private boolean lorriesNear = false;
     private String connectingNetSsid;
@@ -111,7 +96,12 @@ public class NetScanService extends Service {
                 break;
 
             case ACTION_CONNECTED:
-                this.connected = intent.getBooleanExtra(EXTRA_CONNECTED, false);
+                this.connecting = false;
+                this.connected = true;
+                break;
+
+            case ACTION_DISCONNECTED:
+                this.connected = false;
                 break;
 
             case ACTION_CONNECT_AUTO:
@@ -152,7 +142,7 @@ public class NetScanService extends Service {
         final List<Net> lorries = this.netBuffer.getLorries();
         if (lorries.size() > 0 ) {
             if (!this.scanning) startScan(SCAN_PERIOD_MS);
-            lorriesNear(lorries);
+            if (!this.connected) lorriesNear(lorries);
             this.lorriesNear = true;
             msg.arg1 = MSG_LORRIES_DETECTED;
         } else {
@@ -202,12 +192,14 @@ public class NetScanService extends Service {
                     public void run() {
                         setConnectingNet(lorries);
 
-                        if (!WifiAgent.connected(getApplicationContext(),
+                        if (!WifiAgent.connectedTo(getApplicationContext(),
                                 WifiConfig.formatSsid(connectingNetSsid))) {
-
                             for (Net net : lorries) {
                                 if (net.getSsid().equals(connectingNetSsid)) {
-                                    if (connect(net)) return;
+                                    if (connect(net)) {
+                                        connecting = true;
+                                        return;
+                                    }
                                 }
                             }
                         }
@@ -217,7 +209,7 @@ public class NetScanService extends Service {
      }
 
     private void setConnectingNet(final List<Net> lorries) {
-        if (this.connectingNetSsid == null && !this.connected) {
+        if (this.connectingNetSsid == null && !this.connecting) {
             for (Net net : lorries) {
                 if (this.autoConnect) {
                     this.connectingNetSsid = net.getSsid();
@@ -228,16 +220,11 @@ public class NetScanService extends Service {
     }
 
     private boolean connect(final Net net) {
-        if (net.getLastTimeMeanLevel(STABLE_CONNECT_TIME) > STABLE_CONNECT_LEVEL) {
-            final Intent connectService = new Intent(this, ConnectService.class);
-            connectService.setAction(ConnectService.ACTION_CONNECTING);
-            connectService.putStringArrayListExtra(
-                    ConnectService.EXTRA_CONFIG,
-                    net.wrapConfig().asArrayList()
-            );
-            startService(connectService);
+        if (net.getLastTimeMeanLevel(STABLE_CONNECT_TIME) > STABLE_CONNECT_LEVEL
+                && !this.connecting) {
+            startConnectService(net);
 
-            showNotification();
+            Notificator.notifyNetDetected(this);
 
             final Message msg = new Message();
             msg.what = MSG_СONNECT_START;
@@ -248,67 +235,15 @@ public class NetScanService extends Service {
         } else return false;
     }
 
-    private void showNotification() {
-        final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
-                getApplicationContext(),
-                "notify_001"
+    private void startConnectService(final Net net) {
+        final Intent connectService = new Intent(this, ConnectService.class);
+        connectService.setAction(ConnectService.ACTION_CONNECTING);
+        connectService.putStringArrayListExtra(
+                ConnectService.EXTRA_CONFIG,
+                net.wrapConfig().asArrayList()
         );
-
-        final Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-        final PendingIntent pendingIntent = PendingIntent.getActivity(
-                this,
-                0,
-                intent,
-                0
-        );
-
-        NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
-        bigText.bigText("Style big text");
-        bigText.setBigContentTitle("Style big content title");
-        bigText.setSummaryText("Style summary text");
-
-        mBuilder.setContentIntent(pendingIntent);
-        mBuilder.setSmallIcon(R.mipmap.ic_launcher_round);
-        mBuilder.setContentTitle("Content title");
-        mBuilder.setContentText("Content text");
-        mBuilder.setPriority(Notification.PRIORITY_MAX);
-        mBuilder.setStyle(bigText);
-        mBuilder.setDefaults(DEFAULT_VIBRATE);
-
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    "notify_001",
-                    "Channel human readable title",
-                    NotificationManager.IMPORTANCE_DEFAULT);
-            if (mNotificationManager != null) {
-                mNotificationManager.createNotificationChannel(channel);
-            }
-        }
-
-        mNotificationManager.notify(0, mBuilder.build());
-
-        final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        if (!pm.isScreenOn()) {
-            PowerManager.WakeLock wakeLock = pm.newWakeLock(
-                    PowerManager.FULL_WAKE_LOCK
-                            |PowerManager.ACQUIRE_CAUSES_WAKEUP
-                            |PowerManager.ON_AFTER_RELEASE,
-                    "MyLock"
-            );
-            wakeLock.acquire(0);
-            PowerManager.WakeLock wakeLockCpu = pm.newWakeLock(
-                    PowerManager.PARTIAL_WAKE_LOCK,
-                    "MyCpuLock"
-            );
-
-            wakeLockCpu.acquire(0);
-        }
+        startService(connectService);
     }
-
 
     private class ScanTimerTask extends TimerTask {
         @Override
