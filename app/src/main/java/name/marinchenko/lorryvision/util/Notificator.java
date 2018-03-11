@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Message;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
@@ -21,6 +22,7 @@ import java.util.TimerTask;
 
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.activities.main.MainActivity;
+import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
@@ -28,6 +30,7 @@ import static android.app.Notification.DEFAULT_ALL;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_JUMP;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_NOTIFICATION_ALLOWED;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_SOUND;
+import static name.marinchenko.lorryvision.services.NetScanService.MSG_RETURN_TO_MAIN;
 
 /**
  * Static methods for creating and showing notifications.
@@ -68,7 +71,19 @@ public class Notificator {
     }
 
     private static boolean isAppBackground(final Context context) {
-        return true;
+        final NetScanService service = (NetScanService) context;
+
+        long endTime = System.currentTimeMillis() + NOTIFICATION_NET_FOUND_JUMP_DELAY;
+        while (System.currentTimeMillis() < endTime) {
+            synchronized (context) {
+                try {
+                    context.wait(endTime - System.currentTimeMillis());
+                } catch (Exception e) {
+                }
+            }
+        }
+
+        return service.isMessengerNull();
     }
 
     public static void removeNetDetectedNotification(final Context context) {
@@ -113,13 +128,9 @@ public class Notificator {
     }
 
     private static void jumpToMainActivity(final Context context) {
-        ToastThread.postToastMessage(context, "jump", Toast.LENGTH_SHORT);
-
-        /*
-        Intent mainActivityIntent = new Intent(context, MainActivity.class);
-        mainActivityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(mainActivityIntent);
-        */
+        final NetScanService service = (NetScanService) context;
+        final Message msg = Message.obtain(null, MSG_RETURN_TO_MAIN);
+        service.sendMessage(msg);
     }
 
     private static boolean isLocked(final Context context) {

@@ -38,12 +38,14 @@ public class NetScanService extends Service {
     public final static int MSG_SCANS = 0;
     public final static int MSG_LORRIES_DETECTED = 1;
     public final static int MSG_СONNECT_START = 2;
+    public final static int MSG_RETURN_TO_MAIN = 3;
 
-    public final static String MESSENGER_MAIN_ACTIVITY = "messenger_main_activity";
+    public final static String MESSENGER = "messenger_main_activity";
 
-    public final static String ACTION_SCAN_SINGLE = "scan_single";
-    public final static String ACTION_SCAN_START = "scan_start";
-    public final static String ACTION_SCAN_STOP = "scan_stop";
+    public final static String ACTION_SCAN_SINGLE = "action_scan_single";
+    public final static String ACTION_SCAN_START = "action_scan_start";
+    public final static String ACTION_SCAN_STOP = "action_scan_stop";
+    public final static String ACTION_UNREGISTER_MESSENGER = "action_unregister_messenger";
 
     private final static int SCAN_PERIOD_MS = 1000;
 
@@ -73,7 +75,7 @@ public class NetScanService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        final Messenger activityMessenger = intent.getParcelableExtra(MESSENGER_MAIN_ACTIVITY);
+        final Messenger activityMessenger = intent.getParcelableExtra(MESSENGER);
         if (activityMessenger != null) this.mActivityMessenger = activityMessenger;
 
         switch (intent.getAction() == null ? "" : intent.getAction()) {
@@ -106,6 +108,10 @@ public class NetScanService extends Service {
             case ACTION_CONNECT_AUTO:
                 this.autoConnect = intent.getBooleanExtra(EXTRA_AUTO_CONNECT, true);
                 break;
+
+            case ACTION_UNREGISTER_MESSENGER:
+                this.mActivityMessenger = null;
+                break;
         }
 
         return Service.START_STICKY;
@@ -118,11 +124,14 @@ public class NetScanService extends Service {
     }
 
 
-    private void sendMessage(final Messenger target,
-                             final Message msg) {
-        if (target != null) {
+    public boolean isMessengerNull() {
+        return this.mActivityMessenger == null;
+    }
+
+    public void sendMessage(final Message msg) {
+        if (this.mActivityMessenger != null) {
             try {
-                target.send(msg);
+                this.mActivityMessenger.send(msg);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -152,7 +161,7 @@ public class NetScanService extends Service {
             this.lorriesNear = false;
         }
 
-        sendMessage(mActivityMessenger, msg);
+        sendMessage(msg);
     }
 
     private void removeScanResults() {
@@ -230,7 +239,7 @@ public class NetScanService extends Service {
 
             final Message msg = new Message();
             msg.what = MSG_СONNECT_START;
-            sendMessage(this.mActivityMessenger, msg);
+            sendMessage(msg);
 
             this.connectingNetSsid = null;
             return true;

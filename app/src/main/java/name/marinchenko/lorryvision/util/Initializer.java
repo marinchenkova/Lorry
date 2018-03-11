@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import name.marinchenko.lorryvision.BuildConfig;
 import name.marinchenko.lorryvision.R;
+import name.marinchenko.lorryvision.activities.ToolbarAppCompatActivity;
 import name.marinchenko.lorryvision.activities.info.AboutActivity;
 import name.marinchenko.lorryvision.activities.info.InstructionActivity;
 import name.marinchenko.lorryvision.activities.info.LicenseActivity;
@@ -35,7 +36,8 @@ import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNEC
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_AUTO_CONNECT;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_START;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_STOP;
-import static name.marinchenko.lorryvision.services.NetScanService.MESSENGER_MAIN_ACTIVITY;
+import static name.marinchenko.lorryvision.services.NetScanService.ACTION_UNREGISTER_MESSENGER;
+import static name.marinchenko.lorryvision.services.NetScanService.MESSENGER;
 
 
 /**
@@ -85,6 +87,30 @@ public class Initializer {
         return prefs.getBoolean(PREF_KEY_AUTOUPDATE, true);
     }
 
+    public static void initActivityMessenger(final ToolbarAppCompatActivity activity,
+                                             final boolean start) {
+        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        final Intent netScanServiceIntent = new Intent(
+                                activity,
+                                NetScanService.class
+                        );
+
+                        if (start) {
+                            netScanServiceIntent.putExtra(MESSENGER, activity.getMessenger());
+                        } else {
+                            netScanServiceIntent.setAction(ACTION_UNREGISTER_MESSENGER);
+                        }
+
+                        activity.startService(netScanServiceIntent);
+                    }
+                }
+        );
+    }
+
+
     public static class Main {
         public static void init(final MainActivity mainActivity) {
             WifiAgent.enableWifi(mainActivity, true, false);
@@ -94,28 +120,8 @@ public class Initializer {
                     false
             );
             initDrawer(mainActivity);
-            initActivityMessenger(mainActivity);
             initNetScanService(mainActivity);
             initAutoConnect(mainActivity);
-        }
-
-        private static void initActivityMessenger(final MainActivity mainActivity) {
-            DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            final Intent netScanServiceIntent = new Intent(
-                                    mainActivity,
-                                    NetScanService.class
-                            );
-                            netScanServiceIntent.putExtra(
-                                    MESSENGER_MAIN_ACTIVITY,
-                                    mainActivity.getActivityMessenger()
-                            );
-                            mainActivity.startService(netScanServiceIntent);
-                        }
-                    }
-            );
         }
 
         public static void initAutoUpdate(final MainActivity mainActivity,

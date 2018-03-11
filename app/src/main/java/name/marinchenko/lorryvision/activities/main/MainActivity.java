@@ -41,6 +41,7 @@ import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNEC
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_SSID;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_SINGLE;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_LORRIES_DETECTED;
+import static name.marinchenko.lorryvision.services.NetScanService.MSG_RETURN_TO_MAIN;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCANS;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_СONNECT_START;
 
@@ -51,7 +52,6 @@ public class MainActivity
                    AdapterView.OnItemLongClickListener {
 
     private NetlistAdapter netlistAdapter;
-    private Messenger mActivityMessenger;
     private List<Net> nets = new ArrayList<>();
     private boolean lorriesDetected = false;
 
@@ -69,8 +69,8 @@ public class MainActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        this.messenger = new Messenger(new MainIncomingHandler(this));
         this.netlistAdapter = Initializer.Main.initNetlist(this);
-        this.mActivityMessenger = new Messenger(new IncomingHandler(this));
 
         Initializer.Main.init(this);
     }
@@ -277,8 +277,6 @@ public class MainActivity
         Initializer.initAutoConnect(this);
     }
 
-    public Messenger getActivityMessenger() { return this.mActivityMessenger; }
-
     private void updateNetlist(final List<Net> newList) {
         this.netlistAdapter.update(this, newList);
         this.netlistAdapter.notifyDataSetChanged();
@@ -291,15 +289,15 @@ public class MainActivity
     }
 
 
-    private static class IncomingHandler extends Handler {
-        private final MainActivity mainActivity;
+    protected static class MainIncomingHandler extends ToolbarAppCompatActivity.IncomingHandler {
 
-        public IncomingHandler(MainActivity mainActivity) {
-            this.mainActivity = new WeakReference<>(mainActivity).get();
+        public MainIncomingHandler(ToolbarAppCompatActivity activity) {
+            super(activity);
         }
 
         @Override
         public void handleMessage(Message msg) {
+            final MainActivity mainActivity = (MainActivity) activity;
             switch (msg.what) {
                 case MSG_SCANS:
                     mainActivity.updateNetlist((List<Net>) msg.obj);
@@ -313,6 +311,10 @@ public class MainActivity
                             "Connect started",
                             Toast.LENGTH_SHORT
                     );
+                    break;
+
+                case MSG_RETURN_TO_MAIN:
+                    mainActivity.closeDrawer(true);
                     break;
 
                 default:
