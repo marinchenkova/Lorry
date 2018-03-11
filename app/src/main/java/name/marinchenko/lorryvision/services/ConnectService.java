@@ -30,6 +30,7 @@ public class ConnectService extends IntentService {
     public final static String ACTION_CONNECTING = "action_connecting";
     public final static String ACTION_CONNECTED = "action_connected";
     public final static String ACTION_DISCONNECTED = "action_disconnected";
+    public final static String ACTION_CANCEL = "action_cancel";
     public final static String ACTION_CONNECT_AUTO = "action_connect_auto";
 
     public final static String EXTRA_CONFIG = "extra_config";
@@ -55,6 +56,10 @@ public class ConnectService extends IntentService {
 
                 case ACTION_CONNECTED:
                     this.connecting = false;
+                    break;
+
+                case ACTION_CANCEL:
+                    WifiAgent.disconnect(this);
                     break;
             }
         }

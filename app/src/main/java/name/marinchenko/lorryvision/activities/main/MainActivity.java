@@ -1,8 +1,11 @@
 package name.marinchenko.lorryvision.activities.main;
 
+import android.app.ActionBar;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -15,6 +18,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.Toast;
@@ -33,17 +37,22 @@ import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.Initializer;
 import name.marinchenko.lorryvision.util.debug.LoginDialog;
 import name.marinchenko.lorryvision.util.debug.NetStore;
+import name.marinchenko.lorryvision.util.dialogs.ConnectDialog;
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
+import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTING;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_SSID;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_SINGLE;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_LORRIES_DETECTED;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_RETURN_TO_MAIN;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCANS;
+import static name.marinchenko.lorryvision.services.NetScanService.MSG_СONNECT_END;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_СONNECT_START;
+import static name.marinchenko.lorryvision.util.debug.NetStore.KEY_ID;
+import static name.marinchenko.lorryvision.util.dialogs.ConnectDialog.CONNECT_TAG;
 
 public class MainActivity
         extends ToolbarAppCompatActivity
@@ -54,7 +63,7 @@ public class MainActivity
     private NetlistAdapter netlistAdapter;
     private List<Net> nets = new ArrayList<>();
     private boolean lorriesDetected = false;
-
+    private ConnectDialog connectDialog;
 
     /*
      * Overridden methods
@@ -174,7 +183,7 @@ public class MainActivity
 
         final String id = ((Net) adapterView.getItemAtPosition(i)).getSsid();
 
-        bundle.putString(NetStore.KEY_ID, id);
+        bundle.putString(KEY_ID, id);
         dialog.setArguments(bundle);
         dialog.show(getFragmentManager(), "login");
 
@@ -235,6 +244,24 @@ public class MainActivity
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        setContentView(R.layout.activity_main);
+        Initializer.Main.initOnConfigurationChanges(this);
+        this.netlistAdapter = Initializer.Main.initNetlist(this);
+
+        final View decorView = getWindow().getDecorView();
+
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            decorView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            );
+
+        } else {
+            decorView.setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            );
+        }
     }
 
 
@@ -306,11 +333,19 @@ public class MainActivity
                     break;
 
                 case MSG_СONNECT_START:
-                    ToastThread.postToastMessage(
-                            mainActivity,
-                            "Connect started",
-                            Toast.LENGTH_SHORT
-                    );
+                    final String id = msg.getData().getString(KEY_ID);
+                    final Bundle bundle = new Bundle();
+                    bundle.putString(KEY_ID, id);
+                    mainActivity.connectDialog = new ConnectDialog();
+                    mainActivity.connectDialog.setArguments(bundle);
+                    mainActivity.connectDialog.show(mainActivity.getFragmentManager(), CONNECT_TAG);
+                    break;
+
+                case MSG_СONNECT_END:
+                    if (mainActivity.connectDialog != null) {
+                        mainActivity.connectDialog.dismiss();
+                        mainActivity.connectDialog = null;
+                    }
                     break;
 
                 case MSG_RETURN_TO_MAIN:

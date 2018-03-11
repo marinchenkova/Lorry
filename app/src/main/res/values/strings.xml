@@ -9,6 +9,11 @@
 
 
 
+    <!-- Connect dialog -->
+    <string name="connect_dialog_title">Connecting to</string>
+
+
+
     <!-- MainActivity -->
     <!-- Drawer -->
     <string name="drawer_item_home">Home</string>
@@ -40,6 +45,7 @@
     <string name="netList_item_imageView_type">Type of network</string>
     <string name="netList_item_imageView_signal">Signal strength</string>
     <string name="netList_item_imageView_was_connected">Net was connected</string>
+    <string name="netList_item_background">Background color</string>
 
     <string name="toast_enabling_wifi">Enabling Wi-Fi service…</string>
 

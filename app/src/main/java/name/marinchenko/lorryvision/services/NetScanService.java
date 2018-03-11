@@ -2,12 +2,12 @@ package name.marinchenko.lorryvision.services;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
-import android.widget.Toast;
 
 import java.util.List;
 import java.util.Timer;
@@ -19,8 +19,8 @@ import name.marinchenko.lorryvision.util.net.NetBuffer;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 import name.marinchenko.lorryvision.util.net.WifiConfig;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
-import name.marinchenko.lorryvision.util.threading.ToastThread;
 
+import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CANCEL;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTED;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTING;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECT_AUTO;
@@ -29,6 +29,7 @@ import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_AUTO_CO
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_SSID;
 import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_LEVEL;
 import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_TIME;
+import static name.marinchenko.lorryvision.util.debug.NetStore.KEY_ID;
 
 
 /**
@@ -40,7 +41,8 @@ public class NetScanService extends Service {
     public final static int MSG_SCANS = 0;
     public final static int MSG_LORRIES_DETECTED = 1;
     public final static int MSG_СONNECT_START = 2;
-    public final static int MSG_RETURN_TO_MAIN = 3;
+    public final static int MSG_СONNECT_END = 3;
+    public final static int MSG_RETURN_TO_MAIN = 4;
 
     public final static String MESSENGER = "messenger_main_activity";
 
@@ -78,7 +80,9 @@ public class NetScanService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        final Messenger activityMessenger = intent.getParcelableExtra(MESSENGER);
+        final Messenger activityMessenger = intent == null
+                ? null
+                : (Messenger) intent.getParcelableExtra(MESSENGER);
         if (activityMessenger != null) this.mActivityMessenger = activityMessenger;
 
         switch (intent.getAction() == null ? "" : intent.getAction()) {
@@ -102,6 +106,13 @@ public class NetScanService extends Service {
                 this.connecting = false;
                 this.connected = true;
                 this.netBuffer.setConnected(this.connectedNetSsid);
+                setMsgСonnectEnd();
+                break;
+
+            case ACTION_CANCEL:
+                this.connecting = false;
+                this.connected = false;
+                this.netBuffer.setAutoconnect(this.connectedNetSsid, false);
                 break;
 
             case ACTION_DISCONNECTED:
@@ -139,6 +150,21 @@ public class NetScanService extends Service {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void sendMsgConnectStart() {
+        final Message msg = new Message();
+        msg.what = MSG_СONNECT_START;
+        final Bundle bundle = new Bundle();
+        bundle.putString(KEY_ID, this.connectingNetSsid);
+        msg.setData(bundle);
+        sendMessage(msg);
+    }
+
+    private void setMsgСonnectEnd() {
+        final Message msg = new Message();
+        msg.what = MSG_СONNECT_END;
+        sendMessage(msg);
     }
 
     private void updateAndSendScanResults() {
@@ -221,7 +247,7 @@ public class NetScanService extends Service {
     private void setConnectingNet(final List<Net> lorries) {
         if (this.connectingNetSsid == null && !this.connecting) {
             for (Net net : lorries) {
-                if (this.autoConnect && !net.wasConnected()) {
+                if (this.autoConnect && !net.wasConnected() && net.getAutoconnect()) {
                     this.connectingNetSsid = net.getSsid();
                     break;
                 }
@@ -234,9 +260,7 @@ public class NetScanService extends Service {
                 && !this.connecting) {
             startConnectService(net);
 
-            final Message msg = new Message();
-            msg.what = MSG_СONNECT_START;
-            sendMessage(msg);
+            sendMsgConnectStart();
 
             this.connectedNetSsid = net.getSsid();
             this.connectingNetSsid = null;

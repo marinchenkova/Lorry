@@ -34,7 +34,7 @@ public class NetBuffer {
         Collections.sort(this.nets);
 
         this.previousLorries = this.lorries;
-        this.lorries = getLorries(this.nets);
+        this.lorries = findLorries();
 
         return this.nets;
     }
@@ -55,6 +55,13 @@ public class NetBuffer {
     public void setConnected(final String ssid) {
         for (Net net : this.nets) {
             if (net.getSsid().equals(ssid)) net.connected();
+        }
+    }
+
+    public void setAutoconnect(final String ssid,
+                               final boolean auto) {
+        for (Net net : this.nets) {
+            if (net.getSsid().equals(ssid)) net.setAutoConnect(auto);
         }
     }
 
@@ -111,10 +118,13 @@ public class NetBuffer {
         }
     }
 
-    private static List<Net> getLorries(final List<Net> nets) {
+    private List<Net> findLorries() {
         final List<Net> lorries = new ArrayList<>();
-        for (Net net : nets) {
-            if (net.getType() == NetType.lorryNetwork) lorries.add(net);
+        for (int i = 0; i < this.nets.size(); i++) {
+            if (this.nets.get(i).getType() == NetType.lorryNetwork) {
+                this.nets.get(i).setHighlighted(i == 0);
+                lorries.add(this.nets.get(i));
+            }
         }
         return lorries;
     }

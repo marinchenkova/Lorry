@@ -65,7 +65,7 @@ public class WifiAgent {
     }
 
     public static void connect(final Context context,
-                                final WifiConfiguration config) {
+                               final WifiConfiguration config) {
         WifiManager wifiManager = (WifiManager) context
                 .getApplicationContext()
                 .getSystemService(Context.WIFI_SERVICE);
@@ -78,6 +78,14 @@ public class WifiAgent {
             wifiManager.enableNetwork(lastId, true);
             wifiManager.reconnect();
         }
+    }
+
+    public static void disconnect(final Context context) {
+        WifiManager wifiManager = (WifiManager) context
+                .getApplicationContext()
+                .getSystemService(Context.WIFI_SERVICE);
+
+        if (wifiManager != null) wifiManager.disconnect();
     }
 
     public static boolean connectedTo(final Context context,

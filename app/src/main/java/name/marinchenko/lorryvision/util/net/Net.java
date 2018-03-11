@@ -16,6 +16,8 @@ public class Net extends NetConfig
 
     private final ArrayList<Integer> level = new ArrayList<>();
     private boolean connected = false;
+    private boolean autoConnect = true;
+    private boolean highlighted = false;
     private int connectMoment = -1;
     private int detachMoment = -1;
 
@@ -62,6 +64,8 @@ public class Net extends NetConfig
     public int getDetachMoment() { return this.detachMoment; }
     public long getDetectTime() { return this.detectTime; }
     public boolean wasConnected() { return this.connected; }
+    public boolean getHighlighted() { return this.highlighted; }
+    public boolean getAutoconnect() { return this.autoConnect; }
 
     public int getSignalIcon() {
         final int level = this.getLevel();
@@ -88,6 +92,14 @@ public class Net extends NetConfig
     public void connected() {
         this.connected = true;
         this.connectMoment = this.level.size();
+    }
+
+    public void setHighlighted(final boolean highlight) {
+        this.highlighted = highlight;
+    }
+
+    public void setAutoConnect(final boolean autoConnect) {
+        this.autoConnect = autoConnect;
     }
 
     public void detached() {

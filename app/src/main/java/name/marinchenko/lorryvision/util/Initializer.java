@@ -124,6 +124,15 @@ public class Initializer {
             initAutoConnect(mainActivity);
         }
 
+        public static void initOnConfigurationChanges(final MainActivity mainActivity) {
+            mainActivity.initToolbar(
+                    R.id.activity_main_toolbar,
+                    R.string.app_name,
+                    false
+            );
+            initDrawer(mainActivity);
+        }
+
         public static void initAutoUpdate(final MainActivity mainActivity,
                                           final boolean lorriesDetected) {
             final Button updateButton = mainActivity.findViewById(R.id.netList_button_updateNets);

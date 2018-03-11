@@ -3,6 +3,7 @@ package name.marinchenko.lorryvision.util.net;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +23,13 @@ import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF
 public class NetlistAdapter extends BaseAdapter {
 
     private final static int ID_MAX_LENGTH = 21;
+    private final static int[] SIGNAL_LIST = new int[]{
+            R.drawable.ic_wifi_0,
+            R.drawable.ic_wifi_1,
+            R.drawable.ic_wifi_2,
+            R.drawable.ic_wifi_3,
+            R.drawable.ic_wifi_4
+    };
 
     private final ArrayList<Net> nets = new ArrayList<>();
     private final LayoutInflater inflater;
@@ -58,20 +66,15 @@ public class NetlistAdapter extends BaseAdapter {
         final String netId = net.getSsid();
         final NetType type = net.getType();
         final boolean wasConnected = net.wasConnected();
+        final boolean highlight = net.getHighlighted();
 
-        final int list[] = new int[]{
-                R.drawable.ic_wifi_0,
-                R.drawable.ic_wifi_1,
-                R.drawable.ic_wifi_2,
-                R.drawable.ic_wifi_3,
-                R.drawable.ic_wifi_4
-        };
-
+        view.findViewById(R.id.netList_item_background).setVisibility(
+                highlight ? View.VISIBLE : View.GONE
+        );
 
         view.findViewById(R.id.netList_imageView_was_connected).setVisibility(
                 wasConnected ? View.VISIBLE : View.GONE
         );
-
 
         ((ImageView) view.findViewById(R.id.netList_imageView_typeOfNet)).setImageResource(
                 type == NetType.lorryNetwork
@@ -84,7 +87,7 @@ public class NetlistAdapter extends BaseAdapter {
         textView.setSelected(netId.length() > ID_MAX_LENGTH);
 
         ((ImageView) view.findViewById(R.id.netList_imageView_signal))
-                .setImageResource(list[net.getSignalIcon()]);
+                .setImageResource(SIGNAL_LIST[net.getSignalIcon()]);
 
         return view;
     }
