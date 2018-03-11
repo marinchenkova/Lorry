@@ -59,7 +59,7 @@ public class Notificator {
                                 final boolean on = screenOn(context);
 
                                 if (jumpToAppAllowed(context)) {
-                                    if (!on || !isLocked(context)) {
+                                    if (on && !isLocked(context)) {
                                         jumpToApp(context, NOTIFICATION_NET_FOUND_JUMP_DELAY);
                                     }
                                 }

@@ -67,9 +67,11 @@ public class NetlistAdapter extends BaseAdapter {
                 R.drawable.ic_wifi_4
         };
 
-        if (!wasConnected) {
-            view.findViewById(R.id.netList_imageView_was_connected).setVisibility(View.GONE);
-        }
+
+        view.findViewById(R.id.netList_imageView_was_connected).setVisibility(
+                wasConnected ? View.VISIBLE : View.GONE
+        );
+
 
         ((ImageView) view.findViewById(R.id.netList_imageView_typeOfNet)).setImageResource(
                 type == NetType.lorryNetwork

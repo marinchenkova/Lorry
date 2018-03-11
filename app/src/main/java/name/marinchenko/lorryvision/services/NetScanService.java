@@ -7,6 +7,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import java.util.List;
 import java.util.Timer;
@@ -18,6 +19,7 @@ import name.marinchenko.lorryvision.util.net.NetBuffer;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 import name.marinchenko.lorryvision.util.net.WifiConfig;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
+import name.marinchenko.lorryvision.util.threading.ToastThread;
 
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTED;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTING;
@@ -61,6 +63,7 @@ public class NetScanService extends Service {
     private boolean connected = false;
     private boolean lorriesNear = false;
     private String connectingNetSsid;
+    private String connectedNetSsid;
 
     @Nullable
     @Override
@@ -89,7 +92,6 @@ public class NetScanService extends Service {
 
             case ACTION_SCAN_STOP:
                 stopScan();
-                removeScanResults();
                 break;
 
             case ACTION_CONNECTING:
@@ -99,6 +101,7 @@ public class NetScanService extends Service {
             case ACTION_CONNECTED:
                 this.connecting = false;
                 this.connected = true;
+                this.netBuffer.setConnected(this.connectedNetSsid);
                 break;
 
             case ACTION_DISCONNECTED:
@@ -151,8 +154,7 @@ public class NetScanService extends Service {
         if (lorries.size() > 0 ) {
             if (!this.scanning) startScan(SCAN_PERIOD_MS);
             if (!this.connected) lorriesNear(lorries);
-            if (!this.connected && !this.connecting
-                    && !this.autoConnect && this.netBuffer.lorriesChanged()) {
+            if (!this.connected && !this.connecting && this.netBuffer.lorriesChanged()) {
                 Notificator.notifyNetDetected(this);
             }
             this.lorriesNear = true;
@@ -163,10 +165,6 @@ public class NetScanService extends Service {
         }
 
         sendMessage(msg);
-    }
-
-    private void removeScanResults() {
-        this.netBuffer.removeAll();
     }
 
     private void singleScan() {
@@ -223,7 +221,7 @@ public class NetScanService extends Service {
     private void setConnectingNet(final List<Net> lorries) {
         if (this.connectingNetSsid == null && !this.connecting) {
             for (Net net : lorries) {
-                if (this.autoConnect) {
+                if (this.autoConnect && !net.wasConnected()) {
                     this.connectingNetSsid = net.getSsid();
                     break;
                 }
@@ -236,12 +234,11 @@ public class NetScanService extends Service {
                 && !this.connecting) {
             startConnectService(net);
 
-            if (this.autoConnect) Notificator.notifyNetDetected(this);
-
             final Message msg = new Message();
             msg.what = MSG_СONNECT_START;
             sendMessage(msg);
 
+            this.connectedNetSsid = net.getSsid();
             this.connectingNetSsid = null;
             return true;
         } else return false;

@@ -2,6 +2,7 @@ package name.marinchenko.lorryvision.util.net;
 
 import android.content.Context;
 import android.net.wifi.ScanResult;
+import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,6 +37,46 @@ public class NetBuffer {
         this.lorries = getLorries(this.nets);
 
         return this.nets;
+    }
+
+    public List<Net> getLorries() { return this.lorries; }
+
+    public boolean lorriesChanged() {
+        if (this.lorries.size() == 0) return false;
+        if (this.lorries.size() != this.previousLorries.size()) return true;
+        for (int i = 0; i < this.lorries.size(); i++) {
+            if (!this.lorries.get(i).getSsid().equals(this.previousLorries.get(i).getSsid())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void setConnected(final String ssid) {
+        for (Net net : this.nets) {
+            if (net.getSsid().equals(ssid)) net.connected();
+        }
+    }
+
+    @Nullable
+    public Net search(final String ssid) {
+        for (Net net : this.nets) {
+            if (net.getSsid().equals(ssid)) return net;
+        }
+        return null;
+    }
+
+    public static String getPassword(final Context context,
+                                     final String ssid) {
+        //TODO password generator for lorry networks
+        return NetStore.getPassword(context, ssid);
+    }
+
+    public static NetType getType(final String name){
+        //Matcher matcher = LORRY.matcher(name);
+        //return matcher.matches() ? NetType.lorryNetwork : NetType.wifiNetwork;
+        return name.equals("ASUS-9840") ? NetType.lorryNetwork : NetType.wifiNetwork;
+        //return NetType.wifiNetwork;
     }
 
     private void updateAndRemoveNets(final List<ScanResult> results) {
@@ -76,36 +117,5 @@ public class NetBuffer {
             if (net.getType() == NetType.lorryNetwork) lorries.add(net);
         }
         return lorries;
-    }
-
-    public void removeAll() {
-        this.nets.clear();
-        this.lorries.clear();
-    }
-
-    public List<Net> getLorries() { return this.lorries; }
-
-    public boolean lorriesChanged() {
-        if (this.lorries.size() == 0) return false;
-        if (this.lorries.size() != this.previousLorries.size()) return true;
-        for (int i = 0; i < this.lorries.size(); i++) {
-            if (!this.lorries.get(i).getSsid().equals(this.previousLorries.get(i).getSsid())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static String getPassword(final Context context,
-                                     final String ssid) {
-        //TODO password generator for lorry networks
-        return NetStore.getPassword(context, ssid);
-    }
-
-    public static NetType getType(final String name){
-        //Matcher matcher = LORRY.matcher(name);
-        //return matcher.matches() ? NetType.lorryNetwork : NetType.wifiNetwork;
-        return name.equals("ASUS-9840") ? NetType.lorryNetwork : NetType.wifiNetwork;
-        //return NetType.wifiNetwork;
     }
 }
