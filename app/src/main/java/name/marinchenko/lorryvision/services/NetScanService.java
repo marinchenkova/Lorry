@@ -151,8 +151,9 @@ public class NetScanService extends Service {
         if (lorries.size() > 0 ) {
             if (!this.scanning) startScan(SCAN_PERIOD_MS);
             if (!this.connected) lorriesNear(lorries);
-            if (!this.connected && !this.connecting && this.netBuffer.lorriesChanged()) {
-                //Notificator.notifyNetDetected(this);
+            if (!this.connected && !this.connecting
+                    && !this.autoConnect && this.netBuffer.lorriesChanged()) {
+                Notificator.notifyNetDetected(this);
             }
             this.lorriesNear = true;
             msg.arg1 = MSG_LORRIES_DETECTED;

@@ -15,6 +15,7 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.util.Timer;
@@ -110,17 +111,17 @@ public class Notificator {
             public void run() {
                 final PackageManager manager = context.getPackageManager();
                 try {
-                    Intent intent = manager.getLaunchIntentForPackage(
+                    final Intent intent = manager.getLaunchIntentForPackage(
                             context.getApplicationContext().getPackageName()
                     );
-
                     if (intent == null) return;
-
-
                     intent.addCategory(Intent.CATEGORY_LAUNCHER);
+
                     context.startActivity(intent);
 
-                } catch (ActivityNotFoundException e) {}
+                } catch (ActivityNotFoundException e) {
+                    Log.w("MyLog", e.getMessage());
+                }
             }
         };
 
