@@ -54,14 +54,17 @@ public class NetBuffer {
 
     public void setConnected(final String ssid) {
         for (Net net : this.nets) {
-            if (net.getSsid().equals(ssid)) net.connected();
+            if (net.getSsid().equals(ssid)) net.connect();
         }
     }
 
-    public void setAutoconnect(final String ssid,
-                               final boolean auto) {
+    public void detach(final String ssid,
+                       final boolean auto) {
         for (Net net : this.nets) {
-            if (net.getSsid().equals(ssid)) net.setAutoConnect(auto);
+            if (net.getSsid().equals(ssid)) {
+                net.detach();
+                net.setAutoConnect(auto);
+            }
         }
     }
 

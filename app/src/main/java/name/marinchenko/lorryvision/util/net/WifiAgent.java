@@ -20,6 +20,8 @@ import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
+import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CANCEL;
+
 /**
  * Class with Wi-Fi operations methods.
  */
@@ -64,7 +66,7 @@ public class WifiAgent {
         return this.wifiManager.getScanResults();
     }
 
-    public static void connect(final Context context,
+    public static int connect(final Context context,
                                final WifiConfiguration config) {
         WifiManager wifiManager = (WifiManager) context
                 .getApplicationContext()
@@ -72,20 +74,24 @@ public class WifiAgent {
 
         if (wifiManager != null) {
             final int lastId = wifiManager.addNetwork(config);
-
-            wifiManager.saveConfiguration();
             wifiManager.disconnect();
             wifiManager.enableNetwork(lastId, true);
-            wifiManager.reconnect();
+            return lastId;
         }
+        return -1;
     }
 
-    public static void disconnect(final Context context) {
+    public static void disconnect(final Context context,
+                                  final int lastId) {
         WifiManager wifiManager = (WifiManager) context
                 .getApplicationContext()
                 .getSystemService(Context.WIFI_SERVICE);
 
-        if (wifiManager != null) wifiManager.disconnect();
+        if (wifiManager != null && lastId != -1) {
+            wifiManager.disconnect();
+            wifiManager.removeNetwork(lastId);
+            wifiManager.reconnect();
+        }
     }
 
     public static boolean connectedTo(final Context context,
@@ -99,6 +105,16 @@ public class WifiAgent {
         return state != null
                 && state == SupplicantState.COMPLETED
                 && (ssid == null || ssid.equals(info.getSSID()));
+    }
+
+    public static void notifyDisconnected(final Context context) {
+        final Intent disconnect1 = new Intent(context, NetScanService.class);
+        disconnect1.setAction(ACTION_CANCEL);
+        context.startService(disconnect1);
+
+        final Intent disconnect2 = new Intent(context, ConnectService.class);
+        disconnect2.setAction(ACTION_CANCEL);
+        context.startService(disconnect2);
     }
 
     private static void notifyConnected(final Context context) {

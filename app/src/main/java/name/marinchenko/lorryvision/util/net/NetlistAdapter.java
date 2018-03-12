@@ -3,7 +3,6 @@ package name.marinchenko.lorryvision.util.net;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,16 +64,23 @@ public class NetlistAdapter extends BaseAdapter {
         final Net net = this.nets.get(i);
         final String netId = net.getSsid();
         final NetType type = net.getType();
-        final boolean wasConnected = net.wasConnected();
+        final int state = net.getState();
         final boolean highlight = net.getHighlighted();
 
         view.findViewById(R.id.netList_item_background).setVisibility(
                 highlight ? View.VISIBLE : View.GONE
         );
 
-        view.findViewById(R.id.netList_imageView_was_connected).setVisibility(
-                wasConnected ? View.VISIBLE : View.GONE
-        );
+        if (state == Net.NET_STATE_CONNECTED) {
+            ((ImageView) view.findViewById(R.id.netList_imageView_was_connected)).setImageResource(
+                    R.drawable.ic_net_was_connected
+            );
+        } else if (state == Net.NET_STATE_DETACHED) {
+            ((ImageView) view.findViewById(R.id.netList_imageView_was_connected)).setImageResource(
+                    R.drawable.ic_net_was_detached
+            );
+        }
+
 
         ((ImageView) view.findViewById(R.id.netList_imageView_typeOfNet)).setImageResource(
                 type == NetType.lorryNetwork

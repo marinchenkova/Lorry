@@ -11,11 +11,15 @@ import java.util.ArrayList;
 public class Net extends NetConfig
                  implements Comparable<Net> {
 
+    public final static int NET_STATE_DETECTED = 0;
+    public final static int NET_STATE_CONNECTED = 1;
+    public final static int NET_STATE_DETACHED = 2;
+
     private final NetType type;
     private final long detectTime;
 
     private final ArrayList<Integer> level = new ArrayList<>();
-    private boolean connected = false;
+    private int state = NET_STATE_DETECTED;
     private boolean autoConnect = true;
     private boolean highlighted = false;
     private int connectMoment = -1;
@@ -63,9 +67,9 @@ public class Net extends NetConfig
     public int getConnectMoment() { return this.connectMoment; }
     public int getDetachMoment() { return this.detachMoment; }
     public long getDetectTime() { return this.detectTime; }
-    public boolean wasConnected() { return this.connected; }
+    public int getState() { return this.state; }
     public boolean getHighlighted() { return this.highlighted; }
-    public boolean getAutoconnect() { return this.autoConnect; }
+    public boolean getAutoConnect() { return this.autoConnect; }
 
     public int getSignalIcon() {
         final int level = this.getLevel();
@@ -89,8 +93,8 @@ public class Net extends NetConfig
 
     public void addLevel(final int level) { this.level.add(level); }
 
-    public void connected() {
-        this.connected = true;
+    public void connect() {
+        this.state = NET_STATE_CONNECTED;
         this.connectMoment = this.level.size();
     }
 
@@ -102,7 +106,8 @@ public class Net extends NetConfig
         this.autoConnect = autoConnect;
     }
 
-    public void detached() {
+    public void detach() {
+        this.state = NET_STATE_DETACHED;
         this.detachMoment = this.level.size();
     }
 }

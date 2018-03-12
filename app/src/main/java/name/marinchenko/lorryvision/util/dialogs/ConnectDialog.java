@@ -15,6 +15,7 @@ import android.widget.Toast;
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.services.ConnectService;
 import name.marinchenko.lorryvision.services.NetScanService;
+import name.marinchenko.lorryvision.util.net.WifiAgent;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CANCEL;
@@ -61,13 +62,7 @@ public class ConnectDialog
 
     @Override
     public void onClick(DialogInterface dialog, int which) {
-        final Intent disconnect1 = new Intent(getActivity(), NetScanService.class);
-        disconnect1.setAction(ACTION_CANCEL);
-        getActivity().startService(disconnect1);
-
-        final Intent disconnect2 = new Intent(getActivity(), ConnectService.class);
-        disconnect2.setAction(ACTION_CANCEL);
-        getActivity().startService(disconnect2);
+        WifiAgent.notifyDisconnected(getActivity());
     }
 
     @Override

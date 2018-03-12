@@ -112,7 +112,7 @@ public class NetScanService extends Service {
             case ACTION_CANCEL:
                 this.connecting = false;
                 this.connected = false;
-                this.netBuffer.setAutoconnect(this.connectedNetSsid, false);
+                this.netBuffer.detach(this.connectedNetSsid, false);
                 break;
 
             case ACTION_DISCONNECTED:
@@ -128,7 +128,7 @@ public class NetScanService extends Service {
                 break;
         }
 
-        return Service.START_STICKY;
+        return START_STICKY;
     }
 
     @Override
@@ -247,7 +247,9 @@ public class NetScanService extends Service {
     private void setConnectingNet(final List<Net> lorries) {
         if (this.connectingNetSsid == null && !this.connecting) {
             for (Net net : lorries) {
-                if (this.autoConnect && !net.wasConnected() && net.getAutoconnect()) {
+                if (this.autoConnect
+                        && net.getState() != Net.NET_STATE_CONNECTED
+                        && net.getAutoConnect()) {
                     this.connectingNetSsid = net.getSsid();
                     break;
                 }

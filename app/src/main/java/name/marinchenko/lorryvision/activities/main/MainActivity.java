@@ -293,11 +293,11 @@ public class MainActivity
         updateNetlist(this.nets);
     }
 
-    public void onCheckboxAutoconnectClick(View view) {
-        final SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(this);
+    public void onCheckboxAutoConnectClick(View view) {
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         final boolean autoConnect = ((CheckBox) view).isChecked();
 
-        SharedPreferences.Editor editor = pref.edit();
+        SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean(SettingsFragment.PREF_KEY_AUTOCONNECT, autoConnect);
         editor.apply();
 
@@ -313,6 +313,11 @@ public class MainActivity
         final Intent scanRequest = new Intent(this, NetScanService.class);
         scanRequest.setAction(ACTION_SCAN_SINGLE);
         startService(scanRequest);
+    }
+
+    private void toVideoActivity() {
+        final Intent videoIntent = new Intent(this, VideoActivity.class);
+        startActivity(videoIntent);
     }
 
 
@@ -346,6 +351,7 @@ public class MainActivity
                         mainActivity.connectDialog.dismiss();
                         mainActivity.connectDialog = null;
                     }
+                    mainActivity.toVideoActivity();
                     break;
 
                 case MSG_RETURN_TO_MAIN:

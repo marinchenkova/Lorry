@@ -5,7 +5,9 @@ import android.view.View;
 
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.activities.ToolbarAppCompatActivity;
+import name.marinchenko.lorryvision.services.ConnectService;
 import name.marinchenko.lorryvision.util.Initializer;
+import name.marinchenko.lorryvision.util.net.WifiAgent;
 
 
 public class VideoActivity extends ToolbarAppCompatActivity {
@@ -16,6 +18,12 @@ public class VideoActivity extends ToolbarAppCompatActivity {
         setContentView(R.layout.activity_video);
 
         Initializer.Video.init(this);
+    }
+
+    @Override
+    public void onBackPressed() {
+        WifiAgent.notifyDisconnected(this);
+        super.onBackPressed();
     }
 
     public void onButtonExitClick(View view) {
