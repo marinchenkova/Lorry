@@ -101,21 +101,21 @@ public class Notificator {
         );
     }
 
-    private static void jumpToApp(final Context context,
+    private static void jumpToApp(final NetScanService service,
                                   final int delay) {
         final Timer timer = new Timer();
         final TimerTask jumpTask = new TimerTask() {
             @Override
             public void run() {
-                final PackageManager manager = context.getPackageManager();
+                final PackageManager manager = service.getPackageManager();
                 try {
                     final Intent intent = manager.getLaunchIntentForPackage(
-                            context.getApplicationContext().getPackageName()
+                            service.getApplicationContext().getPackageName()
                     );
                     if (intent == null) return;
                     intent.addCategory(Intent.CATEGORY_LAUNCHER);
 
-                    context.startActivity(intent);
+                    if (service.isMessengerNull()) service.startActivity(intent);
 
                 } catch (ActivityNotFoundException e) {
                     Log.w("MyLog", e.getMessage());
@@ -184,15 +184,18 @@ public class Notificator {
     }
 
     private static Notification createNotification(final Context context) {
-        final Intent intent = new Intent(
-                context.getApplicationContext(),
-                MainActivity.class
+        final PackageManager manager = context.getPackageManager();
+        final Intent jumpIntent = manager.getLaunchIntentForPackage(
+                context.getApplicationContext().getPackageName()
         );
+        if (jumpIntent != null) {
+            jumpIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        }
 
         final PendingIntent pendingIntent = PendingIntent.getActivity(
                 context,
                 0,
-                intent,
+                jumpIntent,
                 0
         );
 

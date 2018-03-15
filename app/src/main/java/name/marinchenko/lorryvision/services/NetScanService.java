@@ -210,7 +210,7 @@ public class NetScanService extends Service {
     }
 
     private void stopScan() {
-        if (!this.lorriesNear && this.scanTimer != null) {
+        if (!this.lorriesNear && this.scanTimer != null && this.scanning) {
             this.scanTimer.cancel();
             this.scanTimer = null;
             this.scanning = false;
