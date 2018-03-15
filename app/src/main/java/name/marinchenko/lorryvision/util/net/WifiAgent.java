@@ -20,7 +20,7 @@ import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
-import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CANCEL;
+import static name.marinchenko.lorryvision.services.ConnectService.ACTION_WIFIAGENT_DISCONNECT;
 
 /**
  * Class with Wi-Fi operations methods.
@@ -109,11 +109,11 @@ public class WifiAgent {
 
     public static void notifyDisconnected(final Context context) {
         final Intent disconnect1 = new Intent(context, NetScanService.class);
-        disconnect1.setAction(ACTION_CANCEL);
+        disconnect1.setAction(ACTION_WIFIAGENT_DISCONNECT);
         context.startService(disconnect1);
 
         final Intent disconnect2 = new Intent(context, ConnectService.class);
-        disconnect2.setAction(ACTION_CANCEL);
+        disconnect2.setAction(ACTION_WIFIAGENT_DISCONNECT);
         context.startService(disconnect2);
     }
 
@@ -124,11 +124,11 @@ public class WifiAgent {
                     public void run() {
                         if (connectedTo(context, null)) {
                             final Intent connected = new Intent(context, ConnectService.class);
-                            connected.setAction(ConnectService.ACTION_CONNECTED);
+                            connected.setAction(ConnectService.ACTION_WIFIAGENT_CONNECTED);
                             context.startService(connected);
                         } else {
                             final Intent disconnected = new Intent(context, NetScanService.class);
-                            disconnected.setAction(ConnectService.ACTION_DISCONNECTED);
+                            disconnected.setAction(ConnectService.ACTION_WIFIAGENT_DISCONNECT);
                             context.startService(disconnected);
                         }
                     }

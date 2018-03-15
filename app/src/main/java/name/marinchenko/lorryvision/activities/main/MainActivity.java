@@ -1,13 +1,9 @@
 package name.marinchenko.lorryvision.activities.main;
 
-import android.app.ActionBar;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Message;
 import android.os.Messenger;
 import android.preference.PreferenceManager;
@@ -18,14 +14,14 @@ import android.support.v4.widget.DrawerLayout;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.Toast;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.activities.ToolbarAppCompatActivity;
@@ -36,22 +32,20 @@ import name.marinchenko.lorryvision.activities.web.FeedbackActivity;
 import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.Initializer;
 import name.marinchenko.lorryvision.util.debug.LoginDialog;
-import name.marinchenko.lorryvision.util.debug.NetStore;
 import name.marinchenko.lorryvision.util.dialogs.ConnectDialog;
 import name.marinchenko.lorryvision.util.net.Net;
+import name.marinchenko.lorryvision.util.net.NetType;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
-import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
-import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTING;
-import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_SSID;
+import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECT_MANUAL;
+import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_NET_SSID;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_SINGLE;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_LORRIES_DETECTED;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_RETURN_TO_MAIN;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCANS;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_СONNECT_END;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_СONNECT_START;
-import static name.marinchenko.lorryvision.util.debug.NetStore.KEY_ID;
 import static name.marinchenko.lorryvision.util.dialogs.ConnectDialog.CONNECT_TAG;
 
 public class MainActivity
@@ -95,6 +89,12 @@ public class MainActivity
 
         Initializer.Main.initAutoconnectCheckbox(this);
         Initializer.Main.initAutoUpdate(this, this.lorriesDetected);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        dismissConnectDialog();
     }
 
     /**
@@ -168,11 +168,14 @@ public class MainActivity
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         final Net net = (Net) this.netlistAdapter.getItem(i);
-        final Intent connectingIntent = new Intent(this, NetScanService.class);
 
-        connectingIntent.setAction(ACTION_CONNECTING);
-        connectingIntent.putExtra(EXTRA_SSID, net.getSsid());
-        startService(connectingIntent);
+        if (net.getType() == NetType.lorryNetwork) {
+            final Intent connectingIntent = new Intent(this, NetScanService.class);
+
+            connectingIntent.setAction(ACTION_CONNECT_MANUAL);
+            connectingIntent.putExtra(EXTRA_NET_SSID, net.getSsid());
+            startService(connectingIntent);
+        }
     }
 
 
@@ -183,7 +186,7 @@ public class MainActivity
 
         final String id = ((Net) adapterView.getItemAtPosition(i)).getSsid();
 
-        bundle.putString(KEY_ID, id);
+        bundle.putString(EXTRA_NET_SSID, id);
         dialog.setArguments(bundle);
         dialog.show(getFragmentManager(), "login");
 
@@ -316,10 +319,24 @@ public class MainActivity
     }
 
     private void toVideoActivity() {
-        final Intent videoIntent = new Intent(this, VideoActivity.class);
-        startActivity(videoIntent);
+        final Timer timer = new Timer();
+        final TimerTask jumpTask = new TimerTask() {
+            @Override
+            public void run() {
+                final Intent videoIntent = new Intent(getApplicationContext(), VideoActivity.class);
+                startActivity(videoIntent);
+            }
+        };
+        timer.schedule(jumpTask, VideoActivity.JUMP_DELAY);
+
     }
 
+    private void dismissConnectDialog() {
+        if (this.connectDialog != null) {
+            this.connectDialog.dismiss();
+            this.connectDialog = null;
+        }
+    }
 
     protected static class MainIncomingHandler extends ToolbarAppCompatActivity.IncomingHandler {
 
@@ -338,19 +355,13 @@ public class MainActivity
                     break;
 
                 case MSG_СONNECT_START:
-                    final String id = msg.getData().getString(KEY_ID);
-                    final Bundle bundle = new Bundle();
-                    bundle.putString(KEY_ID, id);
                     mainActivity.connectDialog = new ConnectDialog();
-                    mainActivity.connectDialog.setArguments(bundle);
+                    mainActivity.connectDialog.setArguments(msg.getData());
                     mainActivity.connectDialog.show(mainActivity.getFragmentManager(), CONNECT_TAG);
                     break;
 
                 case MSG_СONNECT_END:
-                    if (mainActivity.connectDialog != null) {
-                        mainActivity.connectDialog.dismiss();
-                        mainActivity.connectDialog = null;
-                    }
+                    mainActivity.dismissConnectDialog();
                     mainActivity.toVideoActivity();
                     break;
 

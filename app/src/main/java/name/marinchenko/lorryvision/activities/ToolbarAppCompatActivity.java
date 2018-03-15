@@ -1,6 +1,5 @@
 package name.marinchenko.lorryvision.activities;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
@@ -18,23 +17,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
-import java.util.List;
-import java.util.logging.Handler;
 
-import name.marinchenko.lorryvision.activities.main.MainActivity;
 import name.marinchenko.lorryvision.util.Initializer;
-import name.marinchenko.lorryvision.util.Notificator;
-import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
-import name.marinchenko.lorryvision.util.threading.ToastThread;
 
-import static name.marinchenko.lorryvision.services.NetScanService.MSG_LORRIES_DETECTED;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_RETURN_TO_MAIN;
-import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCANS;
-import static name.marinchenko.lorryvision.services.NetScanService.MSG_СONNECT_START;
 
 public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
 
@@ -58,7 +47,6 @@ public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
         super.onStart();
         WifiAgent.enableWifi(this, false, true);
         registerReceiver();
-        Notificator.removeNetDetectedNotification(this);
         Initializer.initActivityMessenger(this, true);
     }
 

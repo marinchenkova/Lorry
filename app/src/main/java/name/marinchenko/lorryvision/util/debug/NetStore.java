@@ -11,8 +11,6 @@ import android.preference.PreferenceManager;
 
 public class NetStore {
 
-    public final static String KEY_ID = "key_id";
-
     public static void save(final Context context,
                             final String id,
                             final String password) {

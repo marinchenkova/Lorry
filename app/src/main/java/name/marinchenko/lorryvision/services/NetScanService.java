@@ -7,29 +7,32 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import name.marinchenko.lorryvision.util.Initializer;
 import name.marinchenko.lorryvision.util.Notificator;
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetBuffer;
+import name.marinchenko.lorryvision.util.net.NetConfig;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 import name.marinchenko.lorryvision.util.net.WifiConfig;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
+import name.marinchenko.lorryvision.util.threading.ToastThread;
 
-import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CANCEL;
-import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTED;
-import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECTING;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECT_AUTO;
-import static name.marinchenko.lorryvision.services.ConnectService.ACTION_DISCONNECTED;
-import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_AUTO_CONNECT;
-import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_SSID;
-import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_LEVEL;
-import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_TIME;
-import static name.marinchenko.lorryvision.util.debug.NetStore.KEY_ID;
+import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECT_MANUAL;
+import static name.marinchenko.lorryvision.services.ConnectService.ACTION_WIFIAGENT_CONNECTED_TO;
+import static name.marinchenko.lorryvision.services.ConnectService.ACTION_WIFIAGENT_DISCONNECT;
+import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_CONNECT_AUTO;
+import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_NET_SSID;
+import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_LEVEL_DB;
+import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_TIME_S;
 
 
 /**
@@ -61,33 +64,38 @@ public class NetScanService extends Service {
 
     private boolean scanning = false;
     private boolean autoConnect = false;
-    private boolean connecting = false;
-    private boolean connected = false;
     private boolean lorriesNear = false;
-    private String connectingNetSsid;
-    private String connectedNetSsid;
+    private boolean manualConnectActivated = false;
+
 
     @Nullable
     @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
+    public IBinder onBind(Intent intent) { return null; }
 
     @Override
-    public void onCreate() {
-        this.wifiAgent = new WifiAgent(this);
-    }
+    public void onCreate() { this.wifiAgent = new WifiAgent(this); }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        final Messenger activityMessenger = intent == null
-                ? null
-                : (Messenger) intent.getParcelableExtra(MESSENGER);
+    public int onStartCommand(final Intent intent, int flags, int startId) {
+        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        if (intent != null) process(intent);
+                    }
+                }
+        );
+
+        return START_STICKY;
+    }
+
+    private void process(@NonNull final Intent intent) {
+        final Messenger activityMessenger = intent.getParcelableExtra(MESSENGER);
         if (activityMessenger != null) this.mActivityMessenger = activityMessenger;
 
         switch (intent.getAction() == null ? "" : intent.getAction()) {
             case ACTION_SCAN_SINGLE:
-                singleScan();
+                updateAndSendScanResults();
                 break;
 
             case ACTION_SCAN_START:
@@ -98,37 +106,36 @@ public class NetScanService extends Service {
                 stopScan();
                 break;
 
-            case ACTION_CONNECTING:
-                this.connectingNetSsid = intent.getStringExtra(EXTRA_SSID);
-                break;
-
-            case ACTION_CONNECTED:
-                this.connecting = false;
-                this.connected = true;
-                this.netBuffer.setConnected(this.connectedNetSsid);
-                setMsgСonnectEnd();
-                break;
-
-            case ACTION_CANCEL:
-                this.connecting = false;
-                this.connected = false;
-                this.netBuffer.detach(this.connectedNetSsid, false);
-                break;
-
-            case ACTION_DISCONNECTED:
-                this.connected = false;
-                break;
-
             case ACTION_CONNECT_AUTO:
-                this.autoConnect = intent.getBooleanExtra(EXTRA_AUTO_CONNECT, true);
+                this.autoConnect = intent.getBooleanExtra(EXTRA_CONNECT_AUTO, true);
+                if (!this.autoConnect) this.netBuffer.setConnectingNet(null, true);
+                break;
+
+            case ACTION_CONNECT_MANUAL:
+                this.manualConnectActivated = true;
+                this.netBuffer.setConnectingNet(intent.getStringExtra(EXTRA_NET_SSID), false);
+                break;
+
+            case ACTION_WIFIAGENT_CONNECTED_TO:
+                this.netBuffer.connect(this.autoConnect);
+                sendMsgСonnectEnd();
+                break;
+
+            case ACTION_WIFIAGENT_DISCONNECT:
+                this.netBuffer.detach();
+                /*
+                ToastThread.postToastMessage(
+                        this,
+                        "Nets detached:" + String.valueOf(),
+                        Toast.LENGTH_SHORT
+                );
+                */
                 break;
 
             case ACTION_UNREGISTER_MESSENGER:
                 this.mActivityMessenger = null;
                 break;
         }
-
-        return START_STICKY;
     }
 
     @Override
@@ -136,7 +143,6 @@ public class NetScanService extends Service {
         stopScan();
         super.onDestroy();
     }
-
 
     public boolean isMessengerNull() {
         return this.mActivityMessenger == null;
@@ -152,56 +158,46 @@ public class NetScanService extends Service {
         }
     }
 
-    private void sendMsgConnectStart() {
+    private void sendMsgConnectStart(final String ssid) {
+        Notificator.jumpToMainActivity(this);
+
         final Message msg = new Message();
         msg.what = MSG_СONNECT_START;
         final Bundle bundle = new Bundle();
-        bundle.putString(KEY_ID, this.connectingNetSsid);
+        bundle.putString(EXTRA_NET_SSID, ssid);
+
         msg.setData(bundle);
         sendMessage(msg);
     }
 
-    private void setMsgСonnectEnd() {
+    private void sendMsgСonnectEnd() {
         final Message msg = new Message();
         msg.what = MSG_СONNECT_END;
         sendMessage(msg);
     }
 
     private void updateAndSendScanResults() {
-        final List<Net> nets = this.netBuffer.getNets(
-                wifiAgent.getScanResults(),
-                this
-        );
+        final List<Net> nets = this.netBuffer.getNets(wifiAgent.getScanResults(), this);
+
         final Message msg = new Message();
         msg.what = MSG_SCANS;
         msg.obj = nets;
 
-        final List<Net> lorries = this.netBuffer.getLorries();
-        if (lorries.size() > 0 ) {
-            if (!this.scanning) startScan(SCAN_PERIOD_MS);
-            if (!this.connected) lorriesNear(lorries);
-            if (!this.connected && !this.connecting && this.netBuffer.lorriesChanged()) {
-                Notificator.notifyNetDetected(this);
-            }
+        if (this.netBuffer.lorriesNear()) {
+            if (this.netBuffer.lorriesChanged()) Notificator.notifyNetDetected(this);
+            startScan(SCAN_PERIOD_MS);
+            lorriesNear();
             this.lorriesNear = true;
             msg.arg1 = MSG_LORRIES_DETECTED;
-        } else {
+        }
+        else {
+            Initializer.initNetScanService(this);
+            Notificator.removeNetDetectedNotification(this);
             msg.arg1 = -1;
             this.lorriesNear = false;
         }
 
         sendMessage(msg);
-    }
-
-    private void singleScan() {
-        DefaultExecutorSupplier.getInstance().forLightWeightBackgroundTasks().execute(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        updateAndSendScanResults();
-                    }
-                }
-        );
     }
 
     private void startScan(final int delayMs) {
@@ -221,68 +217,59 @@ public class NetScanService extends Service {
         }
     }
 
-    private void lorriesNear(final List<Net> lorries) {
-        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        setConnectingNet(lorries);
-
-                        if (!WifiAgent.connectedTo(getApplicationContext(),
-                                WifiConfig.formatSsid(connectingNetSsid))) {
-                            for (Net net : lorries) {
-                                if (net.getSsid().equals(connectingNetSsid)) {
-                                    if (connect(net)) {
-                                        connecting = true;
-                                        return;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-        );
-     }
-
-    private void setConnectingNet(final List<Net> lorries) {
-        if (this.connectingNetSsid == null && !this.connecting) {
-            for (Net net : lorries) {
-                if (this.autoConnect
-                        && net.getState() != Net.NET_STATE_CONNECTED
-                        && net.getAutoConnect()) {
-                    this.connectingNetSsid = net.getSsid();
-                    break;
-                }
-            }
+    private void lorriesNear() {
+        if (this.autoConnect) {
+            this.netBuffer.setConnectingNet(this.netBuffer.getPrefferedNetSsid(), true);
         }
-    }
 
-    private boolean connect(final Net net) {
-        if (net.getLastTimeMeanLevel(STABLE_CONNECT_TIME) > STABLE_CONNECT_LEVEL
-                && !this.connecting) {
-            startConnectService(net);
-
-            sendMsgConnectStart();
-
-            this.connectedNetSsid = net.getSsid();
-            this.connectingNetSsid = null;
-            return true;
-        } else return false;
-    }
-
-    private void startConnectService(final Net net) {
-        final Intent connectService = new Intent(this, ConnectService.class);
-        connectService.setAction(ConnectService.ACTION_CONNECTING);
-        connectService.putStringArrayListExtra(
-                ConnectService.EXTRA_CONFIG,
-                net.wrapConfig().asArrayList()
+        final Net net = this.netBuffer.getConnectingNet(
+                this.manualConnectActivated
         );
+
+        if (canConnect(net)) connect(net);
+    }
+
+    private boolean canConnect(final Net net) {
+        return net != null
+
+                && this.mActivityMessenger != null
+
+                && net.getLastTimeMeanLevel(STABLE_CONNECT_TIME_S) > STABLE_CONNECT_LEVEL_DB
+
+                && !WifiAgent.connectedTo(this,
+                WifiConfig.formatSsid(this.netBuffer.getConnectingNetSsid(
+                        this.manualConnectActivated
+                )))
+
+                && !WifiAgent.connectedTo(this,
+                WifiConfig.formatSsid(this.netBuffer.getConnectedNetSsid()));
+    }
+
+    private void connect(@NonNull final Net net) {
+        this.manualConnectActivated = false;
+
+        startConnectService(net);
+        sendMsgConnectStart(net.getSsid());
+        Notificator.removeNetDetectedNotification(this);
+    }
+
+    private void startConnectService(final NetConfig config) {
+        final Intent connectService = new Intent(this, ConnectService.class);
+
+        connectService.setAction(ConnectService.ACTION_WIFIAGENT_CONNECT);
+        connectService.putStringArrayListExtra(
+                ConnectService.EXTRA_NET_CONFIG,
+                config.asArrayList()
+        );
+
         startService(connectService);
     }
+
 
     private class ScanTimerTask extends TimerTask {
         @Override
         public void run() {
+            WifiAgent.enableWifi(getApplicationContext(), false, true);
             updateAndSendScanResults();
         }
     }

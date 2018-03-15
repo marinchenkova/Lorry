@@ -11,6 +11,8 @@ import android.widget.Toast;
 
 import name.marinchenko.lorryvision.R;
 
+import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_NET_SSID;
+
 
 /**
  * Dialog window for saving network ID-Passwords pairs.
@@ -29,7 +31,7 @@ public class LoginDialog
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-        this.id = getArguments().getString(NetStore.KEY_ID);
+        this.id = getArguments().getString(EXTRA_NET_SSID);
 
         builder.setView(this.form);
         builder.setTitle(this.id);

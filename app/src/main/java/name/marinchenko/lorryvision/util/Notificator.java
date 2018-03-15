@@ -16,7 +16,6 @@ import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -25,7 +24,6 @@ import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.activities.main.MainActivity;
 import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
-import name.marinchenko.lorryvision.util.threading.ToastThread;
 
 import static android.app.Notification.DEFAULT_ALL;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_JUMP;
@@ -48,24 +46,24 @@ public class Notificator {
     private static final String TAG_WAKELOCK = "tag_wakelock";
     private static final String TAG_WAKELOCK_CPU = "tag_wakelock_cpu";
 
-    public static void notifyNetDetected(final Context context) {
+    public static void notifyNetDetected(final NetScanService netScanService) {
         DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
                 new Runnable() {
                     @Override
                     public void run() {
-                        if (isAppBackground(context)) {
-                            if (notificationAllowed(context)) {
-                                showNotification(context, createNotification(context));
-                                final boolean on = screenOn(context);
+                        if (notificationAllowed(netScanService)) {
+                            showNotification(netScanService, createNotification(netScanService));
+                        }
 
-                                if (jumpToAppAllowed(context)) {
-                                    if (on && !isLocked(context)) {
-                                        jumpToApp(context, NOTIFICATION_NET_FOUND_JUMP_DELAY);
-                                    }
-                                }
+                        if (isAppBackground(netScanService)) {
+                            if (notificationAllowed(netScanService)
+                                    && jumpToAppAllowed(netScanService)
+                                    && screenOn(netScanService)
+                                    && !isLocked(netScanService)) {
+                                jumpToApp(netScanService, NOTIFICATION_NET_FOUND_JUMP_DELAY);
                             }
 
-                        } else jumpToMainActivity(context);
+                        } else jumpToMainActivity(netScanService);
                     }
                 }
         );
@@ -128,10 +126,20 @@ public class Notificator {
         timer.schedule(jumpTask, delay);
     }
 
-    private static void jumpToMainActivity(final Context context) {
-        final NetScanService service = (NetScanService) context;
+    public static void jumpToMainActivity(final NetScanService netScanService) {
         final Message msg = Message.obtain(null, MSG_RETURN_TO_MAIN);
-        service.sendMessage(msg);
+        netScanService.sendMessage(msg);
+
+        final Timer timer = new Timer();
+        final TimerTask jumpTask = new TimerTask() {
+            @Override
+            public void run() {
+                final Message msg = Message.obtain(null, MSG_RETURN_TO_MAIN);
+                netScanService.sendMessage(msg);
+            }
+        };
+
+        timer.schedule(jumpTask, NOTIFICATION_NET_FOUND_JUMP_DELAY);
     }
 
     private static boolean isLocked(final Context context) {

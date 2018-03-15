@@ -33,7 +33,7 @@ import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_AUTOCONNECT;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_AUTOUPDATE;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECT_AUTO;
-import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_AUTO_CONNECT;
+import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_CONNECT_AUTO;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_START;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_STOP;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_UNREGISTER_MESSENGER;
@@ -70,7 +70,7 @@ public class Initializer {
                         final boolean auto = isAutoConnect(context);
 
                         serviceIntent.setAction(ACTION_CONNECT_AUTO);
-                        serviceIntent.putExtra(EXTRA_AUTO_CONNECT, auto);
+                        serviceIntent.putExtra(EXTRA_CONNECT_AUTO, auto);
                         context.startService(serviceIntent);
                     }
                 }
@@ -100,7 +100,8 @@ public class Initializer {
 
                         if (start) {
                             netScanServiceIntent.putExtra(MESSENGER, activity.getMessenger());
-                        } else {
+                        }
+                        else {
                             netScanServiceIntent.setAction(ACTION_UNREGISTER_MESSENGER);
                         }
 

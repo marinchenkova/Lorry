@@ -22,6 +22,7 @@ public class Net extends NetConfig
     private int state = NET_STATE_DETECTED;
     private boolean autoConnect = true;
     private boolean highlighted = false;
+    private boolean wasConnected = false;
     private int connectMoment = -1;
     private int detachMoment = -1;
 
@@ -34,15 +35,6 @@ public class Net extends NetConfig
         this.type = NetBuffer.getType(ssid);
         this.level.add(signal);
         this.detectTime = System.currentTimeMillis();
-    }
-
-    public NetConfig wrapConfig() {
-        return new NetConfig(
-                this.ssid,
-                this.bssid,
-                this.caps,
-                this.password
-        );
     }
 
     @Override
@@ -68,6 +60,7 @@ public class Net extends NetConfig
     public int getDetachMoment() { return this.detachMoment; }
     public long getDetectTime() { return this.detectTime; }
     public int getState() { return this.state; }
+    public boolean wasConnected() { return this.wasConnected; }
     public boolean getHighlighted() { return this.highlighted; }
     public boolean getAutoConnect() { return this.autoConnect; }
 
@@ -96,6 +89,7 @@ public class Net extends NetConfig
     public void connect() {
         this.state = NET_STATE_CONNECTED;
         this.connectMoment = this.level.size();
+        this.wasConnected = true;
     }
 
     public void setHighlighted(final boolean highlight) {

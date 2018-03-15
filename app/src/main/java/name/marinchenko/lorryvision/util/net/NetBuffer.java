@@ -18,7 +18,14 @@ import name.marinchenko.lorryvision.util.debug.NetStore;
 
 public class NetBuffer {
 
+    public final static String KEY_ID = "key_id";
     private final static Pattern LORRY = Pattern.compile("LV-[0-9]{8}");
+
+
+    private String connectingNetSsidAuto;
+    private String connectingNetSsidManual;
+
+    private String connectedNetSsid;
 
     private List<Net> nets = new ArrayList<>();
     private List<Net> lorries = new ArrayList<>();
@@ -39,7 +46,7 @@ public class NetBuffer {
         return this.nets;
     }
 
-    public List<Net> getLorries() { return this.lorries; }
+    public boolean lorriesNear() { return this.lorries.size() > 0; }
 
     public boolean lorriesChanged() {
         if (this.lorries.size() == 0) return false;
@@ -52,29 +59,76 @@ public class NetBuffer {
         return false;
     }
 
-    public void setConnected(final String ssid) {
-        for (Net net : this.nets) {
-            if (net.getSsid().equals(ssid)) net.connect();
+    public void connect(final boolean autoConnect) {
+        for (Net net : this.lorries) {
+            if (net.getSsid().equals(
+                    autoConnect ? this.connectingNetSsidAuto : this.connectingNetSsidManual
+            )) {
+                net.connect();
+                this.connectingNetSsidAuto = null;
+                this.connectingNetSsidManual = null;
+                this.connectedNetSsid = net.getSsid();
+                return;
+            }
         }
     }
 
-    public void detach(final String ssid,
-                       final boolean auto) {
-        for (Net net : this.nets) {
-            if (net.getSsid().equals(ssid)) {
+    public void detach() {
+        for (Net net : this.lorries) {
+            if (net.getSsid().equals(this.connectedNetSsid) && net.wasConnected()) {
                 net.detach();
-                net.setAutoConnect(auto);
+                net.setAutoConnect(false);
+                this.connectingNetSsidAuto = null;
+                this.connectingNetSsidManual = null;
+                this.connectedNetSsid = null;
+                return;
             }
         }
     }
 
     @Nullable
-    public Net search(final String ssid) {
-        for (Net net : this.nets) {
-            if (net.getSsid().equals(ssid)) return net;
+    public Net getConnectingNet(final boolean manual) {
+        for (Net net : this.lorries) {
+            if (manual && net.getSsid().equals(this.connectingNetSsidManual)) {
+                return net;
+            }
+            else if (net.getSsid().equals(this.connectingNetSsidAuto)) {
+                return net;
+            }
         }
         return null;
     }
+
+    public String getConnectingNetSsid(final boolean manual) {
+        final Net net = getConnectingNet(manual);
+        return net == null ? "" : net.getSsid();
+    }
+
+    public String getConnectedNetSsid() {
+        for (Net net : this.lorries) {
+            if (net.getSsid().equals(this.connectedNetSsid)) return net.getSsid();
+        }
+        return "";
+    }
+
+    public void setConnectingNet(@Nullable final String ssid,
+                                 final boolean auto) {
+        if (auto) this.connectingNetSsidAuto = ssid;
+        else {
+            this.connectingNetSsidAuto = null;
+            this.connectingNetSsidManual = ssid;
+        }
+    }
+
+    public String getPrefferedNetSsid() {
+        for (Net net : lorries) {
+            if (net.getAutoConnect() && !net.wasConnected()) {
+                return net.getSsid();
+            }
+        }
+        return "";
+    }
+
 
     public static String getPassword(final Context context,
                                      final String ssid) {

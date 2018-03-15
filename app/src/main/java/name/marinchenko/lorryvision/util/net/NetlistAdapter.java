@@ -66,21 +66,19 @@ public class NetlistAdapter extends BaseAdapter {
         final NetType type = net.getType();
         final int state = net.getState();
         final boolean highlight = net.getHighlighted();
+        final boolean wasConnected = net.wasConnected();
 
         view.findViewById(R.id.netList_item_background).setVisibility(
                 highlight ? View.VISIBLE : View.GONE
         );
 
-        if (state == Net.NET_STATE_CONNECTED) {
-            ((ImageView) view.findViewById(R.id.netList_imageView_was_connected)).setImageResource(
-                    R.drawable.ic_net_was_connected
-            );
-        } else if (state == Net.NET_STATE_DETACHED) {
+        if (type == NetType.lorryNetwork
+                && state == Net.NET_STATE_DETACHED
+                && wasConnected) {
             ((ImageView) view.findViewById(R.id.netList_imageView_was_connected)).setImageResource(
                     R.drawable.ic_net_was_detached
             );
         }
-
 
         ((ImageView) view.findViewById(R.id.netList_imageView_typeOfNet)).setImageResource(
                 type == NetType.lorryNetwork
