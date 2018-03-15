@@ -23,6 +23,7 @@ public class Net extends NetConfig
     private boolean autoConnect = true;
     private boolean highlighted = false;
     private boolean wasConnected = false;
+    private boolean wasDetached = false;
     private int connectMoment = -1;
     private int detachMoment = -1;
 
@@ -61,17 +62,9 @@ public class Net extends NetConfig
     public long getDetectTime() { return this.detectTime; }
     public int getState() { return this.state; }
     public boolean wasConnected() { return this.wasConnected; }
+    public boolean wasDetached() { return this.wasDetached; }
     public boolean getHighlighted() { return this.highlighted; }
     public boolean getAutoConnect() { return this.autoConnect; }
-
-    public int getSignalIcon() {
-        final int level = this.getLevel();
-        if (level > -56) return 4;
-        else if (level > -67) return 3;
-        else if (level > -78) return 2;
-        else if (level > -89) return 1;
-        else return 0;
-    }
 
     public int getLastTimeMeanLevel(final int sec) {
         if (this.level.size() <= sec) return -100;
@@ -103,5 +96,6 @@ public class Net extends NetConfig
     public void detach() {
         this.state = NET_STATE_DETACHED;
         this.detachMoment = this.level.size();
+        this.wasDetached = true;
     }
 }

@@ -20,6 +20,7 @@ import name.marinchenko.lorryvision.util.Notificator;
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetBuffer;
 import name.marinchenko.lorryvision.util.net.NetConfig;
+import name.marinchenko.lorryvision.util.net.NetView;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 import name.marinchenko.lorryvision.util.net.WifiConfig;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
@@ -77,14 +78,12 @@ public class NetScanService extends Service {
 
     @Override
     public int onStartCommand(final Intent intent, int flags, int startId) {
-        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        if (intent != null) process(intent);
-                    }
-                }
-        );
+        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(new Runnable() {
+            @Override
+            public void run() {
+                if (intent != null) process(intent);
+            }
+        });
 
         return START_STICKY;
     }
@@ -123,13 +122,6 @@ public class NetScanService extends Service {
 
             case ACTION_WIFIAGENT_DISCONNECT:
                 this.netBuffer.detach();
-                /*
-                ToastThread.postToastMessage(
-                        this,
-                        "Nets detached:" + String.valueOf(),
-                        Toast.LENGTH_SHORT
-                );
-                */
                 break;
 
             case ACTION_UNREGISTER_MESSENGER:
@@ -176,28 +168,36 @@ public class NetScanService extends Service {
         sendMessage(msg);
     }
 
+    private void sendMsgScanResults(final List<Net> nets) {
+        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(new Runnable() {
+            @Override
+            public void run() {
+                final Message msg = new Message();
+                msg.what = MSG_SCANS;
+                msg.obj = nets;
+                msg.arg1 = lorriesNear ? MSG_LORRIES_DETECTED : -1;
+                msg.setData(NetView.getBundle(nets));
+
+                sendMessage(msg);
+            }
+        });
+    }
+
     private void updateAndSendScanResults() {
         final List<Net> nets = this.netBuffer.getNets(wifiAgent.getScanResults(), this);
-
-        final Message msg = new Message();
-        msg.what = MSG_SCANS;
-        msg.obj = nets;
+        sendMsgScanResults(nets);
 
         if (this.netBuffer.lorriesNear()) {
             if (this.netBuffer.lorriesChanged()) Notificator.notifyNetDetected(this);
             startScan(SCAN_PERIOD_MS);
             lorriesNear();
             this.lorriesNear = true;
-            msg.arg1 = MSG_LORRIES_DETECTED;
         }
         else {
             Initializer.initNetScanService(this);
             Notificator.removeNetDetectedNotification(this);
-            msg.arg1 = -1;
             this.lorriesNear = false;
         }
-
-        sendMessage(msg);
     }
 
     private void startScan(final int delayMs) {

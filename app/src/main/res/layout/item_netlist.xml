@@ -43,21 +43,22 @@
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@+id/netList_imageView_typeOfNet"
-        app:layout_constraintEnd_toStartOf="@+id/netList_imageView_was_connected"
+        app:layout_constraintEnd_toStartOf="@+id/netList_imageView_was_detached"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:id="@+id/netList_imageView_was_connected"
+        android:id="@+id/netList_imageView_was_detached"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_marginBottom="6dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="6dp"
-        android:contentDescription="@string/netList_item_imageView_was_connected"
+        android:contentDescription="@string/netList_item_imageView_was_detached"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/netList_imageView_signal"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_net_was_detached" />
 
     <ImageView
         android:id="@+id/netList_imageView_signal"

@@ -3,6 +3,7 @@ package name.marinchenko.lorryvision.util.net;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,7 +31,7 @@ public class NetlistAdapter extends BaseAdapter {
             R.drawable.ic_wifi_4
     };
 
-    private final ArrayList<Net> nets = new ArrayList<>();
+    private final ArrayList<NetView> netViews = new ArrayList<>();
     private final LayoutInflater inflater;
 
     public NetlistAdapter(final Context context) {
@@ -39,18 +40,14 @@ public class NetlistAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return this.nets.size();
+        return this.netViews.size();
     }
 
     @Override
-    public Object getItem(int i) {
-        return this.nets.get(i);
-    }
+    public Object getItem(int i) { return this.netViews.get(i); }
 
     @Override
-    public long getItemId(int i) {
-        return i;
-    }
+    public long getItemId(int i) { return i; }
 
     @Override
     public View getView(final int i,
@@ -61,24 +58,20 @@ public class NetlistAdapter extends BaseAdapter {
                         ? inflater.inflate(R.layout.item_netlist, viewGroup, false)
                         : convertView;
 
-        final Net net = this.nets.get(i);
+        final NetView net = this.netViews.get(i);
+
         final String netId = net.getSsid();
         final NetType type = net.getType();
-        final int state = net.getState();
         final boolean highlight = net.getHighlighted();
-        final boolean wasConnected = net.wasConnected();
+        final boolean wasDetached = net.wasDetached();
 
         view.findViewById(R.id.netList_item_background).setVisibility(
                 highlight ? View.VISIBLE : View.GONE
         );
 
-        if (type == NetType.lorryNetwork
-                && state == Net.NET_STATE_DETACHED
-                && wasConnected) {
-            ((ImageView) view.findViewById(R.id.netList_imageView_was_connected)).setImageResource(
-                    R.drawable.ic_net_was_detached
-            );
-        }
+        view.findViewById(R.id.netList_imageView_was_detached).setVisibility(
+                type == NetType.lorryNetwork && wasDetached ? View.VISIBLE : View.GONE
+        );
 
         ((ImageView) view.findViewById(R.id.netList_imageView_typeOfNet)).setImageResource(
                 type == NetType.lorryNetwork
@@ -97,18 +90,19 @@ public class NetlistAdapter extends BaseAdapter {
     }
 
     public void update(final Activity activity,
-                       final List<Net> newList) {
-        this.nets.clear();
+                       final Bundle bundle) {
+        this.netViews.clear();
+        final List<NetView> newNetViews = NetView.getNetViewList(bundle);
 
         final SharedPreferences sharedPref =
                 PreferenceManager.getDefaultSharedPreferences(activity);
 
         if (!sharedPref.getBoolean(PREF_KEY_DISPLAY_GENERAL, false)) {
-            for (Net net : newList) {
-                if (net.getType() == NetType.lorryNetwork) this.nets.add(net);
+            for (NetView net : newNetViews) {
+                if (net.getType() == NetType.lorryNetwork) this.netViews.add(net);
             }
         } else {
-            this.nets.addAll(newList);
+            this.netViews.addAll(newNetViews);
         }
     }
 }

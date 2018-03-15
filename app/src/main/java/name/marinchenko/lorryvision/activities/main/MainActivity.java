@@ -35,6 +35,7 @@ import name.marinchenko.lorryvision.util.debug.LoginDialog;
 import name.marinchenko.lorryvision.util.dialogs.ConnectDialog;
 import name.marinchenko.lorryvision.util.net.Net;
 import name.marinchenko.lorryvision.util.net.NetType;
+import name.marinchenko.lorryvision.util.net.NetView;
 import name.marinchenko.lorryvision.util.net.NetlistAdapter;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
@@ -94,6 +95,12 @@ public class MainActivity
     @Override
     protected void onPause() {
         super.onPause();
+        dismissConnectDialog();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
         dismissConnectDialog();
     }
 
@@ -167,7 +174,7 @@ public class MainActivity
      */
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        final Net net = (Net) this.netlistAdapter.getItem(i);
+        final NetView net = (NetView) this.netlistAdapter.getItem(i);
 
         if (net.getType() == NetType.lorryNetwork) {
             final Intent connectingIntent = new Intent(this, NetScanService.class);
@@ -293,7 +300,6 @@ public class MainActivity
      */
     public void onButtonUpdateClick(final View view) {
         requestScanResults();
-        updateNetlist(this.nets);
     }
 
     public void onCheckboxAutoConnectClick(View view) {
@@ -307,8 +313,8 @@ public class MainActivity
         Initializer.initAutoConnect(this);
     }
 
-    private void updateNetlist(final List<Net> newList) {
-        this.netlistAdapter.update(this, newList);
+    private void updateNetlist(final Bundle bundle) {
+        this.netlistAdapter.update(this, bundle);
         this.netlistAdapter.notifyDataSetChanged();
     }
 
@@ -349,7 +355,7 @@ public class MainActivity
             final MainActivity mainActivity = (MainActivity) activity;
             switch (msg.what) {
                 case MSG_SCANS:
-                    mainActivity.updateNetlist((List<Net>) msg.obj);
+                    mainActivity.updateNetlist(msg.getData());
                     mainActivity.lorriesDetected = (msg.arg1 == MSG_LORRIES_DETECTED);
                     Initializer.Main.initAutoUpdate(mainActivity, mainActivity.lorriesDetected);
                     break;
