@@ -54,7 +54,7 @@ public class ConnectDialog
 
     @Override
     public void onClick(DialogInterface dialog, int which) {
-        WifiAgent.notifyDisconnected(getActivity());
+        WifiAgent.notifyDisconnectedManual(getActivity());
     }
 
     @Override

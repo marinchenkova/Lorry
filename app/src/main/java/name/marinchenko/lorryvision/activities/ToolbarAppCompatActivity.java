@@ -1,7 +1,9 @@
 package name.marinchenko.lorryvision.activities;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Rect;
 import android.net.wifi.WifiManager;
@@ -17,18 +19,24 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
 
+import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.Initializer;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
+import name.marinchenko.lorryvision.util.threading.ToastThread;
 
+import static android.content.Intent.ACTION_USER_PRESENT;
+import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_SINGLE;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_RETURN_TO_MAIN;
 
 public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
 
     private BroadcastReceiver wifiReceiver = new WifiAgent.WifiReceiver();
-    protected Messenger messenger = new Messenger(new IncomingHandler(this));;
+    protected Messenger messenger = new Messenger(new IncomingHandler(this));
+
 
     public void initToolbar(@IdRes final int toolbarId,
                             @StringRes final int titleId,
@@ -43,17 +51,22 @@ public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        Initializer.initActivityMessenger(this, true);
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
         WifiAgent.enableWifi(this, false, true);
-        registerReceiver();
-        Initializer.initActivityMessenger(this, true);
+        registerReceivers();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver();
+        unregisterReceivers();
         Initializer.initActivityMessenger(this, false);
     }
 
@@ -92,17 +105,23 @@ public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
 
     public Messenger getMessenger() { return this.messenger; }
 
-    private void registerReceiver() {
-        final IntentFilter filter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
-        registerReceiver(this.wifiReceiver, filter);
+    private void registerReceivers() {
+        final IntentFilter wifiFilter = new IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION);
+        registerReceiver(this.wifiReceiver, wifiFilter);
     }
 
-    private void unregisterReceiver() {
+    private void unregisterReceivers() {
         try {
             unregisterReceiver(this.wifiReceiver);
         } catch (IllegalArgumentException e) {
             Log.w("MyLog", e.getMessage(), e);
         }
+    }
+
+    protected void requestScanResults() {
+        final Intent scanRequest = new Intent(this, NetScanService.class);
+        scanRequest.setAction(ACTION_SCAN_SINGLE);
+        startService(scanRequest);
     }
 
 
@@ -117,7 +136,7 @@ public abstract class ToolbarAppCompatActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_RETURN_TO_MAIN:
-                    activity.finish();
+                    this.activity.onBackPressed();
                     break;
 
                 default:

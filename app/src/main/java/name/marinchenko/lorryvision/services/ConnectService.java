@@ -24,11 +24,14 @@ public class ConnectService extends Service {
 
     public final static String ACTION_CONNECT_MANUAL = "action_connect_manual";
     public final static String ACTION_CONNECT_AUTO = "action_connect_auto";
+    public final static String ACTION_CONNECT_FAILED = "action_connect_failed";
+    public final static String ACTION_DISCONNECT = "action_disconnect";
 
     public final static String ACTION_WIFIAGENT_CONNECT = "action_wifiagent_connect";
     public final static String ACTION_WIFIAGENT_CONNECTED_TO = "action_wifiagent_connected_to";
     public final static String ACTION_WIFIAGENT_CONNECTED = "action_wifiagent_connected";
     public final static String ACTION_WIFIAGENT_DISCONNECT = "action_wifiagent_disconnect";
+    public final static String ACTION_WIFIAGENT_CONNECT_START = "action_wifiagent_connect_start";
 
     public final static String EXTRA_NET_CONFIG = "extra_net_config";
     public final static String EXTRA_NET_SSID = "extra_net_ssid";
@@ -39,11 +42,10 @@ public class ConnectService extends Service {
 
     private final static int CNT_CHECK_CONNECTED = 20;
     private final static int PERIOD_CHECK_CONNECTED_MS = 500;
-    private final static int PERIOD_CHECK_DISCONNECTED_MS = 2000;
 
     private boolean connecting = false;
     private int currentConnectedNetId = -1;
-    private Timer stabilityTimer;
+    private WifiConfiguration lastConfig;
 
     @Nullable
     @Override
@@ -51,15 +53,7 @@ public class ConnectService extends Service {
 
     @Override
     public int onStartCommand(final Intent intent, int flags, int startId) {
-        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        if (intent != null) process(intent);
-                    }
-                }
-        );
-
+        if (intent != null) process(intent);
         return START_STICKY;
     }
 
@@ -75,7 +69,11 @@ public class ConnectService extends Service {
                 break;
 
             case ACTION_WIFIAGENT_DISCONNECT:
-                disconnect();
+                this.connecting = false;
+                break;
+
+            case ACTION_DISCONNECT:
+                disconnect(ACTION_DISCONNECT);
                 break;
         }
     }
@@ -84,45 +82,45 @@ public class ConnectService extends Service {
         final NetConfig netConfig = new NetConfig(configList);
         if (!this.connecting && configList != null && !WifiAgent.connectedTo(
                 getApplicationContext(),
-                WifiConfig.formatSsid(netConfig.getSsid())
-        )) {
+                WifiConfig.formatSsid(netConfig.getSsid()))) {
+
+            notifyConnectStart(netConfig.getSsid());
+
             this.connecting = true;
-            final WifiConfiguration wifiConfig = netConfig.getWifiConfiguration();
+            this.lastConfig = netConfig.getWifiConfiguration();
 
             this.currentConnectedNetId = WifiAgent.connect(
                     getApplicationContext(),
-                    wifiConfig
+                    lastConfig
             );
 
             final Timer timer = new Timer();
-            final TimerTask checkConnectionTask =
-                    new CheckConnectionTask(netConfig.getSsid());
+            final TimerTask checkConnectionTask = new CheckConnectionTask(netConfig.getSsid());
             timer.schedule(checkConnectionTask, 0, PERIOD_CHECK_CONNECTED_MS);
         }
     }
 
-    private void disconnect() {
-        WifiAgent.disconnect(getApplicationContext(), this.currentConnectedNetId);
+    private void notifyConnectStart(final String ssid) {
+        if (!this.connecting) {
+            final Intent start = new Intent(this, NetScanService.class);
+            start.setAction(ACTION_WIFIAGENT_CONNECT_START);
+            start.putExtra(EXTRA_NET_SSID, ssid);
+            startService(start);
+        }
+    }
+
+    private void disconnect(final String action) {
+        WifiAgent.disconnect(this, this.currentConnectedNetId);
+        sendConnectionState(action);
         this.connecting = false;
         this.currentConnectedNetId = -1;
-        if (this.stabilityTimer != null) {
-            this.stabilityTimer.cancel();
-            this.stabilityTimer = null;
-        }
         stopSelf();
     }
 
-    private void connected(final String ssid) {
-        sendConnectionState(ACTION_WIFIAGENT_CONNECTED_TO);
-        this.stabilityTimer = new Timer();
-        final TimerTask stabilityTask = new StabilityTask(ssid);
-        this.stabilityTimer.schedule(stabilityTask, 0, PERIOD_CHECK_DISCONNECTED_MS);
-    }
-
     private void sendConnectionState(final String action) {
-        final Intent connected = new Intent(this, NetScanService.class);
-        connected.setAction(action);
-        startService(connected);
+        final Intent state = new Intent(this, NetScanService.class);
+        state.setAction(action);
+        startService(state);
     }
 
 
@@ -130,7 +128,7 @@ public class ConnectService extends Service {
         private final String ssid;
         private int cnt = 0;
 
-        public CheckConnectionTask(final String ssid) {
+        CheckConnectionTask(final String ssid) {
             this.ssid = ssid;
         }
 
@@ -138,28 +136,17 @@ public class ConnectService extends Service {
         public void run() {
             if (cnt < CNT_CHECK_CONNECTED) {
                 if (WifiAgent.connectedTo(getApplicationContext(), WifiConfig.formatSsid(ssid))) {
-                    connected(ssid);
+                    sendConnectionState(ACTION_WIFIAGENT_CONNECTED_TO);
                     this.cancel();
+                    cnt += CNT_CHECK_CONNECTED;
                 }
             }
-            else this.cancel();
+            else {
+                sendConnectionState(ACTION_CONNECT_FAILED);
+                this.cancel();
+            }
 
             cnt++;
-        }
-    }
-
-    private class StabilityTask extends TimerTask {
-        private final String ssid;
-
-        public StabilityTask(final String ssid) {
-            this.ssid = ssid;
-        }
-
-        @Override
-        public void run() {
-            if (!WifiAgent.connectedTo(getApplicationContext(), WifiConfig.formatSsid(ssid))) {
-                sendConnectionState(ACTION_WIFIAGENT_DISCONNECT);
-            }
         }
     }
 }

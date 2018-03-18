@@ -21,9 +21,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import name.marinchenko.lorryvision.R;
-import name.marinchenko.lorryvision.activities.main.MainActivity;
 import name.marinchenko.lorryvision.services.NetScanService;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
+import name.marinchenko.lorryvision.util.threading.ToastThread;
 
 import static android.app.Notification.DEFAULT_ALL;
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_JUMP;
@@ -58,12 +58,13 @@ public class Notificator {
                         if (isAppBackground(netScanService)) {
                             if (notificationAllowed(netScanService)
                                     && jumpToAppAllowed(netScanService)
-                                    && screenOn(netScanService)
+                                    && isScreenOn(netScanService, true)
                                     && !isLocked(netScanService)) {
+
                                 jumpToApp(netScanService, NOTIFICATION_NET_FOUND_JUMP_DELAY);
                             }
-
-                        } else jumpToMainActivity(netScanService);
+                        }
+                        else jumpToMainActivity(netScanService);
                     }
                 }
         );
@@ -142,7 +143,7 @@ public class Notificator {
         timer.schedule(jumpTask, NOTIFICATION_NET_FOUND_JUMP_DELAY);
     }
 
-    private static boolean isLocked(final Context context) {
+    public static boolean isLocked(final Context context) {
         final KeyguardManager keyguardManager = (KeyguardManager)
                 context.getSystemService(Context.KEYGUARD_SERVICE);
         return keyguardManager != null && keyguardManager.inKeyguardRestrictedInputMode();
@@ -214,24 +215,29 @@ public class Notificator {
         return mBuilder.build();
     }
 
-    private static boolean screenOn(final Context context) {
+    public static boolean isScreenOn(final Context context,
+                                     final boolean turnOn) {
         final PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        if (!pm.isScreenOn()) {
-            PowerManager.WakeLock wakeLock = pm.newWakeLock(
-                    PowerManager.FULL_WAKE_LOCK
-                            | PowerManager.ACQUIRE_CAUSES_WAKEUP
-                            | PowerManager.ON_AFTER_RELEASE,
-                    TAG_WAKELOCK
-            );
-            wakeLock.acquire(0);
-            PowerManager.WakeLock wakeLockCpu = pm.newWakeLock(
-                    PowerManager.PARTIAL_WAKE_LOCK,
-                    TAG_WAKELOCK_CPU
-            );
-
-            wakeLockCpu.acquire(0);
+        if (pm != null && !pm.isScreenOn()) {
+            if (turnOn) turnScreenOn(pm);
             return false;
         }
         return true;
+    }
+
+    private static void turnScreenOn(final PowerManager pm) {
+        PowerManager.WakeLock wakeLock = pm.newWakeLock(
+                PowerManager.FULL_WAKE_LOCK
+                        | PowerManager.ACQUIRE_CAUSES_WAKEUP
+                        | PowerManager.ON_AFTER_RELEASE,
+                TAG_WAKELOCK
+        );
+        wakeLock.acquire(0);
+
+        PowerManager.WakeLock wakeLockCpu = pm.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK,
+                TAG_WAKELOCK_CPU
+        );
+        wakeLockCpu.acquire(0);
     }
 }

@@ -48,7 +48,8 @@
     <string name="netList_item_background">Background color</string>
 
     <string name="toast_enabling_wifi">Enabling Wi-Fi service…</string>
-
+    <string name="toast_connection_ok">Connection successful</string>
+    <string name="toast_connection_failed">Connection failed</string>
 
 
     <!-- VideoActivity -->

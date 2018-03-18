@@ -10,6 +10,7 @@ import name.marinchenko.lorryvision.activities.ToolbarAppCompatActivity;
 import name.marinchenko.lorryvision.util.Initializer;
 import name.marinchenko.lorryvision.util.net.WifiAgent;
 
+import static name.marinchenko.lorryvision.services.NetScanService.MSG_DISCONNECTED;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_RETURN_TO_MAIN;
 
 
@@ -22,13 +23,14 @@ public class VideoActivity extends ToolbarAppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video);
 
-        this.messenger = new Messenger(new MainIncomingHandler(this));
+        this.messenger = new Messenger(new VideoIncomingHandler(this));
+
         Initializer.Video.init(this);
     }
 
     @Override
     public void onBackPressed() {
-        WifiAgent.notifyDisconnected(this);
+        WifiAgent.notifyDisconnectedManual(this);
         super.onBackPressed();
     }
 
@@ -37,17 +39,19 @@ public class VideoActivity extends ToolbarAppCompatActivity {
     }
 
 
-    protected static class MainIncomingHandler extends ToolbarAppCompatActivity.IncomingHandler {
+    protected static class VideoIncomingHandler extends ToolbarAppCompatActivity.IncomingHandler {
 
-        public MainIncomingHandler(ToolbarAppCompatActivity activity) {
-            super(activity);
-        }
+        VideoIncomingHandler(ToolbarAppCompatActivity activity) { super(activity); }
 
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_RETURN_TO_MAIN:
+                    this.activity.onBackPressed();
+                    break;
 
+                case MSG_DISCONNECTED:
+                    this.activity.onBackPressed();
                     break;
 
                 default:

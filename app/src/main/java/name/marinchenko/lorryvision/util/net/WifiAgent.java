@@ -16,11 +16,11 @@ import java.util.TimerTask;
 
 import name.marinchenko.lorryvision.R;
 import name.marinchenko.lorryvision.services.ConnectService;
-import name.marinchenko.lorryvision.services.NetScanService;
+import name.marinchenko.lorryvision.util.Notificator;
 import name.marinchenko.lorryvision.util.threading.DefaultExecutorSupplier;
 import name.marinchenko.lorryvision.util.threading.ToastThread;
 
-import static name.marinchenko.lorryvision.services.ConnectService.ACTION_WIFIAGENT_DISCONNECT;
+import static name.marinchenko.lorryvision.services.ConnectService.ACTION_DISCONNECT;
 
 /**
  * Class with Wi-Fi operations methods.
@@ -107,14 +107,10 @@ public class WifiAgent {
                 && (ssid == null || ssid.equals(info.getSSID()));
     }
 
-    public static void notifyDisconnected(final Context context) {
-        final Intent disconnect1 = new Intent(context, NetScanService.class);
-        disconnect1.setAction(ACTION_WIFIAGENT_DISCONNECT);
-        context.startService(disconnect1);
-
-        final Intent disconnect2 = new Intent(context, ConnectService.class);
-        disconnect2.setAction(ACTION_WIFIAGENT_DISCONNECT);
-        context.startService(disconnect2);
+    public static void notifyDisconnectedManual(final Context context) {
+        final Intent disconnect = new Intent(context, ConnectService.class);
+        disconnect.setAction(ACTION_DISCONNECT);
+        context.startService(disconnect);
     }
 
     private static void notifyConnected(final Context context) {
@@ -127,7 +123,7 @@ public class WifiAgent {
                             connected.setAction(ConnectService.ACTION_WIFIAGENT_CONNECTED);
                             context.startService(connected);
                         } else {
-                            final Intent disconnected = new Intent(context, NetScanService.class);
+                            final Intent disconnected = new Intent(context, ConnectService.class);
                             disconnected.setAction(ConnectService.ACTION_WIFIAGENT_DISCONNECT);
                             context.startService(disconnected);
                         }

@@ -6,6 +6,7 @@ import android.support.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -18,7 +19,6 @@ import name.marinchenko.lorryvision.util.debug.NetStore;
 
 public class NetBuffer {
 
-    public final static String KEY_ID = "key_id";
     private final static Pattern LORRY = Pattern.compile("LV-[0-9]{8}");
 
 
@@ -86,6 +86,12 @@ public class NetBuffer {
         }
     }
 
+    public void connectFailed() {
+        this.connectingNetSsidAuto = null;
+        this.connectingNetSsidManual = null;
+        this.connectedNetSsid = null;
+    }
+
     @Nullable
     public Net getConnectingNet(final boolean manual) {
         for (Net net : this.lorries) {
@@ -104,11 +110,19 @@ public class NetBuffer {
         return net == null ? "" : net.getSsid();
     }
 
-    public String getConnectedNetSsid() {
+    @Nullable
+    public Net getConnectedNet() {
         for (Net net : this.lorries) {
-            if (net.getSsid().equals(this.connectedNetSsid)) return net.getSsid();
+            if (net.getSsid().equals(this.connectedNetSsid)) {
+                return net;
+            }
         }
-        return "";
+        return null;
+    }
+
+    public String getConnectedNetSsid() {
+        final Net net = getConnectedNet();
+        return net == null ? "" : net.getSsid();
     }
 
     public void setConnectingNet(@Nullable final String ssid,
@@ -158,8 +172,11 @@ public class NetBuffer {
 
     private void addNets(final List<ScanResult> results,
                          final Context context) {
-        out : for (ScanResult s : results) {
-            for (Net net : this.nets) {
+        out : for (Iterator<ScanResult> itScan = results.iterator(); itScan.hasNext();) {
+            ScanResult s = itScan.next();
+
+            for (Iterator<Net> itNet = this.nets.iterator(); itNet.hasNext();) {
+                Net net = itNet.next();
                 if (net.getSsid().equals(s.SSID)) continue out;
             }
             if (!s.SSID.equals("")) {

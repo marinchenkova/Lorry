@@ -34,6 +34,7 @@ import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF
 import static name.marinchenko.lorryvision.activities.main.SettingsFragment.PREF_KEY_AUTOUPDATE;
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_CONNECT_AUTO;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_CONNECT_AUTO;
+import static name.marinchenko.lorryvision.services.NetScanService.ACTION_REGISTER_MESSENGER;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_START;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_SCAN_STOP;
 import static name.marinchenko.lorryvision.services.NetScanService.ACTION_UNREGISTER_MESSENGER;
@@ -89,26 +90,20 @@ public class Initializer {
 
     public static void initActivityMessenger(final ToolbarAppCompatActivity activity,
                                              final boolean start) {
-        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        final Intent netScanServiceIntent = new Intent(
-                                activity,
-                                NetScanService.class
-                        );
+        DefaultExecutorSupplier.getInstance().forBackgroundTasks().execute(new Runnable() {
+            @Override
+            public void run() {
+                final Intent netScanServiceIntent = new Intent(activity, NetScanService.class);
 
-                        if (start) {
-                            netScanServiceIntent.putExtra(MESSENGER, activity.getMessenger());
-                        }
-                        else {
-                            netScanServiceIntent.setAction(ACTION_UNREGISTER_MESSENGER);
-                        }
-
-                        activity.startService(netScanServiceIntent);
-                    }
+                if (start) {
+                    netScanServiceIntent.setAction(ACTION_REGISTER_MESSENGER);
+                    netScanServiceIntent.putExtra(MESSENGER, activity.getMessenger());
                 }
-        );
+                else netScanServiceIntent.setAction(ACTION_UNREGISTER_MESSENGER);
+
+                activity.startService(netScanServiceIntent);
+            }
+        });
     }
 
 

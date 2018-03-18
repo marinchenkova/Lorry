@@ -46,6 +46,7 @@ import static name.marinchenko.lorryvision.services.NetScanService.MSG_LORRIES_D
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_RETURN_TO_MAIN;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_SCANS;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_СONNECT_END;
+import static name.marinchenko.lorryvision.services.NetScanService.MSG_СONNECT_END_OK;
 import static name.marinchenko.lorryvision.services.NetScanService.MSG_СONNECT_START;
 import static name.marinchenko.lorryvision.util.dialogs.ConnectDialog.CONNECT_TAG;
 
@@ -56,7 +57,6 @@ public class MainActivity
                    AdapterView.OnItemLongClickListener {
 
     private NetlistAdapter netlistAdapter;
-    private List<Net> nets = new ArrayList<>();
     private boolean lorriesDetected = false;
     private ConnectDialog connectDialog;
 
@@ -318,12 +318,6 @@ public class MainActivity
         this.netlistAdapter.notifyDataSetChanged();
     }
 
-    private void requestScanResults() {
-        final Intent scanRequest = new Intent(this, NetScanService.class);
-        scanRequest.setAction(ACTION_SCAN_SINGLE);
-        startService(scanRequest);
-    }
-
     private void toVideoActivity() {
         final Timer timer = new Timer();
         final TimerTask jumpTask = new TimerTask() {
@@ -334,7 +328,6 @@ public class MainActivity
             }
         };
         timer.schedule(jumpTask, VideoActivity.JUMP_DELAY);
-
     }
 
     private void dismissConnectDialog() {
@@ -346,9 +339,7 @@ public class MainActivity
 
     protected static class MainIncomingHandler extends ToolbarAppCompatActivity.IncomingHandler {
 
-        public MainIncomingHandler(ToolbarAppCompatActivity activity) {
-            super(activity);
-        }
+        MainIncomingHandler(ToolbarAppCompatActivity activity) { super(activity); }
 
         @Override
         public void handleMessage(Message msg) {
@@ -361,14 +352,33 @@ public class MainActivity
                     break;
 
                 case MSG_СONNECT_START:
-                    mainActivity.connectDialog = new ConnectDialog();
-                    mainActivity.connectDialog.setArguments(msg.getData());
-                    mainActivity.connectDialog.show(mainActivity.getFragmentManager(), CONNECT_TAG);
+                    if (mainActivity.connectDialog == null) {
+                        mainActivity.connectDialog = new ConnectDialog();
+                        mainActivity.connectDialog.setArguments(msg.getData());
+                        mainActivity.connectDialog.show(
+                                mainActivity.getFragmentManager(),
+                                CONNECT_TAG
+                        );
+                    }
                     break;
 
                 case MSG_СONNECT_END:
                     mainActivity.dismissConnectDialog();
-                    mainActivity.toVideoActivity();
+                    if (msg.arg1 == MSG_СONNECT_END_OK) {
+                        ToastThread.postToastMessage(
+                                mainActivity,
+                                mainActivity.getString(R.string.toast_connection_ok),
+                                Toast.LENGTH_SHORT
+                        );
+                        mainActivity.toVideoActivity();
+                    }
+                    else {
+                        ToastThread.postToastMessage(
+                                mainActivity,
+                                mainActivity.getString(R.string.toast_connection_failed),
+                                Toast.LENGTH_SHORT
+                        );
+                    }
                     break;
 
                 case MSG_RETURN_TO_MAIN:
