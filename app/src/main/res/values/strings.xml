@@ -54,7 +54,7 @@
 
     <!-- VideoActivity -->
     <string name="activity_video">Camera translation</string>
-    <string name="activity_video_imageExample">Example</string>
+    <string name="activity_video_webView_translation">Translation viewer</string>
     <string name="activity_video_button_disconnect">DISCONNECT</string>
 
 

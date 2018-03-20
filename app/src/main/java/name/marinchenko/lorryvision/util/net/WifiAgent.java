@@ -8,6 +8,7 @@ import android.net.wifi.SupplicantState;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.text.format.Formatter;
 import android.widget.Toast;
 
 import java.util.List;
@@ -90,6 +91,7 @@ public class WifiAgent {
         if (wifiManager != null && lastId != -1) {
             wifiManager.disconnect();
             wifiManager.removeNetwork(lastId);
+            wifiManager.saveConfiguration();
             wifiManager.reconnect();
         }
     }
@@ -111,6 +113,23 @@ public class WifiAgent {
         final Intent disconnect = new Intent(context, ConnectService.class);
         disconnect.setAction(ACTION_DISCONNECT);
         context.startService(disconnect);
+    }
+
+    public static String getLorryIp(final Context context) {
+        final WifiManager wifiManager = (WifiManager) context
+                .getApplicationContext()
+                .getSystemService(Context.WIFI_SERVICE);
+
+        if (wifiManager == null) return "";
+
+        int ipInt = 0;
+        int count = 0;
+        while (ipInt == 0 && count < 1000) {
+            ipInt = wifiManager.getDhcpInfo().serverAddress;
+            count++;
+        }
+
+        return Formatter.formatIpAddress(ipInt);
     }
 
     private static void notifyConnected(final Context context) {

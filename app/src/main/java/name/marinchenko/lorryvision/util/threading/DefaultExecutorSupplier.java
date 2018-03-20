@@ -58,8 +58,8 @@ public class DefaultExecutorSupplier {
 
             // setting the thread pool executor for mForBackgroundTasks;
             mForBackgroundTasks = new ThreadPoolExecutor(
-                    NUMBER_OF_CORES * 2,
-                    NUMBER_OF_CORES * 2,
+                    NUMBER_OF_CORES * 4,
+                    NUMBER_OF_CORES * 4,
                     60L,
                     TimeUnit.SECONDS,
                     new LinkedBlockingQueue<Runnable>(),

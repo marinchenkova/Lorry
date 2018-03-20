@@ -12,6 +12,9 @@ import java.util.regex.Pattern;
 
 import name.marinchenko.lorryvision.util.debug.NetStore;
 
+import static name.marinchenko.lorryvision.services.ConnectService.STABLE_LEVEL_DB;
+import static name.marinchenko.lorryvision.services.ConnectService.STABLE_DETECT_TIME_S;
+
 
 /**
  * ScanResult parsing class to produce Net object.

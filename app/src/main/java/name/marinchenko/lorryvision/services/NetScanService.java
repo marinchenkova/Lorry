@@ -32,7 +32,7 @@ import static name.marinchenko.lorryvision.services.ConnectService.ACTION_WIFIAG
 import static name.marinchenko.lorryvision.services.ConnectService.ACTION_WIFIAGENT_CONNECT_START;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_CONNECT_AUTO;
 import static name.marinchenko.lorryvision.services.ConnectService.EXTRA_NET_SSID;
-import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_LEVEL_DB;
+import static name.marinchenko.lorryvision.services.ConnectService.STABLE_LEVEL_DB;
 import static name.marinchenko.lorryvision.services.ConnectService.STABLE_CONNECT_TIME_S;
 
 
@@ -95,7 +95,7 @@ public class NetScanService extends Service {
     private void process(@NonNull final Intent intent) {
         switch (intent.getAction() == null ? "" : intent.getAction()) {
             case ACTION_SCAN_SINGLE:
-                updateScanResults(true);
+                updateScanResults();
                 break;
 
             case ACTION_SCAN_START:
@@ -204,9 +204,9 @@ public class NetScanService extends Service {
         sendMessage(msg);
     }
 
-    private void updateScanResults(final boolean send) {
+    private void updateScanResults() {
         final List<Net> nets = this.netBuffer.getNets(wifiAgent.getScanResults(), this);
-        if (send) sendMsgScanResults(nets);
+        sendMsgScanResults(nets);
 
         if (this.netBuffer.lorriesNear()) {
             if (this.netBuffer.lorriesChanged()) Notificator.notifyNetDetected(this);
@@ -228,7 +228,7 @@ public class NetScanService extends Service {
 
         if (connected != null
                 && connected.getLastTimeMeanLevel(STABLE_CONNECT_TIME_S)
-                < STABLE_CONNECT_LEVEL_DB) {
+                < STABLE_LEVEL_DB) {
             startDisconnectService();
             sendMsgDisconnected();
             Notificator.jumpToMainActivity(this);
@@ -273,7 +273,7 @@ public class NetScanService extends Service {
     private boolean canConnect(final Net net) {
         return net != null
 
-                && net.getLastTimeMeanLevel(STABLE_CONNECT_TIME_S) > STABLE_CONNECT_LEVEL_DB
+                && net.getLastTimeMeanLevel(STABLE_CONNECT_TIME_S) > STABLE_LEVEL_DB
 
                 && this.mActivityMessenger != null
 
@@ -314,7 +314,7 @@ public class NetScanService extends Service {
             if (!isMessengerNull()) {
                 WifiAgent.enableWifi(getApplicationContext(), false, true);
             }
-            updateScanResults(true);
+            updateScanResults();
         }
     }
 }
