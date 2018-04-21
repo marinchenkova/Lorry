@@ -15,5 +15,5 @@ New branch of LV development with updated tools.
 
 Скриншоты приложения:
 
-![alt text](pics/main.jpg)
-![alt text](pics/camera.jpg)
+![alt text](pics/net.jpg)
+![alt text](pics/cam.jpg)
