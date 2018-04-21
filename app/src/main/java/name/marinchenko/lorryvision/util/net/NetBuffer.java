@@ -156,8 +156,8 @@ public class NetBuffer {
     public static NetType getType(final String name){
         //Matcher matcher = LORRY.matcher(name);
         //return matcher.matches() ? NetType.lorryNetwork : NetType.wifiNetwork;
-        return name.equals("ASUS-9840") ? NetType.lorryNetwork : NetType.wifiNetwork;
-        //return NetType.wifiNetwork;
+        final String pat = "ASUS-9840";
+        return name.equals(pat) ? NetType.lorryNetwork : NetType.wifiNetwork;
     }
 
     private void updateAndRemoveNets(final List<ScanResult> results) {
