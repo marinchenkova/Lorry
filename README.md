@@ -13,7 +13,7 @@ New branch of LV development with updated tools.
 
 ![alt text](pics/schema.png)
 
-Скриншоты приложения
+Скриншоты приложения:
 
 ![alt text](pics/main.jpg)
 ![alt text](pics/camera.jpg)
